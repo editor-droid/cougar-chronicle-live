@@ -17,22 +17,6 @@
   --font-serif: 'Merriweather', serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #121212; /* Deep dark */
-    --foreground: #E0E0E0; /* Soft white for readability */
-    --surface: #1E1E1E;
-    --surface-hover: #2A2A2A;
-    --border: #333333;
-    --primary: #3A458B; /* Brighter navy for dark mode readability */
-    --primary-foreground: #FFFFFF;
-    --secondary: #34495E;
-    --secondary-foreground: #FFFFFF;
-    --accent: #F39C12;
-    --muted: #9E9E9E;
-  }
-}
-
 * {
   box-sizing: border-box;
   margin: 0;
@@ -94,12 +78,6 @@ a:hover {
 
 .btn-primary:hover {
   background-color: #111534; /* Darker navy */
-}
-
-@media (prefers-color-scheme: dark) {
-  .btn-primary:hover {
-    background-color: #29326D;
-  }
 }
 
 .btn-secondary {

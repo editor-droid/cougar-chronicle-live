@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import Image from '@tiptap/extension-image';
 import { savePost } from '../../actions';
 import { useRouter } from 'next/navigation';
+import { upload } from '@vercel/blob/client';
 
 export default function EditorForm({ post, authorId }: { post: any, authorId: string }) {
   const router = useRouter();
@@ -12,9 +14,10 @@ export default function EditorForm({ post, authorId }: { post: any, authorId: st
   const [category, setCategory] = useState(post?.category || 'news');
   const [slug, setSlug] = useState(post?.slug || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const editor = useEditor({
-    extensions: [StarterKit],
+    extensions: [StarterKit, Image],
     content: post?.content || '<p>Start writing your story here...</p>',
     editorProps: {
       attributes: {
@@ -23,6 +26,27 @@ export default function EditorForm({ post, authorId }: { post: any, authorId: st
       },
     },
   });
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    
+    // Reset input
+    if (fileInputRef.current) fileInputRef.current.value = '';
+
+    try {
+      const newBlob = await upload(file.name, file, {
+        access: 'public',
+        handleUploadUrl: '/api/upload',
+      });
+      if (editor) {
+        editor.chain().focus().setImage({ src: newBlob.url }).run();
+      }
+    } catch (err) {
+      console.error('Failed to upload image', err);
+      alert('Failed to upload image. Ensure Vercel Blob is configured and you have the right permissions.');
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,6 +122,15 @@ export default function EditorForm({ post, authorId }: { post: any, authorId: st
           <button type="button" onClick={() => editor?.chain().focus().toggleItalic().run()} className="btn btn-secondary text-sm font-sans">Italic</button>
           <button type="button" onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()} className="btn btn-secondary text-sm font-sans">Heading 2</button>
           <button type="button" onClick={() => editor?.chain().focus().toggleBlockquote().run()} className="btn btn-secondary text-sm font-sans">Quote</button>
+          <div style={{ width: '1px', backgroundColor: 'var(--border)', margin: '0 0.5rem' }}></div>
+          <button type="button" onClick={() => fileInputRef.current?.click()} className="btn btn-secondary text-sm font-sans">Add Image</button>
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={handleImageUpload} 
+            accept="image/*" 
+            style={{ display: 'none' }} 
+          />
         </div>
         <EditorContent editor={editor} />
       </div>

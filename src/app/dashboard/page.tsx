@@ -28,9 +28,17 @@ export default async function DashboardPage() {
   return (
     <div className="container animate-fade-in" style={{ marginTop: '2rem' }}>
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>
-        <h1 className="font-serif" style={{ fontSize: '2.5rem' }}>
-          {isEditorOrAdmin ? 'Editorial Dashboard' : 'Writer Dashboard'}
-        </h1>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: '2rem' }}>
+          <h1 className="font-serif" style={{ fontSize: '2.5rem' }}>
+            {isEditorOrAdmin ? 'Editorial Dashboard' : 'Writer Dashboard'}
+          </h1>
+          {role === 'ADMIN' && (
+            <nav style={{ display: 'flex', gap: '1rem' }}>
+              <span className="font-sans" style={{ fontWeight: 600, borderBottom: '2px solid var(--foreground)' }}>Posts</span>
+              <Link href="/dashboard/users" className="text-muted hover:text-foreground font-sans">Users</Link>
+            </nav>
+          )}
+        </div>
         <div style={{ display: 'flex', gap: '1rem' }}>
           <span className="text-muted font-sans" style={{ alignSelf: 'center' }}>Logged in as {session.user.name || session.user.email} ({role})</span>
           <Link href="/dashboard/editor/new" className="btn btn-primary font-sans">New Draft</Link>
