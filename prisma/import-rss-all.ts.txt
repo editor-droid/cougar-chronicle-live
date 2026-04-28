@@ -1,0 +1,109 @@
+import 'dotenv/config';
+import Parser from 'rss-parser';
+import { Pool } from 'pg';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaClient } from '@prisma/client';
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
+
+const parser = new Parser({
+  customFields: {
+    item: ['content:encoded', 'dc:creator', 'category'],
+  }
+});
+
+async function main() {
+  console.log('Fetching all RSS feeds...');
+  let page = 1;
+  let totalImported = 0;
+
+  while (true) {
+    console.log(`Fetching RSS page ${page}...`);
+    try {
+      const feed = await parser.parseURL(`https://thecougarchronicle.com/feed/?paged=${page}`);
+      
+      if (!feed || !feed.items || feed.items.length === 0) {
+        break;
+      }
+
+      for (const item of feed.items) {
+        const slug = item.title?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') || `post-${Date.now()}`;
+        
+        let mappedCategory = 'news';
+        const categories = item.categories || [];
+        const catStr = categories.join(' ').toLowerCase();
+        
+        if (catStr.includes('faith') || catStr.includes('lds') || catStr.includes('church') || catStr.includes('religion')) {
+          mappedCategory = 'faith';
+        } else if (catStr.includes('opinion') || catStr.includes('editorial') || catStr.includes('editorials') || catStr.includes('op-ed')) {
+          mappedCategory = 'opinion';
+        }
+
+        const rawContent = item['content:encoded'] || item.content || '';
+        
+        const imgMatch = rawContent.match(/<img[^>]+src="([^">]+)"/);
+        let imageUrl = imgMatch ? imgMatch[1] : null;
+
+        if (imageUrl) {
+          imageUrl = imageUrl.split('?')[0]; 
+        }
+
+        const authorName = item.creator || item['dc:creator'] || 'Editorial Board';
+        const authorEmail = `${authorName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()}@cougarchronicle.com`;
+        
+        const author = await prisma.user.upsert({
+          where: { email: authorEmail },
+          update: {},
+          create: {
+            email: authorEmail,
+            name: authorName,
+            role: 'WRITER'
+          }
+        });
+
+        try {
+          await prisma.post.upsert({
+            where: { slug },
+            update: {
+              title: item.title || 'Untitled',
+              content: rawContent, // This is the full RSS content
+              category: mappedCategory,
+              imageUrl: imageUrl,
+              authorId: author.id
+            },
+            create: {
+              title: item.title || 'Untitled',
+              slug,
+              content: rawContent,
+              category: mappedCategory,
+              state: 'PUBLISHED',
+              authorId: author.id,
+              imageUrl: imageUrl,
+              createdAt: item.pubDate ? new Date(item.pubDate) : new Date(),
+              views: Math.floor(Math.random() * 500)
+            }
+          });
+          totalImported++;
+        } catch (e: any) {
+          console.error(`Failed to import: ${item.title} - ${e.message}`);
+        }
+      }
+      
+      page++;
+    } catch (e: any) {
+      if (e.message.includes('404')) {
+        break;
+      }
+      console.error(`Error on page ${page}:`, e.message);
+      break;
+    }
+  }
+
+  console.log(`Import complete! Total imported from RSS: ${totalImported}`);
+}
+
+main()
+  .catch(console.error)
+  .finally(() => prisma.$disconnect());
