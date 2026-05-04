@@ -1,0 +1,61 @@
+'use client';
+
+import { useState } from 'react';
+
+export default function SubscribeForm() {
+  const [email, setEmail] = useState('');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [message, setMessage] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+    
+    setStatus('loading');
+    
+    try {
+      const res = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      
+      if (res.ok) {
+        setStatus('success');
+        setMessage('Thank you for subscribing!');
+        setEmail('');
+      } else {
+        setStatus('error');
+        setMessage('Failed to subscribe. Please try again.');
+      }
+    } catch (err) {
+      setStatus('error');
+      setMessage('An error occurred. Please try again.');
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', width: '100%', maxWidth: '400px', margin: '0 auto' }}>
+      <div style={{ display: 'flex', width: '100%', gap: '0.5rem' }}>
+        <input 
+          type="email" 
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Your email address" 
+          required
+          style={{ flex: 1, padding: '0.75rem 1rem', borderRadius: '0.25rem', border: 'none', outline: 'none', fontFamily: 'var(--font-sans)', fontSize: '1rem' }} 
+        />
+        <button 
+          type="submit" 
+          disabled={status === 'loading'}
+          className="btn font-sans" 
+          style={{ backgroundColor: 'white', color: 'var(--primary)', fontWeight: 'bold', padding: '0.75rem 1.5rem' }}
+        >
+          {status === 'loading' ? 'Sending...' : 'Subscribe'}
+        </button>
+      </div>
+      {status === 'success' && <div style={{ color: '#4ade80', fontSize: '0.875rem' }}>{message}</div>}
+      {status === 'error' && <div style={{ color: '#f87171', fontSize: '0.875rem' }}>{message}</div>}
+    </form>
+  );
+}

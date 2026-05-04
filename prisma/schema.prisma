@@ -96,3 +96,10 @@ model ContactSubmission {
   isRead    Boolean  @default(false)
 }
 
+model Subscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+  isActive  Boolean  @default(true)
+}
+
