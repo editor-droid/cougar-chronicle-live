@@ -6,7 +6,7 @@ import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import { savePost, updatePostState, addEditorialNote } from '../../actions';
 import { useRouter } from 'next/navigation';
-import { upload } from '@vercel/blob/client';
+
 
 export default function EditorForm({ post, authorId, userRole }: { post: any, authorId: string, userRole: string }) {
   const router = useRouter();
@@ -44,16 +44,32 @@ export default function EditorForm({ post, authorId, userRole }: { post: any, au
     if (fileInputRef.current) fileInputRef.current.value = '';
 
     try {
-      const newBlob = await upload(file.name, file, {
-        access: 'public',
-        handleUploadUrl: '/api/upload',
+      // 1. Get presigned URL
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename: file.name, contentType: file.type })
       });
+      
+      if (!response.ok) throw new Error('Failed to get upload URL');
+      const { uploadUrl, publicUrl } = await response.json();
+
+      // 2. Upload file directly to R2
+      const uploadRes = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': file.type },
+        body: file
+      });
+
+      if (!uploadRes.ok) throw new Error('Failed to upload file to storage');
+
+      // 3. Insert image into editor
       if (editor) {
-        editor.chain().focus().setImage({ src: newBlob.url }).run();
+        editor.chain().focus().setImage({ src: publicUrl }).run();
       }
     } catch (err) {
       console.error('Failed to upload image', err);
-      alert('Failed to upload image. Ensure Vercel Blob is configured correctly.');
+      alert('Failed to upload image to Cloudflare R2.');
     }
   };
 
@@ -62,14 +78,29 @@ export default function EditorForm({ post, authorId, userRole }: { post: any, au
     const file = e.target.files[0];
     setIsUploadingFeatured(true);
     try {
-      const newBlob = await upload(file.name, file, {
-        access: 'public',
-        handleUploadUrl: '/api/upload',
+      // 1. Get presigned URL
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename: file.name, contentType: file.type })
       });
-      setImageUrl(newBlob.url);
+      
+      if (!response.ok) throw new Error('Failed to get upload URL');
+      const { uploadUrl, publicUrl } = await response.json();
+
+      // 2. Upload file directly to R2
+      const uploadRes = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': file.type },
+        body: file
+      });
+
+      if (!uploadRes.ok) throw new Error('Failed to upload file to storage');
+
+      setImageUrl(publicUrl);
     } catch (err) {
       console.error('Failed to upload featured image', err);
-      alert('Failed to upload featured image. Ensure Vercel Blob is configured correctly.');
+      alert('Failed to upload featured image to Cloudflare R2.');
     } finally {
       setIsUploadingFeatured(false);
       if (featuredFileInputRef.current) featuredFileInputRef.current.value = '';

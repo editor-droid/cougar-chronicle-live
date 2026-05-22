@@ -1,40 +1,53 @@
-import { handleUpload, type HandleUploadBody } from '@vercel/blob/client';
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
-export async function POST(request: Request): Promise<NextResponse> {
-  const body = (await request.json()) as HandleUploadBody;
+const s3Client = new S3Client({
+  region: 'auto',
+  endpoint: `https://${process.env.CLOUDFLARE_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+  credentials: {
+    accessKeyId: process.env.CLOUDFLARE_ACCESS_KEY_ID || '',
+    secretAccessKey: process.env.CLOUDFLARE_SECRET_ACCESS_KEY || '',
+  },
+});
 
+export async function POST(request: Request) {
   try {
-    const jsonResponse = await handleUpload({
-      body,
-      request,
-      onBeforeGenerateToken: async (pathname) => {
-        // Only authenticated users can upload images
-        const session = await auth();
-        if (!session?.user) {
-          throw new Error('Unauthorized');
-        }
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-        // Return the user ID so it's recorded in the blob metadata
-        return {
-          allowedContentTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
-          tokenPayload: JSON.stringify({
-            userId: session.user.id,
-          }),
-        };
-      },
-      onUploadCompleted: async ({ blob, tokenPayload }) => {
-        console.log('Upload completed:', blob.url);
-        // Optional: you can record the blob URL in your database here
-      },
+    const { filename, contentType } = await request.json();
+
+    if (!filename || !contentType) {
+      return NextResponse.json({ error: 'Missing filename or contentType' }, { status: 400 });
+    }
+
+    // Generate a unique filename to prevent collisions
+    const uniqueFilename = `${Date.now()}-${filename.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+
+    const command = new PutObjectCommand({
+      Bucket: process.env.CLOUDFLARE_BUCKET_NAME,
+      Key: uniqueFilename,
+      ContentType: contentType,
     });
 
-    return NextResponse.json(jsonResponse);
+    // Generate presigned URL valid for 5 minutes
+    const signedUrl = await getSignedUrl(s3Client, command, { expiresIn: 300 });
+
+    const publicUrl = `${process.env.CLOUDFLARE_PUBLIC_URL}/${uniqueFilename}`;
+
+    return NextResponse.json({
+      uploadUrl: signedUrl,
+      publicUrl: publicUrl,
+    });
   } catch (error) {
+    console.error('Failed to generate presigned URL', error);
     return NextResponse.json(
       { error: (error as Error).message },
-      { status: 400 } // The webhook will retry 5 times waiting for a 200
+      { status: 500 }
     );
   }
 }
