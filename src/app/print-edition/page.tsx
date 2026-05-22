@@ -32,7 +32,7 @@ export default function PrintEditionPage() {
         {/* Digital Copy */}
         <div style={{ padding: '3rem', backgroundColor: 'var(--surface)', borderRadius: '0.5rem', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <h2 className="font-serif" style={{ fontSize: '2rem', marginBottom: '1rem', color: 'var(--foreground)' }}>Digital PDF</h2>
-          <div style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '1rem' }}>$5.00</div>
+          <div style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '1rem' }}>$10.00</div>
           <p className="font-sans text-muted" style={{ marginBottom: '2rem' }}>Instantly download a full PDF replica of the print edition to read on your tablet or computer.</p>
           
           <form action="/api/stripe/checkout" method="POST" style={{ width: '100%' }}>

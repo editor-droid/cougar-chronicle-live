@@ -81,7 +81,7 @@ export async function POST(req: Request) {
               product_data: {
                 name: 'Print Edition (Digital PDF Download)',
               },
-              unit_amount: 500, // $5.00
+              unit_amount: 1000, // $10.00
             },
             quantity: 1,
           },
