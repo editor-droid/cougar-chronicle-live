@@ -17,7 +17,10 @@ export default function LoginPage() {
             <input type="email" name="email" placeholder="editor@cougarchronicle.com" required />
           </div>
           <div>
-            <label className="font-sans text-sm" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Password</label>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+              <label className="font-sans text-sm" style={{ fontWeight: 600 }}>Password</label>
+              <Link href="/forgot-password" className="font-sans text-xs text-muted" style={{ textDecoration: 'underline' }}>Forgot password?</Link>
+            </div>
             <input type="password" name="password" placeholder="••••••••" required />
           </div>
           <button type="submit" className="btn btn-primary" style={{ marginTop: '0.5rem', width: '100%', padding: '0.75rem' }}>
