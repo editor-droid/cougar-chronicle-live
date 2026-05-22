@@ -57,6 +57,17 @@ model Post {
   seoDescription   String?
   seoKeywords      String?
   featuredImageAlt String?
+  isPremium        Boolean   @default(false)
+  articleTokens    ArticleToken[]
+}
+
+model ArticleToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  email     String
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
 }
 
 model Account {

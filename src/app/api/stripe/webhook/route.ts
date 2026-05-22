@@ -21,23 +21,73 @@ export async function POST(req: Request) {
     return new NextResponse(`Webhook Error: ${error.message}`, { status: 400 });
   }
 
-  const session = event.data.object as Stripe.Checkout.Session;
-
   if (event.type === 'checkout.session.completed') {
-    if (session.metadata?.type === 'subscription') {
+    const session = event.data.object as Stripe.Checkout.Session;
+    
+    const { type, userId, postId, slug } = session.metadata || {};
+    const customerEmail = session.customer_details?.email;
+    const customerName = session.customer_details?.name;
+
+    if (type === 'subscription' && userId) {
       await prisma.user.update({
-        where: { id: session.metadata.userId },
+        where: { id: userId },
         data: { 
           isSubscribed: true,
           stripeId: session.customer as string,
-          giftLinks: { increment: 3 } // Award 3 gift links
+          giftLinks: { increment: 3 }
         }
       });
+    } 
+    else if (type === 'donation') {
+      // Send a thank you email for their donation
+      if (customerEmail) {
+        // You would add Resend logic here to email the donor
+        console.log(`Donation received from ${customerEmail}`);
+      }
+    }
+    else if (type === 'physical_print') {
+      // Notify fulfillment team
+      console.log(`Physical Print Edition ordered by ${customerEmail}`);
+    }
+    else if (type === 'digital_print') {
+      // Email them the full PDF
+      if (customerEmail) {
+        console.log(`Emailing Digital Print PDF to ${customerEmail}`);
+      }
+    }
+    else if (type === 'digital_article' && postId) {
+      // Generate a secure access token for this article
+      if (customerEmail) {
+        const crypto = require('crypto');
+        const secureToken = crypto.randomBytes(32).toString('hex');
+        
+        await prisma.articleToken.create({
+          data: {
+            token: secureToken,
+            email: customerEmail,
+            postId: postId
+          }
+        });
+
+        const articleLink = `${process.env.NEXTAUTH_URL}/article/${slug}?token=${secureToken}`;
+        
+        // Use Resend to email them the secure link
+        const { Resend } = require('resend');
+        const resend = new Resend(process.env.RESEND_API_KEY);
+        
+        await resend.emails.send({
+          from: 'The Cougar Chronicle <noreply@cougarchronicle.com>',
+          to: customerEmail,
+          subject: 'Here is your premium article',
+          html: `<p>Thank you for purchasing this article! You can view the full, ad-free article anytime by clicking your private link below:</p><br/><a href="${articleLink}">${articleLink}</a>`
+        });
+      }
     }
   }
 
   if (event.type === 'invoice.payment_succeeded') {
-    const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
+    const invoice = event.data.object as any;
+    const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string);
     await prisma.user.update({
       where: { stripeId: subscription.customer as string },
       data: { isSubscribed: true, giftLinks: { increment: 3 } }
