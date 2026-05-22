@@ -10,7 +10,7 @@
   --primary-foreground: #FFFFFF;
   --secondary: #2C3E50;
   --secondary-foreground: #FFFFFF;
-  --accent: #E67E22;
+  --accent: #1B2253; /* Changed from Orange to Navy */
   --muted: #6B7280;
   
   --font-sans: 'Inter', sans-serif;
