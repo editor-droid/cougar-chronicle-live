@@ -14,6 +14,7 @@ export async function POST(req: Request) {
     }
 
     const { type, priceId } = await req.json();
+    const origin = req.headers.get('origin') || new URL(req.url).origin;
 
     let checkoutSession;
 
@@ -28,8 +29,8 @@ export async function POST(req: Request) {
             quantity: 1,
           },
         ],
-        success_url: `${process.env.NEXTAUTH_URL}/dashboard?success=true`,
-        cancel_url: `${process.env.NEXTAUTH_URL}/dashboard?canceled=true`,
+        success_url: `${origin}/dashboard?success=true`,
+        cancel_url: `${origin}/dashboard?canceled=true`,
         metadata: {
           userId: session.user.id,
           type: 'subscription'
@@ -49,8 +50,8 @@ export async function POST(req: Request) {
             quantity: 1,
           },
         ],
-        success_url: `${process.env.NEXTAUTH_URL}/dashboard?success=true`,
-        cancel_url: `${process.env.NEXTAUTH_URL}/dashboard?canceled=true`,
+        success_url: `${origin}/dashboard?success=true`,
+        cancel_url: `${origin}/dashboard?canceled=true`,
         metadata: {
           userId: session.user.id,
           type: 'physical'
