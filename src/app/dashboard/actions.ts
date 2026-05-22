@@ -160,6 +160,7 @@ export async function updatePostState(formData: FormData) {
             from: 'The Cougar Chronicle <newsletter@updates.thecougarchronicle.com>',
             subject: `New Post: ${post.title}`,
             html: broadcastHtml,
+            send: true,
           });
         }
       } catch (broadcastError) {
