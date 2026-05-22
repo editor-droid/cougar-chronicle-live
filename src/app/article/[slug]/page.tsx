@@ -1,6 +1,41 @@
 import prisma from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
+import type { Metadata, ResolvingMetadata } from 'next';
+
+export async function generateMetadata({ params }: { params: { slug: string } }, parent: ResolvingMetadata): Promise<Metadata> {
+  const { slug } = await params;
+  
+  const post = await prisma.post.findUnique({
+    where: { slug, state: 'PUBLISHED' },
+    include: { author: true }
+  });
+
+  if (!post) {
+    return { title: 'Not Found' };
+  }
+
+  const excerpt = post.content ? post.content.replace(/<[^>]*>?/gm, '').substring(0, 160) + '...' : 'Read our latest article.';
+  
+  return {
+    title: post.title,
+    description: excerpt,
+    openGraph: {
+      title: post.title,
+      description: excerpt,
+      type: 'article',
+      publishedTime: post.publishedAt?.toISOString() || post.createdAt.toISOString(),
+      authors: [post.author.name || 'The Cougar Chronicle'],
+      images: post.imageUrl ? [post.imageUrl] : undefined,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: post.title,
+      description: excerpt,
+      images: post.imageUrl ? [post.imageUrl] : undefined,
+    }
+  };
+}
 
 export default async function ArticlePage({ params }: { params: { slug: string } }) {
   const { slug } = await params;

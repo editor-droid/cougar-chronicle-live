@@ -1,3 +1,11 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Print Edition',
+  description: 'Where to find physical copies of The Cougar Chronicle on campus.',
+};
+
+
 export default function PrintEditionPage() {
   return (
     <div style={{ padding: '6rem 2rem', textAlign: 'center', minHeight: '60vh' }}>

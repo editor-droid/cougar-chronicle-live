@@ -5,8 +5,33 @@ import SubscribeModal from '@/components/SubscribeModal';
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Cougar Chronicle | Conservative News & Opinion',
+  metadataBase: new URL(process.env.NEXTAUTH_URL || 'https://cougar-chronicle-live-production-c994.up.railway.app'),
+  title: {
+    default: 'The Cougar Chronicle | Conservative News & Opinion',
+    template: '%s | The Cougar Chronicle',
+  },
   description: 'National-grade news platform for the BYU community. Faith, News, and Opinion.',
+  openGraph: {
+    title: 'The Cougar Chronicle',
+    description: 'Conservative News & Opinion for the BYU community.',
+    url: '/',
+    siteName: 'The Cougar Chronicle',
+    images: [
+      {
+        url: '/default-og.png',
+        width: 1200,
+        height: 630,
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'The Cougar Chronicle',
+    description: 'Conservative News & Opinion for the BYU community.',
+    images: ['/default-og.png'],
+  },
 }
 
 export default function RootLayout({

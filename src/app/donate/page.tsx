@@ -1,3 +1,11 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Donate',
+  description: 'Support independent, conservative journalism at BYU.',
+};
+
+
 export default function DonatePage() {
   return (
     <div style={{ padding: '6rem 2rem', textAlign: 'center', minHeight: '60vh' }}>

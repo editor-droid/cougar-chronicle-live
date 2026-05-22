@@ -1,6 +1,14 @@
 import { signIn } from '@/auth';
 import Link from 'next/link';
 
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Staff Login',
+  description: 'Staff portal login.',
+};
+
+
 export default function LoginPage() {
   return (
     <div className="container animate-fade-in" style={{ maxWidth: '400px', marginTop: '4rem' }}>

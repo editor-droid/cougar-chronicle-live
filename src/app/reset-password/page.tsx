@@ -2,6 +2,14 @@ import Link from 'next/link';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Reset Password',
+  description: 'Reset your password.',
+};
+
+
 export default function ResetPasswordPage({ searchParams }: { searchParams?: { token?: string, email?: string, error?: string, success?: string } }) {
   const token = searchParams?.token;
   const email = searchParams?.email;

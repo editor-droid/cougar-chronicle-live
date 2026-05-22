@@ -1,5 +1,16 @@
 import prisma from '@/lib/prisma';
 import Link from 'next/link';
+import Image from 'next/image';
+import type { Metadata } from 'next';
+
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  const { slug } = await params;
+  const categoryName = slug.charAt(0).toUpperCase() + slug.slice(1);
+  return {
+    title: categoryName,
+    description: `Browse all articles filed under ${categoryName} in The Cougar Chronicle.`,
+  };
+}
 
 export default async function CategoryPage({ params }: { params: { slug: string } }) {
   const { slug } = await params;
@@ -25,10 +36,9 @@ export default async function CategoryPage({ params }: { params: { slug: string 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '2.5rem' }}>
           {posts.map((post) => (
             <article key={post.id} style={{ display: 'flex', flexDirection: 'column' }}>
-              <Link href={`/article/${post.slug}`} style={{ width: '100%', aspectRatio: '16/9', backgroundColor: 'var(--surface-hover)', borderRadius: '0.5rem', marginBottom: '1rem', display: 'block', overflow: 'hidden' }}>
+              <Link href={`/article/${post.slug}`} style={{ position: 'relative', width: '100%', aspectRatio: '16/9', backgroundColor: 'var(--surface-hover)', borderRadius: '0.5rem', marginBottom: '1rem', display: 'block', overflow: 'hidden' }}>
                 {post.imageUrl && (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img src={post.imageUrl} alt={post.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <Image src={post.imageUrl} alt={post.title} fill sizes="(max-width: 768px) 100vw, 300px" style={{ objectFit: 'cover' }} />
                 )}
               </Link>
               <h3 className={headerFontClass} style={{ fontSize: '1.5rem', marginBottom: '0.5rem', lineHeight: '1.3' }}>

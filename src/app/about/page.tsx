@@ -1,3 +1,11 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'About Us',
+  description: 'Learn about The Cougar Chronicle, our mission, and our editorial board.',
+};
+
+
 export default function AboutPage() {
   return (
     <div style={{ padding: '6rem 2rem', minHeight: '60vh', maxWidth: '800px', margin: '0 auto' }}>
