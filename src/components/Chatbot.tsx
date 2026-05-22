@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
 
 type Message = {
@@ -53,6 +54,7 @@ export default function Chatbot() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
+  const pathname = usePathname();
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -76,7 +78,7 @@ export default function Chatbot() {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: [...messages, userMessage] })
+        body: JSON.stringify({ messages: [...messages, userMessage], pathname })
       });
 
       if (!response.ok) {

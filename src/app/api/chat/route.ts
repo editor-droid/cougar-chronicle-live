@@ -6,7 +6,19 @@ export const maxDuration = 30;
 
 export async function POST(req: Request) {
   try {
-    const { messages } = await req.json();
+    const { messages, pathname } = await req.json();
+
+    let currentPageContext = '';
+    if (pathname && pathname.startsWith('/article/')) {
+      const slug = pathname.split('/').pop();
+      const currentArticle = await prisma.post.findUnique({
+        where: { slug },
+        select: { title: true, content: true }
+      });
+      if (currentArticle) {
+        currentPageContext = `\n\n--- CURRENT PAGE CONTEXT ---\nThe user is currently reading this article:\nTitle: ${currentArticle.title}\nContent: ${currentArticle.content?.substring(0, 3000)}\n\nYou should prioritize answering questions based on this article if the question is related to it.`;
+      }
+    }
 
     // RAG Logic
     const lastUserMessage = messages[messages.length - 1]?.content || "";
@@ -66,6 +78,7 @@ FORMATTING INSTRUCTIONS:
 
 --- LATEST & RELEVANT ARTICLES DATABASE ---
 ${formattedArticles}
+${currentPageContext}
 `;
 
     const result = await streamText({

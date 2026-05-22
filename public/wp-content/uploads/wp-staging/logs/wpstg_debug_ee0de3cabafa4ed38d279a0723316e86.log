@@ -1,0 +1,50 @@
+[WP STAGING Shutdown Function][E_ERROR][2025-09-08 13:35:54] Uncaught Error: Failed opening required '/srv/htdocs/wp-content/plugins/google-site-kit/includes/Core/Util/URL.php' (include_path='/:.') in /srv/htdocs/wp-content/plugins/google-site-kit/includes/loader.php:43
+Stack trace:
+#0 /srv/htdocs/wp-content/plugins/google-site-kit/includes/Core/Authentication/Authentication.php(1018): Google\Site_Kit\{closure}('Google\\Site_Kit...')
+#1 /srv/htdocs/wp-content/plugins/google-site-kit/includes/Core/Util/Method_Proxy_Trait.php(25): Google\Site_Kit\Core\Authentication\Authentication->allowed_redirect_hosts(Array)
+#2 /wordpress/core/6.8.2/wp-includes/class-wp-hook.php(326): Google\Site_Kit\Core\Authentication\Authentication->Google\Site_Kit\Core\Util\{closure}(Array)
+#3 /wordpress/core/6.8.2/wp-includes/plugin.php(205): WP_Hook->apply_filters(Array, Array)
+#4 /wordpress/core/6.8.2/wp-includes/pluggable.php(1640): apply_filters('allowed_redirec...', Array, 'thecougarchroni...')
+#5 /wordpress/core/6.8.2/wp-includes/functions.php(1985): wp_validate_redirect('https://thecoug...', false)
+#6 /srv/htdocs/wp-content/plugins/elementor/app/app.php(107): wp_get_referer()
+#7 /srv/htdocs/wp-content/plugins/elementor/core/base/base-object.php(143): Elementor\App\App->get_init_settings()
+#8 /srv/htdocs/wp-content/plugins/elementor/core/base/base-object.php(57): Elementor\Core\Base\Base_Object->ensure_settings()
+#9 /srv/htdocs/wp-content/plugins/elementor-pro/core/app/app.php(35): Elementor\Core\Base\Base_Object->set_settings('menu_url', 'https://thecoug...')
+#10 /wordpress/core/6.8.2/wp-includes/class-wp-hook.php(324): ElementorPro\Core\App\App->set_menu_url('')
+#11 /wordpress/core/6.8.2/wp-includes/class-wp-hook.php(348): WP_Hook->apply_filters(NULL, Array)
+#12 /wordpress/core/6.8.2/wp-includes/plugin.php(517): WP_Hook->do_action(Array)
+#13 /srv/htdocs/wp-content/plugins/elementor/includes/plugin.php(671): do_action('elementor/init')
+#14 /wordpress/core/6.8.2/wp-includes/class-wp-hook.php(324): Elementor\Plugin->init('')
+#15 /wordpress/core/6.8.2/wp-includes/class-wp-hook.php(348): WP_Hook->apply_filters(NULL, Array)
+#16 /wordpress/core/6.8.2/wp-includes/plugin.php(517): WP_Hook->do_action(Array)
+#17 /wordpress/core/6.8.2/wp-settings.php(727): do_action('init')
+#18 /srv/htdocs/wp-config.php(83): require_once('/wordpress/core...')
+#19 /wordpress/core/6.8.2/wp-load.php(55): require_once('/srv/htdocs/wp-...')
+#20 /wordpress/core/6.8.2/wp-blog-header.php(13): require_once('/wordpress/core...')
+#21 /wordpress/core/6.8.2/index.php(17): require('/wordpress/core...')
+#22 {main}
+  thrown - File: /srv/htdocs/wp-content/plugins/google-site-kit/includes/loader.php Line: 43 | Is it Fatal Error? Yes | Is it Thrown by WP STAGING? No
+[WP STAGING Shutdown Function][E_ERROR][2025-09-08 13:35:55] Uncaught Error: Failed opening required '/srv/htdocs/wp-content/plugins/google-site-kit/includes/Core/Storage/Transients.php' (include_path='/:.') in /srv/htdocs/wp-content/plugins/google-site-kit/includes/loader.php:43
+Stack trace:
+#0 /srv/htdocs/wp-content/plugins/google-site-kit/includes/Plugin.php(156): Google\Site_Kit\{closure}('Google\\Site_Kit...')
+#1 /wordpress/core/6.8.2/wp-includes/class-wp-hook.php(324): Google\Site_Kit\Plugin->Google\Site_Kit\{closure}('')
+#2 /wordpress/core/6.8.2/wp-includes/class-wp-hook.php(348): WP_Hook->apply_filters(NULL, Array)
+#3 /wordpress/core/6.8.2/wp-includes/plugin.php(517): WP_Hook->do_action(Array)
+#4 /wordpress/core/6.8.2/wp-settings.php(727): do_action('init')
+#5 /srv/htdocs/wp-config.php(83): require_once('/wordpress/core...')
+#6 /wordpress/core/6.8.2/wp-load.php(55): require_once('/srv/htdocs/wp-...')
+#7 /wordpress/core/6.8.2/wp-blog-header.php(13): require_once('/wordpress/core...')
+#8 /wordpress/core/6.8.2/index.php(17): require('/wordpress/core...')
+#9 {main}
+  thrown - File: /srv/htdocs/wp-content/plugins/google-site-kit/includes/loader.php Line: 43 | Is it Fatal Error? Yes | Is it Thrown by WP STAGING? No
+[WP STAGING Shutdown Function][E_ERROR][2025-09-08 13:35:55] Uncaught Error: Failed opening required '/srv/htdocs/wp-content/plugins/google-site-kit/includes/Modules/Analytics_4/Web_Tag.php' (include_path='/:.') in /srv/htdocs/wp-content/plugins/google-site-kit/includes/loader.php:43
+Stack trace:
+#0 /srv/htdocs/wp-content/plugins/google-site-kit/includes/Modules/Analytics_4.php(2077): Google\Site_Kit\{closure}('Google\\Site_Kit...')
+#1 /wordpress/core/6.8.2/wp-includes/class-wp-hook.php(324): Google\Site_Kit\Modules\Analytics_4->register_tag('')
+#2 /wordpress/core/6.8.2/wp-includes/class-wp-hook.php(348): WP_Hook->apply_filters(NULL, Array)
+#3 /wordpress/core/6.8.2/wp-includes/plugin.php(517): WP_Hook->do_action(Array)
+#4 /wordpress/core/6.8.2/wp-includes/template-loader.php(13): do_action('template_redire...')
+#5 /wordpress/core/6.8.2/wp-blog-header.php(19): require_once('/wordpress/core...')
+#6 /wordpress/core/6.8.2/index.php(17): require('/wordpress/core...')
+#7 {main}
+  thrown - File: /srv/htdocs/wp-content/plugins/google-site-kit/includes/loader.php Line: 43 | Is it Fatal Error? Yes | Is it Thrown by WP STAGING? No

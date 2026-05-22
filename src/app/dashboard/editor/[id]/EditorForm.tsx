@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import Image from '@tiptap/extension-image';
+import { RichTextEditor, RichTextEditorHandle } from '@/components/RichTextEditor';
+import { SeoAnalysisPanel } from '@/components/SeoAnalysisPanel';
 import { savePost, updatePostState, addEditorialNote } from '../../actions';
 import { useRouter } from 'next/navigation';
 
@@ -20,6 +19,7 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
   const [featuredImageAlt, setFeaturedImageAlt] = useState(post?.featuredImageAlt || '');
   
   const [customAuthor, setCustomAuthor] = useState(post?.customAuthor || '');
+  const [keyInsights, setKeyInsights] = useState(post?.keyInsights || '');
   const [assignedAuthorId, setAssignedAuthorId] = useState(post?.authorId || authorId);
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -28,16 +28,10 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const featuredFileInputRef = useRef<HTMLInputElement>(null);
 
-  const editor = useEditor({
-    extensions: [StarterKit, Image],
-    content: post?.content || '<p>Start writing your story here...</p>',
-    editorProps: {
-      attributes: {
-        class: 'focus:outline-none font-serif',
-        style: 'min-height: 400px; padding: 1rem; border: 1px solid var(--border); border-radius: 0.5rem; background-color: var(--surface); font-size: 1.125rem; line-height: 1.8;'
-      },
-    },
-  });
+  const [content, setContent] = useState(post?.content || '<p>Start writing your story here...</p>');
+  const [focusKeyword, setFocusKeyword] = useState(post?.seoKeywords?.split(',')[0] || '');
+  const [isGeneratingSlug, setIsGeneratingSlug] = useState(false);
+  const editorRef = useRef<RichTextEditorHandle>(null);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
@@ -67,8 +61,8 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
       if (!uploadRes.ok) throw new Error('Failed to upload file to storage');
 
       // 3. Insert image into editor
-      if (editor) {
-        editor.chain().focus().setImage({ src: publicUrl }).run();
+      if (editorRef.current) {
+        editorRef.current.insertImage(publicUrl);
       }
     } catch (err) {
       console.error('Failed to upload image', err);
@@ -110,45 +104,31 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
     }
   };
 
-  const generateSEO = async () => {
-    if (!editor) return;
-    const content = editor.getHTML();
-    if (!content || content === '<p></p>') {
-      alert('Please write some content before generating SEO metadata.');
-      return;
-    }
-    
-    setIsGeneratingSEO(true);
+  const generateSlug = async () => {
+    if (!title && !content) return alert('Add a title or content first');
+    setIsGeneratingSlug(true);
     try {
-      const response = await fetch('/api/seo', {
+      const res = await fetch('/api/seo/slug', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title, content })
       });
-      
-      if (!response.ok) throw new Error('Failed to generate SEO');
-      
-      const data = await response.json();
-      setSeoTitle(data.seoTitle || '');
-      setSeoDescription(data.seoDescription || '');
-      setSeoKeywords(data.seoKeywords || '');
-      setFeaturedImageAlt(data.featuredImageAlt || '');
-    } catch (err) {
-      console.error(err);
-      alert('Failed to generate SEO metadata. Please try again.');
+      const data = await res.json();
+      if (data.slug) setSlug(data.slug);
+    } catch(err) {
+      alert('Failed to generate slug');
     } finally {
-      setIsGeneratingSEO(false);
+      setIsGeneratingSlug(false);
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editor) return;
+    if (false) return;
     
     setIsSubmitting(true);
     try {
-      const content = editor.getHTML();
-      await savePost({
+            await savePost({
         id: post?.id,
         title,
         slug,
@@ -159,6 +139,7 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
         seoTitle,
         seoDescription,
         seoKeywords,
+        keyInsights,
         featuredImageAlt,
         customAuthor
       });
@@ -206,10 +187,10 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
                 onClick={async () => {
                   setIsSubmitting(true);
                   try {
-                    const content = editor?.getHTML() || '';
-                    await savePost({ 
+                                        await savePost({ 
                       id: post.id, title, slug, category, content, imageUrl, authorId: assignedAuthorId,
-                      seoTitle, seoDescription, seoKeywords, featuredImageAlt, customAuthor
+                      seoTitle, seoDescription, seoKeywords,
+        keyInsights, featuredImageAlt, customAuthor
                     });
                     
                     const fd = new FormData();
@@ -240,10 +221,10 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
                 onClick={async () => {
                   setIsSubmitting(true);
                   try {
-                    const content = editor?.getHTML() || '';
-                    await savePost({ 
+                                        await savePost({ 
                       id: post.id, title, slug, category, content, imageUrl, authorId: assignedAuthorId,
-                      seoTitle, seoDescription, seoKeywords, featuredImageAlt, customAuthor
+                      seoTitle, seoDescription, seoKeywords,
+        keyInsights, featuredImageAlt, customAuthor
                     });
                     
                     const fd = new FormData();
@@ -273,10 +254,10 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
                 onClick={async () => {
                   setIsSubmitting(true);
                   try {
-                    const content = editor?.getHTML() || '';
-                    await savePost({ 
+                                        await savePost({ 
                       id: post.id, title, slug, category, content, imageUrl, authorId: assignedAuthorId,
-                      seoTitle, seoDescription, seoKeywords, featuredImageAlt, customAuthor
+                      seoTitle, seoDescription, seoKeywords,
+        keyInsights, featuredImageAlt, customAuthor
                     });
                     
                     const fd = new FormData();
@@ -337,14 +318,24 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
           <div style={{ flex: 1, minWidth: '200px' }}>
             <label className="font-sans text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem' }}>URL Slug</label>
-            <input 
-              type="text" 
-              value={slug} 
-              onChange={(e) => setSlug(e.target.value)} 
-              required 
-              placeholder="my-new-post"
-              style={{ fontFamily: 'monospace', width: '100%', padding: '0.75rem', borderRadius: '0.25rem', border: '1px solid var(--border)' }}
-            />
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <input 
+                type="text" 
+                value={slug} 
+                onChange={(e) => setSlug(e.target.value)} 
+                required 
+                placeholder="my-new-post"
+                style={{ flex: 1, fontFamily: 'monospace', width: '100%', padding: '0.75rem', borderRadius: '0.25rem', border: '1px solid var(--border)' }}
+              />
+              <button 
+                type="button" 
+                onClick={generateSlug}
+                disabled={isGeneratingSlug}
+                className="btn btn-secondary font-sans text-sm"
+              >
+                {isGeneratingSlug ? '...' : '✨ AI'}
+              </button>
+            </div>
           </div>
           
           <div style={{ flex: 1, minWidth: '200px' }}>
@@ -425,16 +416,22 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
           )}
         </div>
 
-        <div>
-          <label className="font-sans text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem' }}>Body Content</label>
-          {/* Editor Toolbar */}
-          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem', padding: '0.5rem', backgroundColor: 'var(--surface-hover)', border: '1px solid var(--border)', borderRadius: '0.25rem', flexWrap: 'wrap' }}>
-            <button type="button" onClick={() => editor?.chain().focus().toggleBold().run()} className="btn btn-secondary text-sm font-sans">Bold</button>
-            <button type="button" onClick={() => editor?.chain().focus().toggleItalic().run()} className="btn btn-secondary text-sm font-sans">Italic</button>
-            <button type="button" onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()} className="btn btn-secondary text-sm font-sans">Heading 2</button>
-            <button type="button" onClick={() => editor?.chain().focus().toggleBlockquote().run()} className="btn btn-secondary text-sm font-sans">Quote</button>
-            <div style={{ width: '1px', backgroundColor: 'var(--border)', margin: '0 0.5rem' }}></div>
-            <button type="button" onClick={() => fileInputRef.current?.click()} className="btn btn-secondary text-sm font-sans">Add Image</button>
+        
+        <div style={{ marginBottom: '1.5rem' }}>
+          <label className="font-sans text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem' }}>
+            Key Insights / Takeaways (Optional)
+          </label>
+          <textarea 
+            value={keyInsights} 
+            onChange={(e) => setKeyInsights(e.target.value)} 
+            placeholder="Summarize the key points of this article. Readers can expand this box at the top of the article."
+            style={{ width: '100%', minHeight: '100px', padding: '0.75rem', borderRadius: '0.25rem', border: '1px solid var(--border)', fontFamily: 'var(--font-sans)', fontSize: '0.95rem' }}
+          />
+        </div>
+
+        <div style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
+          <div style={{ flex: '1 1 0%', minWidth: 0 }}>
+            <label className="font-sans text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem' }}>Body Content</label>
             <input 
               type="file" 
               ref={fileInputRef} 
@@ -442,81 +439,30 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
               accept="image/*" 
               style={{ display: 'none' }} 
             />
+            <RichTextEditor
+              ref={editorRef}
+              value={content}
+              onChange={setContent}
+              onImageInsert={() => fileInputRef.current?.click()}
+            />
           </div>
-          <EditorContent editor={editor} />
-        </div>
-
-        {/* AI SEO ASSISTANT PANEL */}
-        <div style={{ backgroundColor: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '0.5rem', padding: '1.5rem', marginTop: '1rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-            <div>
-              <h2 className="font-serif" style={{ fontSize: '1.5rem', color: '#0369a1', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
-                AI SEO Assistant
-              </h2>
-              <p className="font-sans text-sm" style={{ color: '#0284c7', marginTop: '0.25rem' }}>Automatically generate optimized metadata based on your article content.</p>
-            </div>
-            <button 
-              type="button" 
-              onClick={generateSEO} 
-              disabled={isGeneratingSEO}
-              className="btn font-sans"
-              style={{ backgroundColor: '#0284c7', color: 'white', border: 'none', padding: '0.75rem 1.5rem', fontSize: '1rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: isGeneratingSEO ? 0.7 : 1 }}
-            >
-              {isGeneratingSEO ? 'Generating...' : '✨ Generate SEO Metadata'}
-            </button>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-            <div style={{ gridColumn: '1 / -1' }}>
-              <label className="font-sans text-sm font-bold" style={{ color: '#0369a1', display: 'block', marginBottom: '0.5rem' }}>SEO Title</label>
-              <input 
-                type="text" 
-                value={seoTitle} 
-                onChange={(e) => setSeoTitle(e.target.value)} 
-                placeholder="Optimized headline for search engines (max 60 chars)"
-                style={{ width: '100%', padding: '0.75rem', borderRadius: '0.25rem', border: '1px solid #bae6fd', fontFamily: 'var(--font-sans)' }}
-              />
-              <div style={{ textAlign: 'right', fontSize: '0.75rem', color: seoTitle.length > 60 ? '#ef4444' : '#0ea5e9', marginTop: '0.25rem' }}>
-                {seoTitle.length} / 60 characters
-              </div>
-            </div>
-
-            <div style={{ gridColumn: '1 / -1' }}>
-              <label className="font-sans text-sm font-bold" style={{ color: '#0369a1', display: 'block', marginBottom: '0.5rem' }}>Meta Description</label>
-              <textarea 
-                value={seoDescription} 
-                onChange={(e) => setSeoDescription(e.target.value)} 
-                rows={2}
-                placeholder="Engaging summary for search results (max 155 chars)"
-                style={{ width: '100%', padding: '0.75rem', borderRadius: '0.25rem', border: '1px solid #bae6fd', fontFamily: 'var(--font-sans)', resize: 'vertical' }}
-              />
-              <div style={{ textAlign: 'right', fontSize: '0.75rem', color: seoDescription.length > 155 ? '#ef4444' : '#0ea5e9', marginTop: '0.25rem' }}>
-                {seoDescription.length} / 155 characters
-              </div>
-            </div>
-
-            <div>
-              <label className="font-sans text-sm font-bold" style={{ color: '#0369a1', display: 'block', marginBottom: '0.5rem' }}>SEO Keywords</label>
-              <input 
-                type="text" 
-                value={seoKeywords} 
-                onChange={(e) => setSeoKeywords(e.target.value)} 
-                placeholder="Comma separated keywords"
-                style={{ width: '100%', padding: '0.75rem', borderRadius: '0.25rem', border: '1px solid #bae6fd', fontFamily: 'var(--font-sans)' }}
-              />
-            </div>
-
-            <div>
-              <label className="font-sans text-sm font-bold" style={{ color: '#0369a1', display: 'block', marginBottom: '0.5rem' }}>Featured Image Alt Text</label>
-              <input 
-                type="text" 
-                value={featuredImageAlt} 
-                onChange={(e) => setFeaturedImageAlt(e.target.value)} 
-                placeholder="Accessibility description of the main image"
-                style={{ width: '100%', padding: '0.75rem', borderRadius: '0.25rem', border: '1px solid #bae6fd', fontFamily: 'var(--font-sans)' }}
-              />
-            </div>
+          <div style={{ width: '350px', flexShrink: 0, marginTop: '2rem' }}>
+            <SeoAnalysisPanel
+              title={title}
+              seoTitle={seoTitle}
+              seoDescription={seoDescription}
+              slug={slug}
+              content={content}
+              excerpt={content.replace(/<[^>]+>/g, ' ').substring(0, 150)}
+              category={category}
+              focusKeyword={focusKeyword}
+              onFocusKeywordChange={setFocusKeyword}
+              schemaTypes={['Article', 'NewsArticle']}
+              onApplySeoTitle={setSeoTitle}
+              onApplySeoDescription={setSeoDescription}
+              onApplyTitle={setTitle}
+              onApplySlug={setSlug}
+            />
           </div>
         </div>
 

@@ -34,9 +34,14 @@ export async function updatePostState(formData: FormData) {
 
   if (!post) throw new Error('Post not found');
 
+  const updateData: any = { state: newState };
+  if (newState === 'PUBLISHED' && !post.publishedAt) {
+    updateData.publishedAt = new Date();
+  }
+
   await prisma.post.update({
     where: { id: postId },
-    data: { state: newState }
+    data: updateData
   });
 
   // Handle email notifications based on state transitions
@@ -197,6 +202,7 @@ export async function savePost(data: any) {
         seoTitle: data.seoTitle,
         seoDescription: data.seoDescription,
         seoKeywords: data.seoKeywords,
+        keyInsights: data.keyInsights,
         featuredImageAlt: data.featuredImageAlt,
         customAuthor: data.customAuthor,
         authorId: data.authorId // Ensure reassignment works
@@ -215,6 +221,7 @@ export async function savePost(data: any) {
         seoTitle: data.seoTitle,
         seoDescription: data.seoDescription,
         seoKeywords: data.seoKeywords,
+        keyInsights: data.keyInsights,
         featuredImageAlt: data.featuredImageAlt,
         customAuthor: data.customAuthor,
       }

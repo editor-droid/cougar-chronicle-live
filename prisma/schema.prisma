@@ -56,6 +56,7 @@ model Post {
   seoTitle         String?
   seoDescription   String?
   seoKeywords      String?
+  keyInsights      String?   @db.Text
   featuredImageAlt String?
   isPremium        Boolean   @default(false)
   customAuthor     String?

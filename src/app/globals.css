@@ -76,8 +76,9 @@ a:hover {
   color: var(--primary-foreground);
 }
 
-.btn-primary:hover {
+.btn-primary:hover, a.btn-primary:hover {
   background-color: #111534; /* Darker navy */
+  color: var(--primary-foreground) !important;
 }
 
 .btn-secondary {
@@ -88,6 +89,7 @@ a:hover {
 
 .btn-secondary:hover {
   background-color: var(--surface-hover);
+  color: var(--foreground);
 }
 
 /* Headings */
@@ -536,7 +538,7 @@ input:focus, textarea:focus {
   grid-template-columns: 1fr 300px;
   gap: 3rem;
   max-width: 1200px;
-  margin: 3rem auto;
+  margin: 1rem auto 3rem auto;
   padding: 0 2rem;
 }
 

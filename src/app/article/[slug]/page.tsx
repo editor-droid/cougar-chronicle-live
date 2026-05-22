@@ -6,6 +6,7 @@ import { auth } from '@/auth';
 import { cookies } from 'next/headers';
 import Link from 'next/link';
 import ClientLightbox from './ClientLightbox';
+import TableOfContents, { injectHeadingIds } from '@/components/TableOfContents';
 
 export async function generateMetadata(
   { params }: { params: { slug: string } },
@@ -121,6 +122,8 @@ export default async function ArticlePage({ params, searchParams }: { params: { 
     take: 5
   });
 
+  const htmlContent = post.content ? injectHeadingIds(post.content) : '';
+
   return (
     <div className="article-page-layout">
       <ClientLightbox />
@@ -159,11 +162,13 @@ export default async function ArticlePage({ params, searchParams }: { params: { 
             </div>
           )}
 
+          <TableOfContents content={post.content || ''} minHeadings={2} />
+
           {hasAccess ? (
             <div 
               className="font-serif article-content" 
               style={{ fontSize: '1.125rem', lineHeight: 1.8, color: 'var(--foreground)' }}
-              dangerouslySetInnerHTML={{ __html: post.content || '' }} 
+              dangerouslySetInnerHTML={{ __html: htmlContent }} 
             />
           ) : (
             <>
@@ -171,7 +176,7 @@ export default async function ArticlePage({ params, searchParams }: { params: { 
                 className="font-serif article-content" 
                 style={{ fontSize: '1.125rem', lineHeight: 1.8, color: 'var(--foreground)', position: 'relative' }}
               >
-                <div dangerouslySetInnerHTML={{ __html: (post.content || '').substring(0, 500) + '...' }} />
+                <div dangerouslySetInnerHTML={{ __html: htmlContent.substring(0, 500) + '...' }} />
                 <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '150px', background: 'linear-gradient(to bottom, transparent, var(--background))' }}></div>
               </div>
               
@@ -203,16 +208,28 @@ export default async function ArticlePage({ params, searchParams }: { params: { 
         {/* Next and Previous Navigation */}
         <div style={{ marginTop: '4rem', paddingTop: '2rem', borderTop: '1px solid var(--border)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '2rem' }}>
           {prevPost ? (
-            <Link href={`/article/${prevPost.slug}`} className="article-nav-card">
-              <span>Previous Article</span>
-              <h4>{prevPost.title}</h4>
+            <Link href={`/article/${prevPost.slug}`} className="article-nav-card" style={{ display: 'flex', gap: '1rem', alignItems: 'center', padding: '1rem', borderRadius: '0.5rem', border: '1px solid var(--border)', textDecoration: 'none', color: 'inherit' }}>
+              {prevPost.imageUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={prevPost.imageUrl} alt={prevPost.title} style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '0.25rem' }} />
+              )}
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span className="font-sans text-xs text-muted" style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}>Previous Article</span>
+                <h4 className="font-serif" style={{ margin: '0.25rem 0 0 0', fontSize: '1.1rem', lineHeight: '1.3' }}>{prevPost.title}</h4>
+              </div>
             </Link>
           ) : <div></div>}
           
           {nextPost ? (
-            <Link href={`/article/${nextPost.slug}`} className="article-nav-card" style={{ textAlign: 'right' }}>
-              <span>Next Article</span>
-              <h4>{nextPost.title}</h4>
+            <Link href={`/article/${nextPost.slug}`} className="article-nav-card" style={{ display: 'flex', gap: '1rem', alignItems: 'center', padding: '1rem', borderRadius: '0.5rem', border: '1px solid var(--border)', textDecoration: 'none', color: 'inherit', justifyContent: 'flex-end', textAlign: 'right' }}>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span className="font-sans text-xs text-muted" style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}>Next Article</span>
+                <h4 className="font-serif" style={{ margin: '0.25rem 0 0 0', fontSize: '1.1rem', lineHeight: '1.3' }}>{nextPost.title}</h4>
+              </div>
+              {nextPost.imageUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={nextPost.imageUrl} alt={nextPost.title} style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '0.25rem' }} />
+              )}
             </Link>
           ) : <div></div>}
         </div>
