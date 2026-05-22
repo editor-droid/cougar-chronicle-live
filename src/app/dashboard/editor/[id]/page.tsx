@@ -12,7 +12,13 @@ export default async function EditorPage({ params }: { params: { id: string } })
   let post = null;
   if (id !== 'new') {
     post = await prisma.post.findUnique({
-      where: { id }
+      where: { id },
+      include: {
+        editorialNotes: {
+          include: { author: true },
+          orderBy: { createdAt: 'desc' }
+        }
+      }
     });
     
     // Writers can only edit their own drafts

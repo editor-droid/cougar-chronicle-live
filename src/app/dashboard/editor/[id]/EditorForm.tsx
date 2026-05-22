@@ -4,7 +4,7 @@ import { useState, useRef } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
-import { savePost, updatePostState } from '../../actions';
+import { savePost, updatePostState, addEditorialNote } from '../../actions';
 import { useRouter } from 'next/navigation';
 import { upload } from '@vercel/blob/client';
 
@@ -96,8 +96,15 @@ export default function EditorForm({ post, authorId, userRole }: { post: any, au
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', paddingBottom: '4rem' }}>
-      
+    <div style={{ display: 'grid', gridTemplateColumns: post?.id ? 'minmax(0, 1fr) 320px' : '1fr', gap: '2rem', paddingBottom: '4rem', alignItems: 'start' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        
+        {/* Writer Unresolved Notes Warning */}
+        {userRole === 'WRITER' && post?.editorialNotes?.some((n: any) => !n.resolved) && (
+          <div style={{ padding: '1rem', backgroundColor: '#fee2e2', border: '1px solid #ef4444', borderRadius: '0.5rem', color: '#991b1b', fontWeight: 'bold' }}>
+            ⚠️ An editor has requested changes. Please review the notes in the sidebar.
+          </div>
+        )}
       {/* Editorial Status & Quick Workflow Actions */}
       {post && (
         <div style={{ padding: '1rem 1.5rem', backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
@@ -333,6 +340,56 @@ export default function EditorForm({ post, authorId, userRole }: { post: any, au
           </button>
         </div>
       </form>
+      </div>
+
+      {/* EDITORIAL NOTES SIDEBAR */}
+      {post?.id && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '0.5rem', padding: '1.5rem', position: 'sticky', top: '2rem' }}>
+          <h3 className="font-serif" style={{ fontSize: '1.25rem', borderBottom: '2px solid var(--primary)', paddingBottom: '0.5rem' }}>Editorial Notes</h3>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '500px', overflowY: 'auto', paddingRight: '0.5rem' }}>
+            {(!post.editorialNotes || post.editorialNotes.length === 0) ? (
+              <p className="font-sans text-sm text-muted">No notes yet.</p>
+            ) : (
+              post.editorialNotes.map((note: any) => (
+                <div key={note.id} style={{ padding: '1rem', backgroundColor: 'var(--surface-hover)', borderRadius: '0.5rem', borderLeft: note.resolved ? '4px solid var(--muted)' : '4px solid var(--primary)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                    <span className="font-sans text-xs" style={{ fontWeight: 'bold', color: 'var(--primary)' }}>{note.author?.name || 'Editor'}</span>
+                    <span className="font-sans text-xs text-muted">{new Date(note.createdAt).toLocaleDateString()}</span>
+                  </div>
+                  <p className="font-sans text-sm" style={{ whiteSpace: 'pre-wrap', lineHeight: 1.5, color: note.resolved ? 'var(--muted)' : 'var(--foreground)' }}>
+                    {note.content}
+                  </p>
+                  {note.resolved && <span className="font-sans text-xs" style={{ color: 'var(--muted)', display: 'block', marginTop: '0.5rem', fontStyle: 'italic' }}>Resolved</span>}
+                </div>
+              ))
+            )}
+          </div>
+
+          {(userRole === 'EDITOR' || userRole === 'ADMIN') && (
+            <form action={addEditorialNote} style={{ marginTop: '1rem', borderTop: '1px solid var(--border)', paddingTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <input type="hidden" name="postId" value={post.id} />
+              <label className="font-sans text-sm font-bold">Leave a Note</label>
+              <textarea 
+                name="content" 
+                rows={4} 
+                required 
+                placeholder="Suggest changes here..."
+                style={{ width: '100%', padding: '0.75rem', borderRadius: '0.25rem', border: '1px solid var(--border)', fontFamily: 'var(--font-sans)', resize: 'vertical' }}
+              />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
+                <button type="submit" className="btn btn-secondary text-sm font-sans" style={{ width: '100%' }}>Add Note</button>
+                {post.state === 'IN_REVIEW' && (
+                  <button type="submit" name="requestChanges" value="true" className="btn btn-primary text-sm font-sans" style={{ width: '100%', backgroundColor: '#991b1b', color: 'white' }}>
+                    Request Changes (Return to Draft)
+                  </button>
+                )}
+              </div>
+            </form>
+          )}
+        </div>
+      )}
+
     </div>
   );
 }

@@ -44,6 +44,12 @@ export async function updatePostState(formData: FormData) {
     const isMock = !process.env.RESEND_API_KEY || process.env.RESEND_API_KEY.includes('fallback');
     
     if (newState === 'IN_REVIEW' && post.state === 'DRAFT') {
+      // Mark all outstanding notes as resolved since the writer is resubmitting
+      await prisma.editorialNote.updateMany({
+        where: { postId, resolved: false },
+        data: { resolved: true }
+      });
+
       const editors = await prisma.user.findMany({
         where: { role: { in: ['EDITOR', 'ADMIN'] } }
       });
@@ -224,4 +230,78 @@ export async function updateUserRole(formData: FormData) {
   });
 
   revalidatePath('/dashboard/users');
+}
+
+export async function addEditorialNote(formData: FormData) {
+  const session = await auth();
+  if (!session?.user) throw new Error('Unauthorized');
+  
+  const role = session.user.role;
+  const isEditorOrAdmin = role === 'EDITOR' || role === 'ADMIN';
+
+  const postId = formData.get('postId') as string;
+  const content = formData.get('content') as string;
+  const requestChanges = formData.get('requestChanges') === 'true';
+
+  if (!postId || !content) throw new Error('Missing fields');
+
+  // Find the post and author
+  const post = await prisma.post.findUnique({
+    where: { id: postId },
+    include: { author: true }
+  });
+
+  if (!post) throw new Error('Post not found');
+
+  // Writers can only reply to notes on their own posts
+  if (!isEditorOrAdmin && post.authorId !== session.user.id) {
+    throw new Error('Unauthorized');
+  }
+
+  // Create the note
+  await prisma.editorialNote.create({
+    data: {
+      content,
+      postId,
+      authorId: session.user.id,
+    }
+  });
+
+  // If editor requests changes, move back to DRAFT
+  if (isEditorOrAdmin && requestChanges && post.state === 'IN_REVIEW') {
+    await prisma.post.update({
+      where: { id: postId },
+      data: { state: 'DRAFT' }
+    });
+
+    // Email the writer
+    if (post.author.email) {
+      const isMock = !process.env.RESEND_API_KEY || process.env.RESEND_API_KEY.includes('fallback');
+      const subject = `Changes Requested: ${post.title}`;
+      const origin = process.env.NEXTAUTH_URL || 'https://cougar-chronicle-live-production-c994.up.railway.app';
+      const html = `
+        <p>An editor has reviewed your draft "<strong>${post.title}</strong>" and requested some changes.</p>
+        <p><strong>Editor's Note:</strong></p>
+        <blockquote style="border-left: 4px solid #1B2253; padding-left: 15px; color: #444; font-style: italic;">
+          ${content.replace(/\\n/g, '<br/>')}
+        </blockquote>
+        <p><a href="${origin}/dashboard/editor/${post.id}">Click here to view your dashboard and make the changes.</a></p>
+      `;
+
+      if (!isMock) {
+        try {
+          await resend.emails.send({
+            from: 'notifications@thecougarchronicle.com',
+            to: post.author.email,
+            subject,
+            html
+          });
+        } catch (e) {
+          console.error("Failed to email writer about requested changes", e);
+        }
+      }
+    }
+  }
+
+  revalidatePath(`/dashboard/editor/${postId}`);
 }

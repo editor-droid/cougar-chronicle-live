@@ -15,15 +15,30 @@ export default async function DashboardPage() {
   const isEditorOrAdmin = role === 'EDITOR' || role === 'ADMIN';
 
   // Fetch posts based on role
-  // Writers see their own posts
-  // Editors see all DRAFT, IN_REVIEW, APPROVED posts
-  const posts = await prisma.post.findMany({
-    where: isEditorOrAdmin 
-      ? { state: { not: 'PUBLISHED' } } 
-      : { authorId: session.user.id },
-    orderBy: { updatedAt: 'desc' },
-    include: { author: true }
-  });
+  let needsReviewPosts: any[] = [];
+  let posts: any[] = [];
+
+  if (isEditorOrAdmin) {
+    needsReviewPosts = await prisma.post.findMany({
+      where: { state: 'IN_REVIEW' },
+      orderBy: { updatedAt: 'desc' },
+      include: { author: true }
+    });
+    posts = await prisma.post.findMany({
+      where: { state: { in: ['DRAFT', 'APPROVED'] } },
+      orderBy: { updatedAt: 'desc' },
+      include: { author: true }
+    });
+  } else {
+    posts = await prisma.post.findMany({
+      where: { authorId: session.user.id },
+      orderBy: { updatedAt: 'desc' },
+      include: { 
+        author: true,
+        editorialNotes: { where: { resolved: false } }
+      }
+    });
+  }
 
   return (
     <div className="container animate-fade-in" style={{ marginTop: '2rem' }}>
@@ -45,85 +60,107 @@ export default async function DashboardPage() {
         </div>
       </header>
 
-      <div style={{ backgroundColor: 'var(--surface)', borderRadius: '0.5rem', border: '1px solid var(--border)', overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-          <thead style={{ backgroundColor: 'var(--surface-hover)', borderBottom: '1px solid var(--border)' }}>
-            <tr>
-              <th style={{ padding: '1rem' }} className="font-sans text-sm text-muted">TITLE</th>
-              <th style={{ padding: '1rem' }} className="font-sans text-sm text-muted">AUTHOR</th>
-              <th style={{ padding: '1rem' }} className="font-sans text-sm text-muted">STATUS</th>
-              <th style={{ padding: '1rem' }} className="font-sans text-sm text-muted">LAST MODIFIED</th>
-              <th style={{ padding: '1rem' }} className="font-sans text-sm text-muted">ACTIONS</th>
-            </tr>
-          </thead>
-          <tbody>
-            {posts.length === 0 ? (
-              <tr>
-                <td colSpan={5} style={{ padding: '2rem', textAlign: 'center' }} className="text-muted font-sans">No drafts found.</td>
-              </tr>
-            ) : (
-              posts.map(post => (
-                <tr key={post.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                  <td style={{ padding: '1rem' }} className="font-serif">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                      {post.imageUrl ? (
-                        <div style={{ width: '48px', height: '32px', borderRadius: '0.25rem', overflow: 'hidden', border: '1px solid var(--border)', flexShrink: 0 }}>
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={post.imageUrl} alt={post.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        </div>
-                      ) : (
-                        <div style={{ width: '48px', height: '32px', backgroundColor: 'var(--surface-hover)', border: '1px solid var(--border)', borderRadius: '0.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                          <span className="font-serif text-muted" style={{ fontSize: '0.5rem', fontWeight: 'bold' }}>CC</span>
-                        </div>
-                      )}
-                      <Link href={`/dashboard/editor/${post.id}`} style={{ fontWeight: 'bold' }}>{post.title}</Link>
-                    </div>
-                  </td>
-                  <td style={{ padding: '1rem' }} className="font-sans text-sm">{post.author.name}</td>
-                  <td style={{ padding: '1rem' }}>
-                    <span style={{ 
-                      padding: '0.25rem 0.5rem', 
-                      borderRadius: '1rem', 
-                      fontSize: '0.75rem',
-                      fontWeight: 600,
-                      backgroundColor: post.state === 'IN_REVIEW' ? 'var(--accent)' : 'var(--surface-hover)',
-                      color: post.state === 'IN_REVIEW' ? '#fff' : 'var(--muted)'
-                    }}>
-                      {post.state}
-                    </span>
-                  </td>
-                  <td style={{ padding: '1rem' }} className="font-sans text-sm text-muted">
-                    {new Date(post.updatedAt).toLocaleDateString()}
-                  </td>
-                  <td style={{ padding: '1rem' }}>
-                    {/* Server Action Form */}
-                    <form action={updatePostState} style={{ display: 'inline-block' }}>
-                      <input type="hidden" name="postId" value={post.id} />
-                      {isEditorOrAdmin && post.state === 'IN_REVIEW' && (
-                        <>
-                          <input type="hidden" name="newState" value="APPROVED" />
-                          <button type="submit" className="btn btn-primary text-sm" style={{ padding: '0.25rem 0.5rem' }}>Approve</button>
-                        </>
-                      )}
-                      {isEditorOrAdmin && post.state === 'APPROVED' && (
-                        <>
-                          <input type="hidden" name="newState" value="PUBLISHED" />
-                          <button type="submit" className="btn btn-primary text-sm" style={{ padding: '0.25rem 0.5rem', backgroundColor: 'green' }}>Publish</button>
-                        </>
-                      )}
-                      {!isEditorOrAdmin && post.state === 'DRAFT' && (
-                        <>
-                          <input type="hidden" name="newState" value="IN_REVIEW" />
-                          <button type="submit" className="btn btn-secondary text-sm" style={{ padding: '0.25rem 0.5rem' }}>Submit for Review</button>
-                        </>
-                      )}
-                    </form>
-                  </td>
+      {isEditorOrAdmin && needsReviewPosts.length > 0 && (
+        <div style={{ marginBottom: '3rem' }}>
+          <h2 className="font-serif" style={{ fontSize: '1.5rem', marginBottom: '1rem', color: 'var(--accent)' }}>Needs Review Queue</h2>
+          <div style={{ backgroundColor: 'var(--surface)', borderRadius: '0.5rem', border: '2px solid var(--accent)', overflow: 'hidden' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+              <thead style={{ backgroundColor: 'var(--surface-hover)', borderBottom: '1px solid var(--border)' }}>
+                <tr>
+                  <th style={{ padding: '1rem' }} className="font-sans text-sm text-muted">TITLE</th>
+                  <th style={{ padding: '1rem' }} className="font-sans text-sm text-muted">AUTHOR</th>
+                  <th style={{ padding: '1rem' }} className="font-sans text-sm text-muted">SUBMITTED</th>
+                  <th style={{ padding: '1rem' }} className="font-sans text-sm text-muted">ACTIONS</th>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              </thead>
+              <tbody>
+                {needsReviewPosts.map(post => (
+                  <tr key={post.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                    <td style={{ padding: '1rem' }} className="font-serif">
+                      <Link href={`/dashboard/editor/${post.id}`} style={{ fontWeight: 'bold' }}>{post.title}</Link>
+                    </td>
+                    <td style={{ padding: '1rem' }} className="font-sans text-sm">{post.author.name}</td>
+                    <td style={{ padding: '1rem' }} className="font-sans text-sm text-muted">
+                      {new Date(post.updatedAt).toLocaleDateString()}
+                    </td>
+                    <td style={{ padding: '1rem' }}>
+                      <Link href={`/dashboard/editor/${post.id}`} className="btn btn-primary text-sm" style={{ padding: '0.25rem 0.5rem' }}>Review Draft</Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      <div>
+        <h2 className="font-serif" style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>{isEditorOrAdmin ? 'All Drafts & Approvals' : 'Your Drafts'}</h2>
+        <div style={{ backgroundColor: 'var(--surface)', borderRadius: '0.5rem', border: '1px solid var(--border)', overflow: 'hidden' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+            <thead style={{ backgroundColor: 'var(--surface-hover)', borderBottom: '1px solid var(--border)' }}>
+              <tr>
+                <th style={{ padding: '1rem' }} className="font-sans text-sm text-muted">TITLE</th>
+                <th style={{ padding: '1rem' }} className="font-sans text-sm text-muted">STATUS</th>
+                <th style={{ padding: '1rem' }} className="font-sans text-sm text-muted">LAST MODIFIED</th>
+                <th style={{ padding: '1rem' }} className="font-sans text-sm text-muted">ACTIONS</th>
+              </tr>
+            </thead>
+            <tbody>
+              {posts.length === 0 ? (
+                <tr>
+                  <td colSpan={4} style={{ padding: '2rem', textAlign: 'center' }} className="text-muted font-sans">No drafts found.</td>
+                </tr>
+              ) : (
+                posts.map(post => (
+                  <tr key={post.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                    <td style={{ padding: '1rem' }} className="font-serif">
+                      <Link href={`/dashboard/editor/${post.id}`} style={{ fontWeight: 'bold' }}>{post.title}</Link>
+                      {!isEditorOrAdmin && post.editorialNotes?.length > 0 && (
+                        <span style={{ marginLeft: '1rem', padding: '0.1rem 0.4rem', backgroundColor: '#fee2e2', color: '#991b1b', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 'bold' }}>
+                          {post.editorialNotes.length} Note(s)
+                        </span>
+                      )}
+                    </td>
+                    <td style={{ padding: '1rem' }}>
+                      <span style={{ 
+                        padding: '0.25rem 0.5rem', 
+                        borderRadius: '1rem', 
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        backgroundColor: post.state === 'APPROVED' ? '#dcfce7' : 'var(--surface-hover)',
+                        color: post.state === 'APPROVED' ? '#166534' : 'var(--muted)'
+                      }}>
+                        {post.state}
+                      </span>
+                    </td>
+                    <td style={{ padding: '1rem' }} className="font-sans text-sm text-muted">
+                      {new Date(post.updatedAt).toLocaleDateString()}
+                    </td>
+                    <td style={{ padding: '1rem' }}>
+                      {/* Server Action Form */}
+                      <form action={updatePostState} style={{ display: 'inline-block' }}>
+                        <input type="hidden" name="postId" value={post.id} />
+                        {isEditorOrAdmin && post.state === 'APPROVED' && (
+                          <>
+                            <input type="hidden" name="newState" value="PUBLISHED" />
+                            <button type="submit" className="btn btn-primary text-sm" style={{ padding: '0.25rem 0.5rem', backgroundColor: 'green' }}>Publish</button>
+                          </>
+                        )}
+                        {!isEditorOrAdmin && post.state === 'DRAFT' && (
+                          <>
+                            <input type="hidden" name="newState" value="IN_REVIEW" />
+                            <button type="submit" className="btn btn-secondary text-sm" style={{ padding: '0.25rem 0.5rem' }}>Submit for Review</button>
+                          </>
+                        )}
+                      </form>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

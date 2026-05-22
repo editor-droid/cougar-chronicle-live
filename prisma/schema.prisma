@@ -34,6 +34,7 @@ model User {
   posts         Post[]
   accounts      Account[]
   sessions      Session[]
+  editorialNotes EditorialNote[]
 }
 
 model Post {
@@ -50,6 +51,7 @@ model Post {
   updatedAt   DateTime  @updatedAt
   publishedAt DateTime?
   views       Int       @default(0)
+  editorialNotes EditorialNote[]
 }
 
 model Account {
@@ -104,3 +106,13 @@ model Subscriber {
   isActive  Boolean  @default(true)
 }
 
+model EditorialNote {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  resolved  Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
