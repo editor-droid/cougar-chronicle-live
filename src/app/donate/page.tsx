@@ -12,7 +12,7 @@ export default function DonatePage() {
   };
 
   return (
-    <div style={{ padding: '6rem 2rem', textAlign: 'center', minHeight: '60vh' }}>
+    <div style={{ padding: '3rem 2rem', textAlign: 'center', minHeight: '60vh' }}>
       <h1 className="font-serif" style={{ fontSize: '3rem', marginBottom: '1rem', color: 'var(--primary)' }}>Support The Cougar Chronicle</h1>
       <p className="font-sans" style={{ fontSize: '1.25rem', maxWidth: '600px', margin: '0 auto 3rem auto', color: 'var(--muted)' }}>
         Your donations allow us to remain independent and continue bringing rigorous, conservative journalism to the BYU community.

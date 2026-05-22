@@ -164,6 +164,9 @@ export default async function ArticlePage({ params, searchParams }: { params: { 
                 Subscribe Now
               </a>
             </div>
+            <div style={{ marginTop: '1.5rem' }}>
+              <a href="/restore-purchases" className="font-sans text-sm text-muted" style={{ textDecoration: 'underline' }}>Already bought this? Restore your purchase link.</a>
+            </div>
           </div>
         </>
       )}

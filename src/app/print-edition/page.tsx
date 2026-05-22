@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function PrintEditionPage() {
   return (
-    <div style={{ padding: '6rem 2rem', textAlign: 'center', minHeight: '60vh' }}>
+    <div style={{ padding: '3rem 2rem', textAlign: 'center', minHeight: '60vh' }}>
       <h1 className="font-serif" style={{ fontSize: '3rem', marginBottom: '1rem', color: 'var(--primary)' }}>Print Edition</h1>
       <p className="font-sans" style={{ fontSize: '1.25rem', maxWidth: '600px', margin: '0 auto 3rem auto', color: 'var(--muted)' }}>
         Get the latest physical copy of The Cougar Chronicle delivered straight to your door, or download the digital PDF instantly.

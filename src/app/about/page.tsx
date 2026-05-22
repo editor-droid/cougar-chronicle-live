@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <div style={{ padding: '6rem 2rem', minHeight: '60vh', maxWidth: '800px', margin: '0 auto' }}>
+    <div style={{ padding: '3rem 2rem', minHeight: '60vh', maxWidth: '800px', margin: '0 auto' }}>
       <h1 className="font-serif" style={{ fontSize: '3.5rem', marginBottom: '2rem', color: 'var(--primary)', textAlign: 'center' }}>About Us</h1>
       
       <div className="font-sans" style={{ fontSize: '1.1rem', lineHeight: 1.8, color: 'var(--foreground)' }}>
