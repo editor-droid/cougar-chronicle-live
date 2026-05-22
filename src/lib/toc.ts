@@ -1,0 +1,54 @@
+export interface TocItem {
+  id: string;
+  text: string;
+  level: number;
+}
+
+/**
+ * Parse headings (h2, h3, h4) from raw HTML content.
+ * Returns an array of { id, text, level } objects.
+ */
+export function extractHeadings(html: string): TocItem[] {
+  const regex = /<h([2-4])[^>]*>(.*?)<\/h[2-4]>/gi;
+  const headings: TocItem[] = [];
+  let match: RegExpExecArray | null;
+
+  while ((match = regex.exec(html)) !== null) {
+    const level = parseInt(match[1], 10);
+    // Strip HTML tags from heading text
+    const text = match[2].replace(/<[^>]*>/g, "").trim();
+    if (!text) continue;
+    // Create a URL-friendly slug from the heading text
+    const id = text
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .substring(0, 80);
+    headings.push({ id, text, level });
+  }
+
+  return headings;
+}
+
+/**
+ * Inject id attributes into heading tags in the HTML content
+ * so the TOC links can scroll to them.
+ */
+export function injectHeadingIds(html: string): string {
+  if (!html) return '';
+  const regex = /<h([2-4])([^>]*)>(.*?)<\/h([2-4])>/gi;
+  return html.replace(regex, (_match, level, attrs, content, closeLevel) => {
+    const text = content.replace(/<[^>]*>/g, "").trim();
+    if (!text) return _match;
+    const id = text
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .substring(0, 80);
+    // Preserve existing attributes but add/replace id
+    const cleanAttrs = attrs.replace(/\s*id="[^"]*"/g, "");
+    return `<h${level}${cleanAttrs} id="${id}">${content}</h${closeLevel}>`;
+  });
+}

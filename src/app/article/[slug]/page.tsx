@@ -6,7 +6,8 @@ import { auth } from '@/auth';
 import { cookies } from 'next/headers';
 import Link from 'next/link';
 import ClientLightbox from './ClientLightbox';
-import TableOfContents, { injectHeadingIds } from '@/components/TableOfContents';
+import TableOfContents from '@/components/TableOfContents';
+import { injectHeadingIds } from '@/lib/toc';
 
 export async function generateMetadata(
   { params }: { params: { slug: string } },
