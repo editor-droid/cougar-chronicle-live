@@ -3,6 +3,7 @@
 import { useState } from 'react';
 
 export default function SubscribeForm() {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
@@ -17,13 +18,14 @@ export default function SubscribeForm() {
       const res = await fetch('/api/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, name }),
       });
       
       if (res.ok) {
         setStatus('success');
         setMessage('Thank you for subscribing!');
         setEmail('');
+        setName('');
       } else {
         setStatus('error');
         setMessage('Failed to subscribe. Please try again.');
@@ -37,6 +39,13 @@ export default function SubscribeForm() {
   return (
     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', width: '100%', maxWidth: '400px', margin: '0 auto' }}>
       <div className="newsletter-form-container" style={{ display: 'flex', width: '100%', gap: '0.5rem' }}>
+        <input 
+          type="text" 
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="First Name (optional)" 
+          style={{ flex: 1, padding: '0.75rem 1rem', borderRadius: '0.25rem', border: 'none', outline: 'none', fontFamily: 'var(--font-sans)', fontSize: '1rem' }} 
+        />
         <input 
           type="email" 
           value={email}
