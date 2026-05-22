@@ -26,16 +26,22 @@ export async function POST(req: Request) {
 
     // Add to Resend Audience
     if (process.env.RESEND_API_KEY && !process.env.RESEND_API_KEY.includes('placeholder')) {
-      const contactRes = await resend.contacts.create({
+      const contactPayload = {
         email: email,
         firstName: name || undefined,
         unsubscribed: false,
         audienceId: AUDIENCE_ID,
-      });
+      };
+
+      const contactRes = await resend.contacts.create(contactPayload);
       
       if (contactRes.error) {
-        console.error('Resend contact sync error:', contactRes.error);
-        // We will not fail the request, but log it.
+        console.error('Resend contact create error:', contactRes.error);
+        // Try to update if it already exists
+        const updateRes = await resend.contacts.update(contactPayload);
+        if (updateRes.error) {
+          console.error('Resend contact update error:', updateRes.error);
+        }
       }
     }
 
