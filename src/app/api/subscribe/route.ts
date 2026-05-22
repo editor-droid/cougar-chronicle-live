@@ -46,7 +46,7 @@ export async function POST(req: Request) {
       const greeting = name ? `Hi ${name},` : 'Hello,';
       
       const emailRes = await resend.emails.send({
-        from: 'The Cougar Chronicle <onboarding@resend.dev>', // Change to verified domain later
+        from: 'The Cougar Chronicle <newsletter@updates.thecougarchronicle.com>',
         to: email,
         subject: 'Welcome to The Cougar Chronicle',
         html: `

@@ -157,7 +157,7 @@ export async function updatePostState(formData: FormData) {
           await resend.broadcasts.create({
             audienceId: AUDIENCE_ID,
             name: `Broadcast: ${post.title}`,
-            from: 'The Cougar Chronicle <newsletter@thecougarchronicle.com>',
+            from: 'The Cougar Chronicle <newsletter@updates.thecougarchronicle.com>',
             subject: `New Post: ${post.title}`,
             html: broadcastHtml,
           });
