@@ -22,7 +22,7 @@ export async function POST(req: Request) {
     const cleanContent = content.replace(/<[^>]*>?/gm, ' ');
 
     const result = await generateObject({
-      model: google('gemini-1.5-pro'),
+      model: google('gemini-3.5-flash'),
       schema: z.object({
         seoTitle: z.string().describe('An SEO-optimized title for the article, max 60 characters.'),
         seoDescription: z.string().describe('An engaging meta description for search engines, max 155 characters.'),
