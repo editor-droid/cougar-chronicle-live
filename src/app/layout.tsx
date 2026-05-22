@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { GoogleAnalytics } from '@next/third-parties/google';
 import Chatbot from '@/components/Chatbot';
+import SubscribeModal from '@/components/SubscribeModal';
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -42,7 +43,7 @@ export default function RootLayout({
               </a>
             </div>
             <div className="header-actions">
-              <a href="#subscribe" className="btn btn-primary font-sans" style={{ borderRadius: '0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Subscribe</a>
+              <SubscribeModal />
             </div>
           </div>
           

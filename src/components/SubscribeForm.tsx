@@ -38,13 +38,13 @@ export default function SubscribeForm() {
 
   return (
     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', width: '100%', maxWidth: '400px', margin: '0 auto' }}>
-      <div className="newsletter-form-container" style={{ display: 'flex', width: '100%', gap: '0.5rem' }}>
+      <div className="newsletter-form-container" style={{ display: 'flex', flexDirection: 'column', width: '100%', gap: '0.75rem' }}>
         <input 
           type="text" 
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="First Name (optional)" 
-          style={{ flex: 1, padding: '0.75rem 1rem', borderRadius: '0.25rem', border: 'none', outline: 'none', fontFamily: 'var(--font-sans)', fontSize: '1rem' }} 
+          style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '0.25rem', border: 'none', outline: 'none', fontFamily: 'var(--font-sans)', fontSize: '1rem', color: '#333' }} 
         />
         <input 
           type="email" 
@@ -52,13 +52,13 @@ export default function SubscribeForm() {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Your email address" 
           required
-          style={{ flex: 1, padding: '0.75rem 1rem', borderRadius: '0.25rem', border: 'none', outline: 'none', fontFamily: 'var(--font-sans)', fontSize: '1rem' }} 
+          style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '0.25rem', border: 'none', outline: 'none', fontFamily: 'var(--font-sans)', fontSize: '1rem', color: '#333' }} 
         />
         <button 
           type="submit" 
           disabled={status === 'loading'}
           className="btn font-sans" 
-          style={{ backgroundColor: 'white', color: 'var(--primary)', fontWeight: 'bold', padding: '0.75rem 1.5rem' }}
+          style={{ width: '100%', backgroundColor: 'white', color: 'var(--primary)', fontWeight: 'bold', padding: '0.75rem 1.5rem', marginTop: '0.25rem' }}
         >
           {status === 'loading' ? 'Sending...' : 'Subscribe'}
         </button>
