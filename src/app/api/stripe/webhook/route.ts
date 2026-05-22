@@ -69,7 +69,7 @@ export async function POST(req: Request) {
           }
         });
 
-        const articleLink = `${process.env.NEXTAUTH_URL}/article/${slug}?token=${secureToken}`;
+        const articleLink = `${process.env.NEXTAUTH_URL}/api/verify-token?token=${secureToken}`;
         
         // Use Resend to email them the secure link
         const { Resend } = require('resend');

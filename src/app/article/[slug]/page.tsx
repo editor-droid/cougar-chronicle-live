@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import type { Metadata, ResolvingMetadata } from 'next';
 import { auth } from '@/auth';
+import { cookies } from 'next/headers';
 
 export async function generateMetadata(
   { params }: { params: { slug: string } },
@@ -86,18 +87,24 @@ export default async function ArticlePage({ params, searchParams }: { params: { 
     }
     
     // 2. Check if they have a valid magic token from buying the article individually
-    if (!hasAccess && token) {
-      const validToken = await prisma.articleToken.findUnique({
-        where: { token }
-      });
-      if (validToken && validToken.postId === post.id) {
-        hasAccess = true;
+    if (!hasAccess) {
+      const cookieStore = await cookies();
+      const cookieToken = cookieStore.get(`article_token_${post.id}`)?.value;
+      const tokenToCheck = cookieToken || token;
+
+      if (tokenToCheck) {
+        const validToken = await prisma.articleToken.findUnique({
+          where: { token: tokenToCheck }
+        });
+        if (validToken && validToken.postId === post.id) {
+          hasAccess = true;
+        }
       }
     }
   }
 
   return (
-    <article style={{ padding: '6rem 2rem', maxWidth: '800px', margin: '0 auto', minHeight: '100vh' }}>
+    <article style={{ padding: '3rem 2rem', maxWidth: '800px', margin: '0 auto', minHeight: '100vh' }}>
       <header style={{ marginBottom: '3rem', textAlign: 'center' }}>
         <div style={{ marginBottom: '1.5rem' }}>
           <span className="font-sans text-xs text-muted" style={{ textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700 }}>

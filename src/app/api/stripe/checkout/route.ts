@@ -59,8 +59,8 @@ export async function POST(req: Request) {
             quantity: 1,
           },
         ],
-        success_url: `${origin}/article/${metadata.slug}?success=true`,
-        cancel_url: `${origin}/article/${metadata.slug}`,
+        success_url: `${process.env.NEXTAUTH_URL}/api/checkout-success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${process.env.NEXTAUTH_URL}/article/${metadata.slug}`,
         metadata: {
           type: 'digital_article',
           postId: metadata.postId,
