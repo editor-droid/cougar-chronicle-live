@@ -5,6 +5,7 @@ import type { Metadata, ResolvingMetadata } from 'next';
 import { auth } from '@/auth';
 import { cookies } from 'next/headers';
 import Link from 'next/link';
+import ClientLightbox from './ClientLightbox';
 
 export async function generateMetadata(
   { params }: { params: { slug: string } },
@@ -122,6 +123,7 @@ export default async function ArticlePage({ params, searchParams }: { params: { 
 
   return (
     <div className="article-page-layout">
+      <ClientLightbox />
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         <article style={{ padding: '0', minHeight: '60vh' }}>
           <header style={{ marginBottom: '3rem', textAlign: 'center' }}>
@@ -136,7 +138,7 @@ export default async function ArticlePage({ params, searchParams }: { params: { 
             </h1>
             
             <div className="font-sans text-sm text-muted" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-              <span style={{ fontWeight: 600 }}>By {post.author.name || 'Staff'}</span>
+              <span style={{ fontWeight: 600 }}>By {post.customAuthor || post.author.name || 'Staff'}</span>
               <span>•</span>
               <span>{new Date(post.publishedAt || post.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
               <span>•</span>

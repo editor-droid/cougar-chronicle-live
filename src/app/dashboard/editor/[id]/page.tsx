@@ -27,12 +27,20 @@ export default async function EditorPage({ params }: { params: { id: string } })
     }
   }
 
+  let authors: any[] = [];
+  if (session.user.role === 'ADMIN' || session.user.role === 'EDITOR') {
+    authors = await prisma.user.findMany({
+      where: { role: { in: ['ADMIN', 'EDITOR', 'WRITER'] } },
+      orderBy: { name: 'asc' }
+    });
+  }
+
   return (
     <div className="container animate-fade-in" style={{ marginTop: '2rem' }}>
       <h1 className="font-serif" style={{ fontSize: '2rem', marginBottom: '2rem' }}>
         {id === 'new' ? 'Create New Draft' : 'Edit Post'}
       </h1>
-      <EditorForm post={post} authorId={session.user.id} userRole={session.user.role} />
+      <EditorForm post={post} authorId={session.user.id} userRole={session.user.role} availableAuthors={authors} />
     </div>
   );
 }

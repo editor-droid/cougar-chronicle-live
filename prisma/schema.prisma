@@ -58,6 +58,7 @@ model Post {
   seoKeywords      String?
   featuredImageAlt String?
   isPremium        Boolean   @default(false)
+  customAuthor     String?
   articleTokens    ArticleToken[]
 }
 

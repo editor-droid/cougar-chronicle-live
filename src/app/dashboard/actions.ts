@@ -198,6 +198,8 @@ export async function savePost(data: any) {
         seoDescription: data.seoDescription,
         seoKeywords: data.seoKeywords,
         featuredImageAlt: data.featuredImageAlt,
+        customAuthor: data.customAuthor,
+        authorId: data.authorId // Ensure reassignment works
       }
     });
   } else {
@@ -214,6 +216,7 @@ export async function savePost(data: any) {
         seoDescription: data.seoDescription,
         seoKeywords: data.seoKeywords,
         featuredImageAlt: data.featuredImageAlt,
+        customAuthor: data.customAuthor,
       }
     });
   }
@@ -221,7 +224,7 @@ export async function savePost(data: any) {
   revalidatePath('/dashboard');
 }
 
-export async function updateUserRole(formData: FormData) {
+export async function updateUser(formData: FormData) {
   const session = await auth();
   if (!session?.user || session.user.role !== 'ADMIN') {
     throw new Error('Unauthorized: Only admins can manage users');
@@ -229,12 +232,16 @@ export async function updateUserRole(formData: FormData) {
 
   const userId = formData.get('userId') as string;
   const newRole = formData.get('role') as Role;
+  const newEmail = formData.get('email') as string;
 
-  if (!userId || !newRole) throw new Error('Missing fields');
+  if (!userId) throw new Error('Missing fields');
 
   await prisma.user.update({
     where: { id: userId },
-    data: { role: newRole }
+    data: { 
+      ...(newRole && { role: newRole }),
+      ...(newEmail && { email: newEmail })
+    }
   });
 
   revalidatePath('/dashboard/users');

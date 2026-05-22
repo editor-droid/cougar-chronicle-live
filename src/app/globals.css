@@ -554,6 +554,40 @@ input:focus, textarea:focus {
   display: block;
 }
 
+.image-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 2rem 0;
+}
+
+.image-grid-2 img {
+  margin: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
+}
+
+.image-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+  margin: 2rem 0;
+}
+
+.image-grid-3 img {
+  margin: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
+}
+
+@media (max-width: 768px) {
+  .image-grid-2, .image-grid-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
 .article-content iframe {
   max-width: 100%;
   margin: 2rem auto;

@@ -8,7 +8,7 @@ import { savePost, updatePostState, addEditorialNote } from '../../actions';
 import { useRouter } from 'next/navigation';
 
 
-export default function EditorForm({ post, authorId, userRole }: { post: any, authorId: string, userRole: string }) {
+export default function EditorForm({ post, authorId, userRole, availableAuthors = [] }: { post: any, authorId: string, userRole: string, availableAuthors?: any[] }) {
   const router = useRouter();
   const [title, setTitle] = useState(post?.title || '');
   const [category, setCategory] = useState(post?.category || 'news');
@@ -18,6 +18,9 @@ export default function EditorForm({ post, authorId, userRole }: { post: any, au
   const [seoDescription, setSeoDescription] = useState(post?.seoDescription || '');
   const [seoKeywords, setSeoKeywords] = useState(post?.seoKeywords || '');
   const [featuredImageAlt, setFeaturedImageAlt] = useState(post?.featuredImageAlt || '');
+  
+  const [customAuthor, setCustomAuthor] = useState(post?.customAuthor || '');
+  const [assignedAuthorId, setAssignedAuthorId] = useState(post?.authorId || authorId);
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGeneratingSEO, setIsGeneratingSEO] = useState(false);
@@ -152,11 +155,12 @@ export default function EditorForm({ post, authorId, userRole }: { post: any, au
         category,
         content,
         imageUrl,
-        authorId,
+        authorId: assignedAuthorId,
         seoTitle,
         seoDescription,
         seoKeywords,
-        featuredImageAlt
+        featuredImageAlt,
+        customAuthor
       });
       router.push('/dashboard');
       router.refresh();
@@ -204,8 +208,8 @@ export default function EditorForm({ post, authorId, userRole }: { post: any, au
                   try {
                     const content = editor?.getHTML() || '';
                     await savePost({ 
-                      id: post.id, title, slug, category, content, imageUrl, authorId,
-                      seoTitle, seoDescription, seoKeywords, featuredImageAlt
+                      id: post.id, title, slug, category, content, imageUrl, authorId: assignedAuthorId,
+                      seoTitle, seoDescription, seoKeywords, featuredImageAlt, customAuthor
                     });
                     
                     const fd = new FormData();
@@ -238,8 +242,8 @@ export default function EditorForm({ post, authorId, userRole }: { post: any, au
                   try {
                     const content = editor?.getHTML() || '';
                     await savePost({ 
-                      id: post.id, title, slug, category, content, imageUrl, authorId,
-                      seoTitle, seoDescription, seoKeywords, featuredImageAlt
+                      id: post.id, title, slug, category, content, imageUrl, authorId: assignedAuthorId,
+                      seoTitle, seoDescription, seoKeywords, featuredImageAlt, customAuthor
                     });
                     
                     const fd = new FormData();
@@ -271,8 +275,8 @@ export default function EditorForm({ post, authorId, userRole }: { post: any, au
                   try {
                     const content = editor?.getHTML() || '';
                     await savePost({ 
-                      id: post.id, title, slug, category, content, imageUrl, authorId,
-                      seoTitle, seoDescription, seoKeywords, featuredImageAlt
+                      id: post.id, title, slug, category, content, imageUrl, authorId: assignedAuthorId,
+                      seoTitle, seoDescription, seoKeywords, featuredImageAlt, customAuthor
                     });
                     
                     const fd = new FormData();
@@ -330,16 +334,44 @@ export default function EditorForm({ post, authorId, userRole }: { post: any, au
           </div>
         </div>
         
-        <div>
-          <label className="font-sans text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem' }}>URL Slug</label>
-          <input 
-            type="text" 
-            value={slug} 
-            onChange={(e) => setSlug(e.target.value)} 
-            required 
-            placeholder="my-new-post"
-            style={{ fontFamily: 'monospace' }}
-          />
+        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+          <div style={{ flex: 1, minWidth: '200px' }}>
+            <label className="font-sans text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem' }}>URL Slug</label>
+            <input 
+              type="text" 
+              value={slug} 
+              onChange={(e) => setSlug(e.target.value)} 
+              required 
+              placeholder="my-new-post"
+              style={{ fontFamily: 'monospace', width: '100%', padding: '0.75rem', borderRadius: '0.25rem', border: '1px solid var(--border)' }}
+            />
+          </div>
+          
+          <div style={{ flex: 1, minWidth: '200px' }}>
+            <label className="font-sans text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem' }}>Custom Byline (Optional)</label>
+            <input 
+              type="text" 
+              value={customAuthor} 
+              onChange={(e) => setCustomAuthor(e.target.value)} 
+              placeholder="e.g. John Doe and Jane Smith"
+              style={{ width: '100%', padding: '0.75rem', borderRadius: '0.25rem', border: '1px solid var(--border)' }}
+            />
+          </div>
+
+          {(userRole === 'ADMIN' || userRole === 'EDITOR') && (
+            <div style={{ flex: 1, minWidth: '200px' }}>
+              <label className="font-sans text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem' }}>Assigned Author</label>
+              <select
+                value={assignedAuthorId}
+                onChange={(e) => setAssignedAuthorId(e.target.value)}
+                style={{ width: '100%', padding: '0.75rem', backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '0.25rem', fontFamily: 'var(--font-sans)', fontSize: '1rem' }}
+              >
+                {availableAuthors.map((a: any) => (
+                  <option key={a.id} value={a.id}>{a.name || a.email}</option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
 
         {/* Featured Image Management Panel */}
