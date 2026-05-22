@@ -511,3 +511,16 @@ input:focus, textarea:focus {
   text-decoration: underline;
 }
 
+/* Responsive UI Fixes */
+@media (max-width: 640px) {
+  .brand a span:nth-child(1) { font-size: 16px !important; }
+  .brand a span:nth-child(2) { font-size: 26px !important; }
+  .header-actions .btn { padding: 0.5rem 0.75rem !important; font-size: 0.8rem !important; }
+  
+  .support-buttons-container { flex-direction: column !important; width: 100%; }
+  .support-buttons-container .btn { width: 100%; text-align: center; justify-content: center; }
+
+  .chatbot-launcher { bottom: 1rem !important; right: 1rem !important; }
+  .chatbot-bubble { display: none !important; }
+}
+

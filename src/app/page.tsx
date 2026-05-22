@@ -1,11 +1,12 @@
 import prisma from '@/lib/prisma';
 import Link from 'next/link';
+import Image from 'next/image';
 import SubscribeForm from '@/components/SubscribeForm';
 
 export const revalidate = 60; // ISR revalidation
 
 export default async function Home() {
-  // Query more posts to fill out the expanded layout
+  // Query all published posts
   const allPosts = await prisma.post.findMany({
     where: { state: 'PUBLISHED' },
     orderBy: { createdAt: 'desc' },
@@ -13,12 +14,11 @@ export default async function Home() {
     take: 20
   });
 
-  // Editorials / Top stories
-  const topStories = allPosts.slice(0, 4);
-  const mainStory = topStories[0];
-  const sideStories = topStories.slice(1);
+  // Top stories for the Hero block
+  const mainStory = allPosts[0];
+  const sideStories = allPosts.slice(1, 5); // 4 stories for the sidebar stack
 
-  // News Block
+  // News category posts
   const newsPosts = await prisma.post.findMany({
     where: { state: 'PUBLISHED', category: 'news' },
     orderBy: { createdAt: 'desc' },
@@ -26,7 +26,7 @@ export default async function Home() {
     take: 4
   });
 
-  // Faith Block
+  // Faith category posts
   const faithPosts = await prisma.post.findMany({
     where: { state: 'PUBLISHED', category: 'faith' },
     orderBy: { createdAt: 'desc' },
@@ -34,7 +34,7 @@ export default async function Home() {
     take: 4
   });
 
-  // Opinion Block
+  // Opinion category posts (Text-centric focus)
   const opinionPosts = await prisma.post.findMany({
     where: { state: 'PUBLISHED', category: 'opinion' },
     orderBy: { createdAt: 'desc' },
@@ -42,123 +42,293 @@ export default async function Home() {
     take: 4
   });
 
+  // Trending posts ordered by views
+  const trendingPosts = await prisma.post.findMany({
+    where: { state: 'PUBLISHED' },
+    orderBy: { views: 'desc' },
+    include: { author: true },
+    take: 5
+  });
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '4rem', paddingBottom: '4rem' }}>
-      {/* 1. TOP EDITORIALS / HERO */}
-      <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
-        {mainStory && (
-          <div style={{ gridColumn: '1 / -1' }}>
-            <Link href={`/article/${mainStory.slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-              <div style={{ position: 'relative', width: '100%', aspectRatio: '16/7', backgroundColor: 'var(--surface-hover)', marginBottom: '1rem', overflow: 'hidden' }}>
-                {mainStory.imageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={mainStory.imageUrl} alt={mainStory.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                ) : (
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-                    <span className="font-serif text-muted">The Cougar Chronicle</span>
+    <div className="home-layout-dense animate-fade-in">
+      
+      {/* 1. TOP NEWS HEADER BLOCK (National Review / Daily Wire Style Hero) */}
+      <section className="hero-section" style={{ marginBottom: '2.5rem' }}>
+        {mainStory ? (
+          <Link href={`/article/${mainStory.slug}`} className="hero-main">
+            <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', backgroundColor: 'var(--surface-hover)', marginBottom: '1.25rem', overflow: 'hidden', border: '1px solid var(--border)' }}>
+              {mainStory.imageUrl ? (
+                <Image 
+                  src={mainStory.imageUrl} 
+                  alt={mainStory.title} 
+                  fill 
+                  priority 
+                  sizes="(max-width: 768px) 100vw, 800px"
+                  style={{ objectFit: 'cover' }} 
+                />
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', padding: '2rem', textAlign: 'center' }}>
+                  <span className="font-serif text-muted" style={{ fontSize: '1.5rem', fontStyle: 'italic' }}>The Cougar Chronicle</span>
+                </div>
+              )}
+            </div>
+            <div style={{ paddingRight: '1rem' }}>
+              <span className="feed-category" style={{ textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--accent)', fontWeight: 800, fontSize: '0.8rem', display: 'block', marginBottom: '0.5rem' }}>
+                {mainStory.category}
+              </span>
+              <h1 className="font-serif hero-headline" style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--foreground)' }}>
+                {mainStory.title}
+              </h1>
+              <div 
+                className="font-sans hero-summary" 
+                style={{ fontSize: '1.05rem', color: '#444', marginTop: '0.75rem', marginBottom: '1rem' }}
+                dangerouslySetInnerHTML={{ 
+                  __html: mainStory.content 
+                    ? mainStory.content.replace(/<[^>]*>?/gm, '').substring(0, 180) + '...' 
+                    : '' 
+                }} 
+              />
+              <div className="font-sans text-sm" style={{ fontWeight: 'bold' }}>
+                By <span style={{ color: 'var(--primary)' }}>{mainStory.author.name}</span>
+              </div>
+            </div>
+          </Link>
+        ) : (
+          <div className="text-muted font-sans" style={{ padding: '4rem 0', textAlign: 'center' }}>No articles published yet. Check back soon!</div>
+        )}
+
+        {/* Sidebar stack of secondary stories */}
+        <div className="hero-sidebar">
+          <h3 className="font-sans text-xs text-muted" style={{ fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>
+            LATEST DEVELOPMENTS
+          </h3>
+          {sideStories.length === 0 ? (
+            <p className="text-muted font-sans text-sm">No additional stories available.</p>
+          ) : (
+            sideStories.map(story => (
+              <Link href={`/article/${story.slug}`} key={story.id} className="hero-side-card" style={{ display: 'grid', gridTemplateColumns: story.imageUrl ? '80px 1fr' : '1fr', gap: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>
+                {story.imageUrl && (
+                  <div style={{ position: 'relative', width: '80px', height: '60px', backgroundColor: 'var(--surface-hover)', overflow: 'hidden', border: '1px solid var(--border)' }}>
+                    <Image 
+                      src={story.imageUrl} 
+                      alt={story.title} 
+                      fill 
+                      sizes="80px"
+                      style={{ objectFit: 'cover' }} 
+                    />
                   </div>
                 )}
+                <div>
+                  <span className="feed-category" style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: 800, color: 'var(--accent)', marginBottom: '0.25rem' }}>
+                    {story.category}
+                  </span>
+                  <h4 className="font-serif hero-side-headline" style={{ fontSize: '1.05rem', fontWeight: 700, lineHeight: 1.25 }}>
+                    {story.title}
+                  </h4>
+                  <div className="font-sans text-muted" style={{ fontSize: '0.75rem', marginTop: '0.25rem' }}>
+                    By {story.author.name}
+                  </div>
+                </div>
+              </Link>
+            ))
+          )}
+        </div>
+      </section>
+
+      {/* Elegant Separator */}
+      <div style={{ borderTop: '4px double var(--border)', margin: '1rem 0 3rem 0' }}></div>
+
+      {/* 2. DENSE COLUMN LAYOUT (National Review style main content + right widgets) */}
+      <div className="home-grid">
+        
+        {/* Left main feed */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '3.5rem' }}>
+          
+          {/* NEWS BAND */}
+          {newsPosts.length > 0 && (
+            <section className="category-band">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem', borderBottom: '3px double var(--primary)', paddingBottom: '0.5rem' }}>
+                <h2 className="font-serif" style={{ fontSize: '1.5rem', margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--primary)', fontWeight: 800 }}>News</h2>
+                <div style={{ flex: 1, height: '1px', backgroundColor: 'var(--border)' }}></div>
+                <Link href="/category/news" className="font-sans text-sm" style={{ fontWeight: 'bold', textTransform: 'uppercase', color: 'var(--accent)' }}>View All &rarr;</Link>
               </div>
-              <h1 className="font-serif" style={{ fontSize: '3rem', lineHeight: 1.1, marginBottom: '1rem' }}>{mainStory.title}</h1>
-              <div 
-                className="font-sans text-muted" 
-                style={{ fontSize: '1.25rem', marginBottom: '1rem', maxWidth: '800px' }}
-                dangerouslySetInnerHTML={{ __html: mainStory.content ? mainStory.content.replace(/<[^>]*>?/gm, '').substring(0, 200) + '...' : '' }} 
-              />
-              <div className="font-sans" style={{ fontWeight: 'bold' }}>By {mainStory.author.name}</div>
+              <div className="category-grid">
+                {newsPosts.map(post => (
+                  <Link href={`/article/${post.slug}`} key={post.id} className="category-card">
+                    <div style={{ position: 'relative', width: '100%', aspectRatio: '16/10', backgroundColor: 'var(--surface-hover)', marginBottom: '0.75rem', overflow: 'hidden', border: '1px solid var(--border)' }}>
+                      {post.imageUrl ? (
+                        <Image 
+                          src={post.imageUrl} 
+                          alt={post.title} 
+                          fill 
+                          sizes="(max-width: 768px) 100vw, 300px"
+                          style={{ objectFit: 'cover' }} 
+                        />
+                      ) : (
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                          <span className="font-serif text-muted" style={{ fontSize: '0.75rem' }}>The Cougar Chronicle</span>
+                        </div>
+                      )}
+                    </div>
+                    <h3 className="font-serif category-headline" style={{ fontSize: '1.15rem', fontWeight: 700, lineHeight: 1.3 }}>
+                      {post.title}
+                    </h3>
+                    <div className="font-sans text-xs text-muted" style={{ marginTop: '0.5rem' }}>
+                      By {post.author.name}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* FAITH BAND */}
+          {faithPosts.length > 0 && (
+            <section className="category-band">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem', borderBottom: '3px double var(--primary)', paddingBottom: '0.5rem' }}>
+                <h2 className="font-serif" style={{ fontSize: '1.5rem', margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--primary)', fontWeight: 800 }}>Faith</h2>
+                <div style={{ flex: 1, height: '1px', backgroundColor: 'var(--border)' }}></div>
+                <Link href="/category/faith" className="font-sans text-sm" style={{ fontWeight: 'bold', textTransform: 'uppercase', color: 'var(--accent)' }}>View All &rarr;</Link>
+              </div>
+              <div className="category-grid">
+                {faithPosts.map(post => (
+                  <Link href={`/article/${post.slug}`} key={post.id} className="category-card">
+                    <div style={{ position: 'relative', width: '100%', aspectRatio: '16/10', backgroundColor: 'var(--surface-hover)', marginBottom: '0.75rem', overflow: 'hidden', border: '1px solid var(--border)' }}>
+                      {post.imageUrl ? (
+                        <Image 
+                          src={post.imageUrl} 
+                          alt={post.title} 
+                          fill 
+                          sizes="(max-width: 768px) 100vw, 300px"
+                          style={{ objectFit: 'cover' }} 
+                        />
+                      ) : (
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                          <span className="font-serif text-muted" style={{ fontSize: '0.75rem' }}>The Cougar Chronicle</span>
+                        </div>
+                      )}
+                    </div>
+                    <h3 className="font-serif category-headline" style={{ fontSize: '1.15rem', fontWeight: 700, lineHeight: 1.3 }}>
+                      {post.title}
+                    </h3>
+                    <div className="font-sans text-xs text-muted" style={{ marginTop: '0.5rem' }}>
+                      By {post.author.name}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* OPINION BAND (Wordy, text-centric columns in NR / DW style) */}
+          {opinionPosts.length > 0 && (
+            <section className="category-band">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem', borderBottom: '3px double var(--primary)', paddingBottom: '0.5rem' }}>
+                <h2 className="font-serif" style={{ fontSize: '1.5rem', margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--primary)', fontWeight: 800 }}>Opinion</h2>
+                <div style={{ flex: 1, height: '1px', backgroundColor: 'var(--border)' }}></div>
+                <Link href="/category/opinion" className="font-sans text-sm" style={{ fontWeight: 'bold', textTransform: 'uppercase', color: 'var(--accent)' }}>View All &rarr;</Link>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+                {opinionPosts.map(post => (
+                  <Link 
+                    href={`/article/${post.slug}`} 
+                    key={post.id} 
+                    style={{ 
+                      padding: '1.5rem', 
+                      backgroundColor: 'var(--surface)', 
+                      borderTop: '3px solid var(--accent)', 
+                      borderLeft: '1px solid var(--border)',
+                      borderRight: '1px solid var(--border)',
+                      borderBottom: '1px solid var(--border)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between'
+                    }}
+                  >
+                    <div>
+                      <span className="font-serif" style={{ fontSize: '3rem', color: 'var(--border)', display: 'block', lineHeight: 0.1, marginBottom: '0.5rem', fontFamily: 'Georgia, serif' }}>“</span>
+                      <h3 className="font-serif" style={{ fontSize: '1.35rem', fontWeight: 700, lineHeight: 1.3, marginBottom: '1rem' }}>
+                        {post.title}
+                      </h3>
+                    </div>
+                    <div className="font-sans text-xs" style={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--primary)' }}>
+                      By {post.author.name}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+
+        </div>
+
+        {/* Right widgets column */}
+        <div>
+          
+          {/* TRENDING WIDGET */}
+          {trendingPosts.length > 0 && (
+            <div style={{ marginBottom: '3rem' }}>
+              <h3 className="font-sans text-xs text-muted" style={{ fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', borderBottom: '2px solid var(--primary)', paddingBottom: '0.5rem', marginBottom: '1.25rem' }}>
+                MOST POPULAR
+              </h3>
+              <ol className="trending-list-dense">
+                {trendingPosts.map((post, index) => (
+                  <li key={post.id}>
+                    <span className="rank font-serif">{index + 1}</span>
+                    <div>
+                      <Link href={`/article/${post.slug}`} className="font-serif" style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--foreground)', display: 'block', lineHeight: 1.3 }}>
+                        {post.title}
+                      </Link>
+                      <span className="font-sans text-xs text-muted" style={{ marginTop: '0.25rem', display: 'block' }}>
+                        By {post.author.name}
+                      </span>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
+
+          {/* NEWSLETTER SUBSCRIBE BOX */}
+          <div className="newsletter-box" style={{ padding: '2rem', border: '1px solid var(--border)', borderRadius: '0.5rem', backgroundColor: 'var(--primary)', color: '#fff', textAlign: 'center' }}>
+            <h3 className="font-serif" style={{ fontSize: '1.75rem', marginBottom: '0.5rem', color: '#fff' }}>Stay Connected</h3>
+            <p className="font-sans text-sm" style={{ opacity: 0.9, marginBottom: '1.5rem', lineHeight: 1.4 }}>
+              Get our curated faith, campus news, and columns delivered straight to your inbox daily.
+            </p>
+            <SubscribeForm />
+          </div>
+
+          {/* PRINT EDITION PROMO */}
+          <div style={{ marginTop: '2rem', padding: '1.5rem', border: '1px solid var(--border)', borderRadius: '0.5rem', backgroundColor: '#faf9f5', textAlign: 'center' }}>
+            <span className="font-sans text-xs" style={{ fontWeight: 800, letterSpacing: '0.1em', color: 'var(--accent)', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>
+              SUPPORT CHRONICLE
+            </span>
+            <h4 className="font-serif" style={{ fontSize: '1.25rem', marginBottom: '0.75rem' }}>Order Print Editions</h4>
+            <p className="font-sans text-xs text-muted" style={{ marginBottom: '1.25rem', lineHeight: 1.5 }}>
+              Receive our high-grade quarterly physical papers shipped directly to your house. Help keep conservative BYU reporting alive.
+            </p>
+            <Link href="/print-edition" className="btn btn-secondary font-sans text-sm" style={{ width: '100%' }}>
+              Order Print Edition
             </Link>
           </div>
-        )}
-        
-        {/* Secondary Top Stories */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '2rem', gridColumn: '1 / -1', borderTop: '1px solid var(--border)', paddingTop: '2rem' }}>
-          {sideStories.map(story => (
-            <Link href={`/article/${story.slug}`} key={story.id} style={{ textDecoration: 'none', color: 'inherit' }}>
-              <h2 className="font-serif" style={{ fontSize: '1.5rem', lineHeight: 1.2, marginBottom: '0.5rem' }}>{story.title}</h2>
-              <div className="font-sans text-muted text-sm" style={{ fontWeight: 'bold', marginBottom: '1rem' }}>By {story.author.name}</div>
-              <div 
-                className="font-sans text-sm" 
-                dangerouslySetInnerHTML={{ __html: story.content ? story.content.replace(/<[^>]*>?/gm, '').substring(0, 100) + '...' : '' }} 
-              />
-            </Link>
-          ))}
-        </div>
-      </section>
 
-      {/* 2. NEWS BLOCK */}
-      <section>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', borderBottom: '2px solid var(--primary)', paddingBottom: '0.5rem', marginBottom: '2rem' }}>
-          <h2 className="font-serif" style={{ fontSize: '2rem', margin: 0, color: 'var(--primary)' }}>News</h2>
-          <Link href="/category/news" className="font-sans" style={{ fontWeight: 'bold', textTransform: 'uppercase', fontSize: '0.875rem' }}>View All</Link>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '2rem' }}>
-          {newsPosts.map(post => (
-            <Link href={`/article/${post.slug}`} key={post.id} style={{ textDecoration: 'none', color: 'inherit' }}>
-              <div style={{ width: '100%', aspectRatio: '16/9', backgroundColor: 'var(--surface-hover)', marginBottom: '1rem' }}>
-                {post.imageUrl && <img src={post.imageUrl} alt={post.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
-              </div>
-              <h3 className="font-serif" style={{ fontSize: '1.25rem', lineHeight: 1.3, marginBottom: '0.5rem' }}>{post.title}</h3>
-              <div className="font-sans text-muted text-sm">By {post.author.name}</div>
-            </Link>
-          ))}
-        </div>
-      </section>
 
-      {/* 3. SUBSCRIBE BANNER */}
-      <section id="subscribe" style={{ backgroundColor: 'var(--primary)', color: 'white', padding: '4rem 2rem', textAlign: 'center', margin: '0 -1.5rem', borderRadius: '0.5rem' }}>
-        <h2 className="font-serif" style={{ fontSize: '2.5rem', marginBottom: '1rem', color: 'white' }}>Stay Informed</h2>
-        <p className="font-sans" style={{ fontSize: '1.1rem', opacity: 0.9, maxWidth: '600px', margin: '0 auto 2rem auto' }}>
-          Get the absolute best of the Cougar Chronicle delivered straight to your inbox. Faith, News, and Opinion for the BYU community.
+      </div>
+
+      {/* 3. PRINT EDITION / SUPPORT CTA */}
+      <section style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '3.5rem 2rem', borderTop: '4px double var(--border)', borderBottom: '4px double var(--border)', backgroundColor: '#faf9f5', marginTop: '4rem', textAlign: 'center' }}>
+        <h2 className="font-serif" style={{ fontSize: '2.25rem', marginBottom: '1rem', fontWeight: 800 }}>Support Independent BYU Journalism</h2>
+        <p className="font-sans text-muted" style={{ maxWidth: '600px', marginBottom: '2rem', fontSize: '1.05rem', lineHeight: 1.6 }}>
+          The Cougar Chronicle relies solely on private donor support to deliver real-time news and opinion root in eternal gospel principles. Support our staff writers today.
         </p>
-        <SubscribeForm />
-      </section>
-
-      {/* 4. FAITH BLOCK */}
-      <section>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', borderBottom: '2px solid var(--primary)', paddingBottom: '0.5rem', marginBottom: '2rem' }}>
-          <h2 className="font-serif" style={{ fontSize: '2rem', margin: 0, color: 'var(--primary)' }}>Faith</h2>
-          <Link href="/category/faith" className="font-sans" style={{ fontWeight: 'bold', textTransform: 'uppercase', fontSize: '0.875rem' }}>View All</Link>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '2rem' }}>
-          {faithPosts.map(post => (
-            <Link href={`/article/${post.slug}`} key={post.id} style={{ textDecoration: 'none', color: 'inherit' }}>
-              <div style={{ width: '100%', aspectRatio: '1/1', backgroundColor: 'var(--surface-hover)', marginBottom: '1rem' }}>
-                {post.imageUrl && <img src={post.imageUrl} alt={post.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
-              </div>
-              <h3 className="font-serif" style={{ fontSize: '1.25rem', lineHeight: 1.3, marginBottom: '0.5rem' }}>{post.title}</h3>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* 5. OPINION BLOCK */}
-      <section>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', borderBottom: '2px solid var(--primary)', paddingBottom: '0.5rem', marginBottom: '2rem' }}>
-          <h2 className="font-serif" style={{ fontSize: '2rem', margin: 0, color: 'var(--primary)' }}>Opinion</h2>
-          <Link href="/category/opinion" className="font-sans" style={{ fontWeight: 'bold', textTransform: 'uppercase', fontSize: '0.875rem' }}>View All</Link>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '2rem' }}>
-          {opinionPosts.map(post => (
-            <Link href={`/article/${post.slug}`} key={post.id} style={{ textDecoration: 'none', color: 'inherit', padding: '1.5rem', backgroundColor: '#f8f9fa', border: '1px solid var(--border)' }}>
-              <h3 className="font-serif" style={{ fontSize: '1.5rem', lineHeight: 1.3, marginBottom: '1rem' }}>{post.title}</h3>
-              <div className="font-sans text-sm" style={{ fontWeight: 'bold' }}>By {post.author.name}</div>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* 6. PRINT EDITION CTA */}
-      <section style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '3rem 2rem', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', backgroundColor: '#faf9f5' }}>
-        <h2 className="font-serif" style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>Support Independent Journalism</h2>
-        <p className="font-sans text-muted" style={{ textAlign: 'center', maxWidth: '600px', marginBottom: '2rem', fontSize: '1.1rem' }}>
-          The Cougar Chronicle relies on reader support to bring you national-grade news and opinion. Consider subscribing to our print edition or making a donation.
-        </p>
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          <Link href="/print-edition" className="btn btn-primary font-sans" style={{ fontSize: '1.1rem', padding: '0.75rem 1.5rem' }}>Order Print Edition</Link>
-          <Link href="/donate" className="btn btn-secondary font-sans" style={{ fontSize: '1.1rem', padding: '0.75rem 1.5rem' }}>Donate Now</Link>
+        <div className="support-buttons-container" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+          <Link href="/print-edition" className="btn btn-primary font-sans" style={{ padding: '0.75rem 1.75rem', fontSize: '1rem' }}>Order Print Edition</Link>
+          <Link href="/donate" className="btn btn-secondary font-sans" style={{ padding: '0.75rem 1.75rem', fontSize: '1rem' }}>Donate Now</Link>
         </div>
       </section>
 
     </div>
-  )
+  );
 }

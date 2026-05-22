@@ -119,9 +119,9 @@ export default function Chatbot() {
 
   if (!isOpen) {
     return (
-      <div style={{ position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 50, display: 'flex', alignItems: 'flex-end', flexDirection: 'column', gap: '1rem' }}>
+      <div className="chatbot-launcher" style={{ position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 50, display: 'flex', alignItems: 'flex-end', flexDirection: 'column', gap: '1rem' }}>
         <div 
-          className="animate-fade-in" 
+          className="animate-fade-in chatbot-bubble" 
           style={{ backgroundColor: 'white', border: '1px solid var(--border)', padding: '0.75rem 1rem', borderRadius: '1rem', borderBottomRightRadius: '0.25rem', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)', cursor: 'pointer' }} 
           onClick={() => setIsOpen(true)}
         >
