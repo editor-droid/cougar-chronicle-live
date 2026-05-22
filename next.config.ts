@@ -12,6 +12,13 @@ const nextConfig: NextConfig = {
   experimental: {
     cpus: 2,
     workerThreads: false,
+    serverActions: {
+      allowedOrigins: [
+        'localhost:3000',
+        'cougar-chronicle-live-production.up.railway.app',
+        '*.railway.app'
+      ],
+    },
   }
 };
 
