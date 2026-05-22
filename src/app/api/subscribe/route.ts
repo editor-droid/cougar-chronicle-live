@@ -93,7 +93,7 @@ export async function POST(req: Request) {
 
             <!-- Body -->
             <div style="padding: 30px 20px;">
-              <h2 style="color: #0f172a; font-family: Georgia, serif; font-size: 22px; margin-top: 0;">Welcome aboard!</h2>
+              <h2 style="color: #0f172a; font-family: Georgia, serif; font-size: 22px; margin-top: 0;">Welcome to The Cougar Chronicle</h2>
               <p style="color: #334155; font-size: 16px; line-height: 1.6;">${greeting}</p>
               <p style="color: #334155; font-size: 16px; line-height: 1.6;">Thank you for subscribing to The Cougar Chronicle. You've joined a growing community dedicated to faithful, conservative reporting at BYU.</p>
               
