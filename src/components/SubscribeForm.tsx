@@ -36,7 +36,7 @@ export default function SubscribeForm() {
 
   return (
     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', width: '100%', maxWidth: '400px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', width: '100%', gap: '0.5rem' }}>
+      <div className="newsletter-form-container" style={{ display: 'flex', width: '100%', gap: '0.5rem' }}>
         <input 
           type="email" 
           value={email}

@@ -522,5 +522,9 @@ input:focus, textarea:focus {
 
   .chatbot-launcher { bottom: 1rem !important; right: 1rem !important; }
   .chatbot-bubble { display: none !important; }
+  
+  .newsletter-form-container { flex-direction: column !important; gap: 0.75rem !important; }
+  .newsletter-form-container input { width: 100% !important; flex: none !important; }
+  .newsletter-form-container button { width: 100% !important; }
 }
 
