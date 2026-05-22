@@ -547,8 +547,8 @@ input:focus, textarea:focus {
 }
 
 .article-content img {
-  max-width: 100%;
-  height: auto;
+  max-width: 100% !important;
+  height: auto !important;
   border-radius: 0.5rem;
   margin: 2rem auto;
   display: block;

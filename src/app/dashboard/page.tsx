@@ -198,8 +198,9 @@ export default async function DashboardPage() {
                         {post.views}
                       </span>
                     </td>
-                    <td style={{ padding: '1rem' }}>
+                    <td style={{ padding: '1rem', display: 'flex', gap: '0.5rem' }}>
                       <Link href={`/article/${post.slug}`} className="btn btn-secondary text-sm" style={{ padding: '0.25rem 0.5rem' }}>View Live</Link>
+                      <Link href={`/dashboard/editor/${post.id}`} className="btn btn-primary text-sm" style={{ padding: '0.25rem 0.5rem' }}>Edit</Link>
                     </td>
                   </tr>
                 ))}

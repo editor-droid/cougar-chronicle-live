@@ -105,13 +105,13 @@ export default async function ArticlePage({ params, searchParams }: { params: { 
   }
 
   const nextPost = await prisma.post.findFirst({
-    where: { state: 'PUBLISHED', publishedAt: { gt: post.publishedAt || post.createdAt } },
-    orderBy: { publishedAt: 'asc' }
+    where: { state: 'PUBLISHED', createdAt: { gt: post.createdAt } },
+    orderBy: { createdAt: 'asc' }
   });
   
   const prevPost = await prisma.post.findFirst({
-    where: { state: 'PUBLISHED', publishedAt: { lt: post.publishedAt || post.createdAt } },
-    orderBy: { publishedAt: 'desc' }
+    where: { state: 'PUBLISHED', createdAt: { lt: post.createdAt } },
+    orderBy: { createdAt: 'desc' }
   });
 
   const topPosts = await prisma.post.findMany({
@@ -214,6 +214,16 @@ export default async function ArticlePage({ params, searchParams }: { params: { 
             </Link>
           ) : <div></div>}
         </div>
+
+        {/* Bottom Newsletter Signup */}
+        <div className="newsletter-box" style={{ marginTop: '3rem', borderRadius: '0.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <h3 className="font-serif" style={{ color: 'white' }}>The Cougar Chronicle</h3>
+          <p className="font-sans text-sm" style={{ marginBottom: '1.5rem', opacity: 0.9 }}>Get the best conservative journalism delivered to your inbox daily.</p>
+          <form action="/api/subscribe" method="POST" className="newsletter-form-container" style={{ display: 'flex', gap: '0.5rem', maxWidth: '400px', width: '100%' }}>
+            <input type="email" name="email" placeholder="Your email address" className="newsletter-input" required style={{ borderRadius: '0.25rem', marginBottom: 0, flex: 1 }} />
+            <button type="submit" className="btn" style={{ backgroundColor: 'white', color: 'var(--primary)', fontWeight: 'bold' }}>Subscribe</button>
+          </form>
+        </div>
       </div>
 
       {/* Sidebar */}
@@ -234,7 +244,7 @@ export default async function ArticlePage({ params, searchParams }: { params: { 
         </ol>
 
         <div className="newsletter-box" style={{ marginTop: '3rem', borderRadius: '0.5rem' }}>
-          <h3 className="font-serif">The Daily Cougar</h3>
+          <h3 className="font-serif" style={{ color: 'white' }}>The Cougar Chronicle</h3>
           <p className="font-sans text-sm" style={{ marginBottom: '1.5rem', opacity: 0.9 }}>Get the best conservative journalism delivered to your inbox daily.</p>
           <form action="/api/subscribe" method="POST" className="newsletter-form-container" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             <input type="email" name="email" placeholder="Your email address" className="newsletter-input" required style={{ borderRadius: '0.25rem' }} />
