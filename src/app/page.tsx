@@ -291,7 +291,7 @@ export default async function Home() {
           )}
 
           {/* NEWSLETTER SUBSCRIBE BOX */}
-          <div className="newsletter-box" style={{ padding: '2rem', border: '1px solid var(--border)', borderRadius: '0.5rem', backgroundColor: 'var(--primary)', color: '#fff', textAlign: 'center' }}>
+          <div id="subscribe" className="newsletter-box" style={{ padding: '2rem', border: '1px solid var(--border)', borderRadius: '0.5rem', backgroundColor: 'var(--primary)', color: '#fff', textAlign: 'center' }}>
             <h3 className="font-serif" style={{ fontSize: '1.75rem', marginBottom: '0.5rem', color: '#fff' }}>Stay Connected</h3>
             <p className="font-sans text-sm" style={{ opacity: 0.9, marginBottom: '1.5rem', lineHeight: 1.4 }}>
               Get our curated faith, campus news, and columns delivered straight to your inbox daily.
