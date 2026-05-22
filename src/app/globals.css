@@ -530,3 +530,69 @@ input:focus, textarea:focus {
   .newsletter-form-container button { width: 100% !important; }
 }
 
+/* Article Specific Formatting */
+.article-page-layout {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 3rem;
+  max-width: 1200px;
+  margin: 3rem auto;
+  padding: 0 2rem;
+}
+
+@media (max-width: 1024px) {
+  .article-page-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.article-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  margin: 2rem auto;
+  display: block;
+}
+
+.article-content iframe {
+  max-width: 100%;
+  margin: 2rem auto;
+  display: block;
+}
+
+.article-sidebar {
+  padding-top: 1rem;
+}
+
+.article-nav-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  text-decoration: none;
+  color: inherit;
+  background-color: var(--surface);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.article-nav-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary);
+}
+
+.article-nav-card span {
+  font-family: var(--font-sans);
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+
+.article-nav-card h4 {
+  font-family: var(--font-serif);
+  font-size: 1.125rem;
+  line-height: 1.4;
+  margin: 0;
+}

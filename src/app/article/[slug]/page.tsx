@@ -4,6 +4,7 @@ import Image from 'next/image';
 import type { Metadata, ResolvingMetadata } from 'next';
 import { auth } from '@/auth';
 import { cookies } from 'next/headers';
+import Link from 'next/link';
 
 export async function generateMetadata(
   { params }: { params: { slug: string } },
@@ -103,80 +104,144 @@ export default async function ArticlePage({ params, searchParams }: { params: { 
     }
   }
 
+  const nextPost = await prisma.post.findFirst({
+    where: { state: 'PUBLISHED', publishedAt: { gt: post.publishedAt || post.createdAt } },
+    orderBy: { publishedAt: 'asc' }
+  });
+  
+  const prevPost = await prisma.post.findFirst({
+    where: { state: 'PUBLISHED', publishedAt: { lt: post.publishedAt || post.createdAt } },
+    orderBy: { publishedAt: 'desc' }
+  });
+
+  const topPosts = await prisma.post.findMany({
+    where: { state: 'PUBLISHED', id: { not: post.id } },
+    orderBy: { views: 'desc' },
+    take: 5
+  });
+
   return (
-    <article style={{ padding: '3rem 2rem', maxWidth: '800px', margin: '0 auto', minHeight: '100vh' }}>
-      <header style={{ marginBottom: '3rem', textAlign: 'center' }}>
-        <div style={{ marginBottom: '1.5rem' }}>
-          <span className="font-sans text-xs text-muted" style={{ textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700 }}>
-            {post.category}
-          </span>
-        </div>
-        
-        <h1 className="font-serif" style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', lineHeight: 1.1, marginBottom: '1.5rem', color: 'var(--foreground)' }}>
-          {post.title}
-        </h1>
-        
-        <div className="font-sans text-sm text-muted" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem' }}>
-          <span style={{ fontWeight: 600 }}>By {post.author.name || 'Staff'}</span>
-          <span>•</span>
-          <span>{new Date(post.publishedAt || post.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
-          <span>•</span>
-          <span>{post.views} views</span>
-        </div>
-      </header>
-
-      {post.imageUrl && (
-        <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', marginBottom: '2.5rem', borderRadius: '0.5rem', overflow: 'hidden', backgroundColor: 'var(--surface-hover)', border: '1px solid var(--border)' }}>
-          <Image 
-            src={post.imageUrl} 
-            alt={post.featuredImageAlt || post.title} 
-            fill 
-            priority
-            sizes="(max-width: 800px) 100vw, 800px"
-            style={{ objectFit: 'cover' }}
-          />
-        </div>
-      )}
-
-      {hasAccess ? (
-        <div 
-          className="font-serif article-content" 
-          style={{ fontSize: '1.125rem', lineHeight: 1.8, color: 'var(--foreground)' }}
-          dangerouslySetInnerHTML={{ __html: post.content || '' }} 
-        />
-      ) : (
-        <>
-          <div 
-            className="font-serif article-content" 
-            style={{ fontSize: '1.125rem', lineHeight: 1.8, color: 'var(--foreground)', position: 'relative' }}
-          >
-            <div dangerouslySetInnerHTML={{ __html: (post.content || '').substring(0, 500) + '...' }} />
-            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '150px', background: 'linear-gradient(to bottom, transparent, var(--background))' }}></div>
-          </div>
-          
-          <div style={{ marginTop: '2rem', padding: '3rem', backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '0.5rem', textAlign: 'center' }}>
-            <h2 className="font-serif" style={{ fontSize: '1.5rem', marginBottom: '1rem', color: 'var(--primary)' }}>This article is for subscribers only.</h2>
-            <p className="font-sans text-muted" style={{ marginBottom: '2rem' }}>You can purchase lifetime access to this individual article, or subscribe for unlimited access.</p>
+    <div className="article-page-layout">
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <article style={{ padding: '0', minHeight: '60vh' }}>
+          <header style={{ marginBottom: '3rem', textAlign: 'center' }}>
+            <div style={{ marginBottom: '1.5rem' }}>
+              <span className="font-sans text-xs text-muted" style={{ textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700 }}>
+                {post.category}
+              </span>
+            </div>
             
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <form action="/api/stripe/checkout" method="POST">
-                <input type="hidden" name="type" value="digital_article" />
-                <input type="hidden" name="name" value={post.title} />
-                <input type="hidden" name="metadata" value={JSON.stringify({ postId: post.id, slug: post.slug })} />
-                <button type="submit" className="btn btn-secondary font-sans" style={{ fontWeight: 600 }}>
-                  Buy Article for $1.99
-                </button>
-              </form>
-              <a href="/subscribe" className="btn btn-primary font-sans" style={{ fontWeight: 600 }}>
-                Subscribe Now
-              </a>
+            <h1 className="font-serif" style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', lineHeight: 1.1, marginBottom: '1.5rem', color: 'var(--foreground)' }}>
+              {post.title}
+            </h1>
+            
+            <div className="font-sans text-sm text-muted" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+              <span style={{ fontWeight: 600 }}>By {post.author.name || 'Staff'}</span>
+              <span>•</span>
+              <span>{new Date(post.publishedAt || post.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+              <span>•</span>
+              <span>{post.views} views</span>
             </div>
-            <div style={{ marginTop: '1.5rem' }}>
-              <a href="/restore-purchases" className="font-sans text-sm text-muted" style={{ textDecoration: 'underline' }}>Already bought this? Restore your purchase link.</a>
+          </header>
+
+          {post.imageUrl && (
+            <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', marginBottom: '2.5rem', borderRadius: '0.5rem', overflow: 'hidden', backgroundColor: 'var(--surface-hover)', border: '1px solid var(--border)' }}>
+              <Image 
+                src={post.imageUrl} 
+                alt={post.featuredImageAlt || post.title} 
+                fill 
+                priority
+                sizes="(max-width: 800px) 100vw, 800px"
+                style={{ objectFit: 'cover' }}
+              />
             </div>
-          </div>
-        </>
-      )}
-    </article>
+          )}
+
+          {hasAccess ? (
+            <div 
+              className="font-serif article-content" 
+              style={{ fontSize: '1.125rem', lineHeight: 1.8, color: 'var(--foreground)' }}
+              dangerouslySetInnerHTML={{ __html: post.content || '' }} 
+            />
+          ) : (
+            <>
+              <div 
+                className="font-serif article-content" 
+                style={{ fontSize: '1.125rem', lineHeight: 1.8, color: 'var(--foreground)', position: 'relative' }}
+              >
+                <div dangerouslySetInnerHTML={{ __html: (post.content || '').substring(0, 500) + '...' }} />
+                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '150px', background: 'linear-gradient(to bottom, transparent, var(--background))' }}></div>
+              </div>
+              
+              <div style={{ marginTop: '2rem', padding: '3rem', backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '0.5rem', textAlign: 'center' }}>
+                <h2 className="font-serif" style={{ fontSize: '1.5rem', marginBottom: '1rem', color: 'var(--primary)' }}>This article is for subscribers only.</h2>
+                <p className="font-sans text-muted" style={{ marginBottom: '2rem' }}>You can purchase lifetime access to this individual article, or subscribe for unlimited access.</p>
+                
+                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                  <form action="/api/stripe/checkout" method="POST">
+                    <input type="hidden" name="type" value="digital_article" />
+                    <input type="hidden" name="name" value={post.title} />
+                    <input type="hidden" name="metadata" value={JSON.stringify({ postId: post.id, slug: post.slug })} />
+                    <button type="submit" className="btn btn-secondary font-sans" style={{ fontWeight: 600 }}>
+                      Buy Article for $1.99
+                    </button>
+                  </form>
+                  <a href="/subscribe" className="btn btn-primary font-sans" style={{ fontWeight: 600 }}>
+                    Subscribe Now
+                  </a>
+                </div>
+                <div style={{ marginTop: '1.5rem' }}>
+                  <a href="/restore-purchases" className="font-sans text-sm text-muted" style={{ textDecoration: 'underline' }}>Already bought this? Restore your purchase link.</a>
+                </div>
+              </div>
+            </>
+          )}
+        </article>
+
+        {/* Next and Previous Navigation */}
+        <div style={{ marginTop: '4rem', paddingTop: '2rem', borderTop: '1px solid var(--border)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '2rem' }}>
+          {prevPost ? (
+            <Link href={`/article/${prevPost.slug}`} className="article-nav-card">
+              <span>Previous Article</span>
+              <h4>{prevPost.title}</h4>
+            </Link>
+          ) : <div></div>}
+          
+          {nextPost ? (
+            <Link href={`/article/${nextPost.slug}`} className="article-nav-card" style={{ textAlign: 'right' }}>
+              <span>Next Article</span>
+              <h4>{nextPost.title}</h4>
+            </Link>
+          ) : <div></div>}
+        </div>
+      </div>
+
+      {/* Sidebar */}
+      <aside className="article-sidebar">
+        <h3 className="widget-title">Most Read</h3>
+        <ol className="trending-list-dense">
+          {topPosts.map((tp, i) => (
+            <li key={tp.id}>
+              <span className="rank">{i + 1}</span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                <span className="font-sans text-xs" style={{ color: 'var(--primary)', fontWeight: 'bold', textTransform: 'uppercase' }}>{tp.category}</span>
+                <Link href={`/article/${tp.slug}`} className="font-serif" style={{ fontSize: '1.1rem', lineHeight: 1.3, fontWeight: 600 }}>
+                  {tp.title}
+                </Link>
+              </div>
+            </li>
+          ))}
+        </ol>
+
+        <div className="newsletter-box" style={{ marginTop: '3rem', borderRadius: '0.5rem' }}>
+          <h3 className="font-serif">The Daily Cougar</h3>
+          <p className="font-sans text-sm" style={{ marginBottom: '1.5rem', opacity: 0.9 }}>Get the best conservative journalism delivered to your inbox daily.</p>
+          <form action="/api/subscribe" method="POST" className="newsletter-form-container" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <input type="email" name="email" placeholder="Your email address" className="newsletter-input" required style={{ borderRadius: '0.25rem' }} />
+            <button type="submit" className="btn" style={{ backgroundColor: 'white', color: 'var(--primary)', fontWeight: 'bold' }}>Subscribe</button>
+          </form>
+        </div>
+      </aside>
+    </div>
   );
 }

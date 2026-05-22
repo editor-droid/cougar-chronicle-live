@@ -17,6 +17,7 @@ export default async function DashboardPage() {
   // Fetch posts based on role
   let needsReviewPosts: any[] = [];
   let posts: any[] = [];
+  let publishedPosts: any[] = [];
 
   if (isEditorOrAdmin) {
     needsReviewPosts = await prisma.post.findMany({
@@ -27,6 +28,11 @@ export default async function DashboardPage() {
     posts = await prisma.post.findMany({
       where: { state: { in: ['DRAFT', 'APPROVED'] } },
       orderBy: { updatedAt: 'desc' },
+      include: { author: true }
+    });
+    publishedPosts = await prisma.post.findMany({
+      where: { state: 'PUBLISHED' },
+      orderBy: { publishedAt: 'desc' },
       include: { author: true }
     });
   } else {
@@ -162,6 +168,46 @@ export default async function DashboardPage() {
           </table>
         </div>
       </div>
+
+      {isEditorOrAdmin && publishedPosts.length > 0 && (
+        <div style={{ marginTop: '3rem', marginBottom: '3rem' }}>
+          <h2 className="font-serif" style={{ fontSize: '1.5rem', marginBottom: '1rem', color: 'var(--primary)' }}>Published Posts</h2>
+          <div style={{ backgroundColor: 'var(--surface)', borderRadius: '0.5rem', border: '1px solid var(--border)', overflow: 'hidden' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+              <thead style={{ backgroundColor: 'var(--surface-hover)', borderBottom: '1px solid var(--border)' }}>
+                <tr>
+                  <th style={{ padding: '1rem' }} className="font-sans text-sm text-muted">TITLE</th>
+                  <th style={{ padding: '1rem' }} className="font-sans text-sm text-muted">AUTHOR</th>
+                  <th style={{ padding: '1rem' }} className="font-sans text-sm text-muted">PUBLISHED</th>
+                  <th style={{ padding: '1rem' }} className="font-sans text-sm text-muted">VIEWS</th>
+                  <th style={{ padding: '1rem' }} className="font-sans text-sm text-muted">ACTIONS</th>
+                </tr>
+              </thead>
+              <tbody>
+                {publishedPosts.map(post => (
+                  <tr key={post.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                    <td style={{ padding: '1rem' }} className="font-serif">
+                      <Link href={`/dashboard/editor/${post.id}`} style={{ fontWeight: 'bold' }}>{post.title}</Link>
+                    </td>
+                    <td style={{ padding: '1rem' }} className="font-sans text-sm">{post.author.name}</td>
+                    <td style={{ padding: '1rem' }} className="font-sans text-sm text-muted">
+                      {new Date(post.publishedAt || post.updatedAt).toLocaleDateString()}
+                    </td>
+                    <td style={{ padding: '1rem' }}>
+                      <span className="font-sans" style={{ fontWeight: 'bold', color: 'var(--primary)', padding: '0.2rem 0.5rem', backgroundColor: 'var(--surface-hover)', borderRadius: '0.25rem' }}>
+                        {post.views}
+                      </span>
+                    </td>
+                    <td style={{ padding: '1rem' }}>
+                      <Link href={`/article/${post.slug}`} className="btn btn-secondary text-sm" style={{ padding: '0.25rem 0.5rem' }}>View Live</Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
