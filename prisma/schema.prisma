@@ -52,6 +52,11 @@ model Post {
   publishedAt DateTime?
   views       Int       @default(0)
   editorialNotes EditorialNote[]
+  
+  seoTitle         String?
+  seoDescription   String?
+  seoKeywords      String?
+  featuredImageAlt String?
 }
 
 model Account {

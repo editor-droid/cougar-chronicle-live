@@ -14,7 +14,13 @@ export default function EditorForm({ post, authorId, userRole }: { post: any, au
   const [category, setCategory] = useState(post?.category || 'news');
   const [slug, setSlug] = useState(post?.slug || '');
   const [imageUrl, setImageUrl] = useState(post?.imageUrl || '');
+  const [seoTitle, setSeoTitle] = useState(post?.seoTitle || '');
+  const [seoDescription, setSeoDescription] = useState(post?.seoDescription || '');
+  const [seoKeywords, setSeoKeywords] = useState(post?.seoKeywords || '');
+  const [featuredImageAlt, setFeaturedImageAlt] = useState(post?.featuredImageAlt || '');
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGeneratingSEO, setIsGeneratingSEO] = useState(false);
   const [isUploadingFeatured, setIsUploadingFeatured] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const featuredFileInputRef = useRef<HTMLInputElement>(null);
@@ -70,6 +76,37 @@ export default function EditorForm({ post, authorId, userRole }: { post: any, au
     }
   };
 
+  const generateSEO = async () => {
+    if (!editor) return;
+    const content = editor.getHTML();
+    if (!content || content === '<p></p>') {
+      alert('Please write some content before generating SEO metadata.');
+      return;
+    }
+    
+    setIsGeneratingSEO(true);
+    try {
+      const response = await fetch('/api/seo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, content })
+      });
+      
+      if (!response.ok) throw new Error('Failed to generate SEO');
+      
+      const data = await response.json();
+      setSeoTitle(data.seoTitle || '');
+      setSeoDescription(data.seoDescription || '');
+      setSeoKeywords(data.seoKeywords || '');
+      setFeaturedImageAlt(data.featuredImageAlt || '');
+    } catch (err) {
+      console.error(err);
+      alert('Failed to generate SEO metadata. Please try again.');
+    } finally {
+      setIsGeneratingSEO(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editor) return;
@@ -84,7 +121,11 @@ export default function EditorForm({ post, authorId, userRole }: { post: any, au
         category,
         content,
         imageUrl,
-        authorId
+        authorId,
+        seoTitle,
+        seoDescription,
+        seoKeywords,
+        featuredImageAlt
       });
       router.push('/dashboard');
       router.refresh();
@@ -131,7 +172,10 @@ export default function EditorForm({ post, authorId, userRole }: { post: any, au
                   setIsSubmitting(true);
                   try {
                     const content = editor?.getHTML() || '';
-                    await savePost({ id: post.id, title, slug, category, content, imageUrl, authorId });
+                    await savePost({ 
+                      id: post.id, title, slug, category, content, imageUrl, authorId,
+                      seoTitle, seoDescription, seoKeywords, featuredImageAlt
+                    });
                     
                     const fd = new FormData();
                     fd.append('postId', post.id);
@@ -162,7 +206,10 @@ export default function EditorForm({ post, authorId, userRole }: { post: any, au
                   setIsSubmitting(true);
                   try {
                     const content = editor?.getHTML() || '';
-                    await savePost({ id: post.id, title, slug, category, content, imageUrl, authorId });
+                    await savePost({ 
+                      id: post.id, title, slug, category, content, imageUrl, authorId,
+                      seoTitle, seoDescription, seoKeywords, featuredImageAlt
+                    });
                     
                     const fd = new FormData();
                     fd.append('postId', post.id);
@@ -192,7 +239,10 @@ export default function EditorForm({ post, authorId, userRole }: { post: any, au
                   setIsSubmitting(true);
                   try {
                     const content = editor?.getHTML() || '';
-                    await savePost({ id: post.id, title, slug, category, content, imageUrl, authorId });
+                    await savePost({ 
+                      id: post.id, title, slug, category, content, imageUrl, authorId,
+                      seoTitle, seoDescription, seoKeywords, featuredImageAlt
+                    });
                     
                     const fd = new FormData();
                     fd.append('postId', post.id);
@@ -331,6 +381,80 @@ export default function EditorForm({ post, authorId, userRole }: { post: any, au
             />
           </div>
           <EditorContent editor={editor} />
+        </div>
+
+        {/* AI SEO ASSISTANT PANEL */}
+        <div style={{ backgroundColor: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '0.5rem', padding: '1.5rem', marginTop: '1rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <div>
+              <h2 className="font-serif" style={{ fontSize: '1.5rem', color: '#0369a1', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+                AI SEO Assistant
+              </h2>
+              <p className="font-sans text-sm" style={{ color: '#0284c7', marginTop: '0.25rem' }}>Automatically generate optimized metadata based on your article content.</p>
+            </div>
+            <button 
+              type="button" 
+              onClick={generateSEO} 
+              disabled={isGeneratingSEO}
+              className="btn font-sans"
+              style={{ backgroundColor: '#0284c7', color: 'white', border: 'none', padding: '0.75rem 1.5rem', fontSize: '1rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: isGeneratingSEO ? 0.7 : 1 }}
+            >
+              {isGeneratingSEO ? 'Generating...' : '✨ Generate SEO Metadata'}
+            </button>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+            <div style={{ gridColumn: '1 / -1' }}>
+              <label className="font-sans text-sm font-bold" style={{ color: '#0369a1', display: 'block', marginBottom: '0.5rem' }}>SEO Title</label>
+              <input 
+                type="text" 
+                value={seoTitle} 
+                onChange={(e) => setSeoTitle(e.target.value)} 
+                placeholder="Optimized headline for search engines (max 60 chars)"
+                style={{ width: '100%', padding: '0.75rem', borderRadius: '0.25rem', border: '1px solid #bae6fd', fontFamily: 'var(--font-sans)' }}
+              />
+              <div style={{ textAlign: 'right', fontSize: '0.75rem', color: seoTitle.length > 60 ? '#ef4444' : '#0ea5e9', marginTop: '0.25rem' }}>
+                {seoTitle.length} / 60 characters
+              </div>
+            </div>
+
+            <div style={{ gridColumn: '1 / -1' }}>
+              <label className="font-sans text-sm font-bold" style={{ color: '#0369a1', display: 'block', marginBottom: '0.5rem' }}>Meta Description</label>
+              <textarea 
+                value={seoDescription} 
+                onChange={(e) => setSeoDescription(e.target.value)} 
+                rows={2}
+                placeholder="Engaging summary for search results (max 155 chars)"
+                style={{ width: '100%', padding: '0.75rem', borderRadius: '0.25rem', border: '1px solid #bae6fd', fontFamily: 'var(--font-sans)', resize: 'vertical' }}
+              />
+              <div style={{ textAlign: 'right', fontSize: '0.75rem', color: seoDescription.length > 155 ? '#ef4444' : '#0ea5e9', marginTop: '0.25rem' }}>
+                {seoDescription.length} / 155 characters
+              </div>
+            </div>
+
+            <div>
+              <label className="font-sans text-sm font-bold" style={{ color: '#0369a1', display: 'block', marginBottom: '0.5rem' }}>SEO Keywords</label>
+              <input 
+                type="text" 
+                value={seoKeywords} 
+                onChange={(e) => setSeoKeywords(e.target.value)} 
+                placeholder="Comma separated keywords"
+                style={{ width: '100%', padding: '0.75rem', borderRadius: '0.25rem', border: '1px solid #bae6fd', fontFamily: 'var(--font-sans)' }}
+              />
+            </div>
+
+            <div>
+              <label className="font-sans text-sm font-bold" style={{ color: '#0369a1', display: 'block', marginBottom: '0.5rem' }}>Featured Image Alt Text</label>
+              <input 
+                type="text" 
+                value={featuredImageAlt} 
+                onChange={(e) => setFeaturedImageAlt(e.target.value)} 
+                placeholder="Accessibility description of the main image"
+                style={{ width: '100%', padding: '0.75rem', borderRadius: '0.25rem', border: '1px solid #bae6fd', fontFamily: 'var(--font-sans)' }}
+              />
+            </div>
+          </div>
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>

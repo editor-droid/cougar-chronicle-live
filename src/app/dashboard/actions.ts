@@ -194,6 +194,10 @@ export async function savePost(data: any) {
         category: data.category,
         content: data.content,
         imageUrl: data.imageUrl,
+        seoTitle: data.seoTitle,
+        seoDescription: data.seoDescription,
+        seoKeywords: data.seoKeywords,
+        featuredImageAlt: data.featuredImageAlt,
       }
     });
   } else {
@@ -205,7 +209,11 @@ export async function savePost(data: any) {
         content: data.content,
         imageUrl: data.imageUrl,
         authorId: data.authorId,
-        state: 'DRAFT'
+        state: 'DRAFT',
+        seoTitle: data.seoTitle,
+        seoDescription: data.seoDescription,
+        seoKeywords: data.seoKeywords,
+        featuredImageAlt: data.featuredImageAlt,
       }
     });
   }

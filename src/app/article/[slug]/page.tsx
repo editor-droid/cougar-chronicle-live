@@ -3,7 +3,10 @@ import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import type { Metadata, ResolvingMetadata } from 'next';
 
-export async function generateMetadata({ params }: { params: { slug: string } }, parent: ResolvingMetadata): Promise<Metadata> {
+export async function generateMetadata(
+  { params }: { params: { slug: string } },
+  parent: ResolvingMetadata
+): Promise<Metadata> {
   const { slug } = await params;
   
   const post = await prisma.post.findUnique({
@@ -12,27 +15,39 @@ export async function generateMetadata({ params }: { params: { slug: string } },
   });
 
   if (!post) {
-    return { title: 'Not Found' };
+    return {
+      title: 'Article Not Found',
+      description: 'The requested article could not be found.',
+    };
   }
 
-  const excerpt = post.content ? post.content.replace(/<[^>]*>?/gm, '').substring(0, 160) + '...' : 'Read our latest article.';
-  
+  // Use the AI-generated SEO fields if they exist, otherwise fallback
+  const title = post.seoTitle || post.title;
+  const description = post.seoDescription || 
+    (post.content 
+      ? post.content.replace(/<[^>]*>?/gm, '').substring(0, 155) + '...' 
+      : 'Read this article on The Cougar Chronicle.');
+      
+  const keywords = post.seoKeywords ? post.seoKeywords.split(',').map(k => k.trim()) : [];
+
   return {
-    title: post.title,
-    description: excerpt,
+    title: title,
+    description: description,
+    keywords: keywords,
     openGraph: {
-      title: post.title,
-      description: excerpt,
+      title: title,
+      description: description,
       type: 'article',
+      url: `/article/${post.slug}`,
+      images: post.imageUrl ? [post.imageUrl] : [],
       publishedTime: post.publishedAt?.toISOString() || post.createdAt.toISOString(),
       authors: [post.author.name || 'The Cougar Chronicle'],
-      images: post.imageUrl ? [post.imageUrl] : undefined,
     },
     twitter: {
       card: 'summary_large_image',
-      title: post.title,
-      description: excerpt,
-      images: post.imageUrl ? [post.imageUrl] : undefined,
+      title: title,
+      description: description,
+      images: post.imageUrl ? [post.imageUrl] : [],
     }
   };
 }
@@ -76,7 +91,7 @@ export default async function ArticlePage({ params }: { params: { slug: string }
         <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', marginBottom: '2.5rem', borderRadius: '0.5rem', overflow: 'hidden', backgroundColor: 'var(--surface-hover)', border: '1px solid var(--border)' }}>
           <Image 
             src={post.imageUrl} 
-            alt={post.title} 
+            alt={post.featuredImageAlt || post.title} 
             fill 
             priority
             sizes="(max-width: 800px) 100vw, 800px"
