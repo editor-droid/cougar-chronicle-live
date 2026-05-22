@@ -101,6 +101,11 @@ function ToolbarButton({
         background: active ? "var(--surface)" : "transparent",
         opacity: disabled ? 0.4 : 1,
         cursor: disabled ? "not-allowed" : "pointer",
+        border: "none",
+        outline: "none",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
       }}
     >
       {children}

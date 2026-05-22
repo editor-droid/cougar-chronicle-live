@@ -153,7 +153,7 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
   };
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: post?.id ? 'minmax(0, 1fr) 320px' : '1fr', gap: '2rem', paddingBottom: '4rem', alignItems: 'start' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 350px', gap: '2rem', paddingBottom: '4rem', alignItems: 'start' }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         
         {/* Writer Unresolved Notes Warning */}
@@ -429,41 +429,21 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
           />
         </div>
 
-        <div style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
-          <div style={{ flex: '1 1 0%', minWidth: 0 }}>
-            <label className="font-sans text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem' }}>Body Content</label>
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              onChange={handleImageUpload} 
-              accept="image/*" 
-              style={{ display: 'none' }} 
-            />
-            <RichTextEditor
-              ref={editorRef}
-              value={content}
-              onChange={setContent}
-              onImageInsert={() => fileInputRef.current?.click()}
-            />
-          </div>
-          <div style={{ width: '350px', flexShrink: 0, marginTop: '2rem' }}>
-            <SeoAnalysisPanel
-              title={title}
-              seoTitle={seoTitle}
-              seoDescription={seoDescription}
-              slug={slug}
-              content={content}
-              excerpt={content.replace(/<[^>]+>/g, ' ').substring(0, 150)}
-              category={category}
-              focusKeyword={focusKeyword}
-              onFocusKeywordChange={setFocusKeyword}
-              schemaTypes={['Article', 'NewsArticle']}
-              onApplySeoTitle={setSeoTitle}
-              onApplySeoDescription={setSeoDescription}
-              onApplyTitle={setTitle}
-              onApplySlug={setSlug}
-            />
-          </div>
+        <div style={{ width: '100%' }}>
+          <label className="font-sans text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem' }}>Body Content</label>
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={handleImageUpload} 
+            accept="image/*" 
+            style={{ display: 'none' }} 
+          />
+          <RichTextEditor
+            ref={editorRef}
+            value={content}
+            onChange={setContent}
+            onImageInsert={() => fileInputRef.current?.click()}
+          />
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>
@@ -475,9 +455,10 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
       </form>
       </div>
 
-      {/* EDITORIAL NOTES SIDEBAR */}
-      {post?.id && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '0.5rem', padding: '1.5rem', position: 'sticky', top: '2rem' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+        {/* EDITORIAL NOTES SIDEBAR */}
+        {post?.id && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '0.5rem', padding: '1.5rem', position: 'sticky', top: '2rem' }}>
           <h3 className="font-serif" style={{ fontSize: '1.25rem', borderBottom: '2px solid var(--primary)', paddingBottom: '0.5rem' }}>Editorial Notes</h3>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '500px', overflowY: 'auto', paddingRight: '0.5rem' }}>
@@ -523,6 +504,26 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
         </div>
       )}
 
+      {/* SEO ANALYSIS PANEL IN SIDEBAR */}
+      <div style={{ position: 'sticky', top: post?.id ? 'auto' : '2rem' }}>
+        <SeoAnalysisPanel
+          title={title}
+          seoTitle={seoTitle}
+          seoDescription={seoDescription}
+          slug={slug}
+          content={content}
+          excerpt={content.replace(/<[^>]+>/g, ' ').substring(0, 150)}
+          category={category}
+          focusKeyword={focusKeyword}
+          onFocusKeywordChange={setFocusKeyword}
+          schemaTypes={['Article', 'NewsArticle']}
+          onApplySeoTitle={setSeoTitle}
+          onApplySeoDescription={setSeoDescription}
+          onApplyTitle={setTitle}
+          onApplySlug={setSlug}
+        />
+      </div>
+      </div>
     </div>
   );
 }
