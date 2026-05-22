@@ -62,7 +62,9 @@ async function main() {
       if (post._embedded && post._embedded.author && post._embedded.author[0] && post._embedded.author[0].name) {
           authorName = post._embedded.author[0].name;
       }
-      const authorEmail = `${authorName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()}@cougarchronicle.com`;
+      
+      const emailName = authorName.trim().toLowerCase().split(' ').join('.');
+      const authorEmail = `${emailName}@thecougarchronicle.com`;
       
       const author = await prisma.user.upsert({
         where: { email: authorEmail },

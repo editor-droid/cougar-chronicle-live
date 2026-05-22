@@ -26,7 +26,7 @@ export default async function EditorPage({ params }: { params: { id: string } })
       <h1 className="font-serif" style={{ fontSize: '2rem', marginBottom: '2rem' }}>
         {id === 'new' ? 'Create New Draft' : 'Edit Post'}
       </h1>
-      <EditorForm post={post} authorId={session.user.id} />
+      <EditorForm post={post} authorId={session.user.id} userRole={session.user.role} />
     </div>
   );
 }

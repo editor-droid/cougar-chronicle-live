@@ -38,12 +38,18 @@ export default async function ArticlePage({ params }: { params: { slug: string }
 
       {/* Image Rendering */}
       {post.imageUrl ? (
-        <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', marginBottom: '2.5rem', borderRadius: '0.5rem', overflow: 'hidden', backgroundColor: 'var(--surface-hover)' }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={post.imageUrl} alt={post.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', marginBottom: '2.5rem', borderRadius: '0.5rem', overflow: 'hidden', backgroundColor: 'var(--surface-hover)', border: '1px solid var(--border)' }}>
+          <Image 
+            src={post.imageUrl} 
+            alt={post.title} 
+            fill 
+            priority
+            sizes="(max-width: 800px) 100vw, 800px"
+            style={{ objectFit: 'cover' }} 
+          />
         </div>
       ) : (
-        <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', marginBottom: '2.5rem', borderRadius: '0.5rem', overflow: 'hidden', backgroundColor: 'var(--surface-hover)' }} />
+        <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', marginBottom: '2.5rem', borderRadius: '0.5rem', overflow: 'hidden', backgroundColor: 'var(--surface-hover)', display: 'none' }} />
       )}
 
       {/* Rich Text Content */}

@@ -65,7 +65,19 @@ export default async function DashboardPage() {
               posts.map(post => (
                 <tr key={post.id} style={{ borderBottom: '1px solid var(--border)' }}>
                   <td style={{ padding: '1rem' }} className="font-serif">
-                    <Link href={`/dashboard/editor/${post.id}`}>{post.title}</Link>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                      {post.imageUrl ? (
+                        <div style={{ width: '48px', height: '32px', borderRadius: '0.25rem', overflow: 'hidden', border: '1px solid var(--border)', flexShrink: 0 }}>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={post.imageUrl} alt={post.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        </div>
+                      ) : (
+                        <div style={{ width: '48px', height: '32px', backgroundColor: 'var(--surface-hover)', border: '1px solid var(--border)', borderRadius: '0.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <span className="font-serif text-muted" style={{ fontSize: '0.5rem', fontWeight: 'bold' }}>CC</span>
+                        </div>
+                      )}
+                      <Link href={`/dashboard/editor/${post.id}`} style={{ fontWeight: 'bold' }}>{post.title}</Link>
+                    </div>
                   </td>
                   <td style={{ padding: '1rem' }} className="font-sans text-sm">{post.author.name}</td>
                   <td style={{ padding: '1rem' }}>

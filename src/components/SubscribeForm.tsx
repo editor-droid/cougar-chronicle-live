@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-export default function SubscribeForm() {
+export default function SubscribeForm({ onSuccess }: { onSuccess?: () => void }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -26,6 +26,9 @@ export default function SubscribeForm() {
         setMessage('Thank you for subscribing!');
         setEmail('');
         setName('');
+        if (onSuccess) {
+          setTimeout(onSuccess, 1500);
+        }
       } else {
         setStatus('error');
         setMessage('Failed to subscribe. Please try again.');

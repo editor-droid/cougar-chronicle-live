@@ -65,7 +65,7 @@ export default function SubscribeModal() {
               Get our curated faith, campus news, and columns delivered straight to your inbox daily.
             </p>
             
-            <SubscribeForm />
+            <SubscribeForm onSuccess={() => setIsOpen(false)} />
           </div>
         </div>
       )}
