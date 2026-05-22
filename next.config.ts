@@ -15,7 +15,7 @@ const nextConfig: NextConfig = {
     serverActions: {
       allowedOrigins: [
         'localhost:3000',
-        'cougar-chronicle-live-production.up.railway.app',
+        'cougar-chronicle-live-production-c994.up.railway.app',
         '*.railway.app'
       ],
     },
