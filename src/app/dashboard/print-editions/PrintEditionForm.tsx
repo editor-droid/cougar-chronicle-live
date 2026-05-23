@@ -3,15 +3,15 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-export default function PrintEditionForm() {
+export default function PrintEditionForm({ initialData }: { initialData?: any }) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   
-  const [title, setTitle] = useState('');
-  const [pdfUrl, setPdfUrl] = useState('');
-  const [coverImageUrl, setCoverImageUrl] = useState('');
-  const [isActive, setIsActive] = useState(true);
+  const [title, setTitle] = useState(initialData?.title || '');
+  const [pdfUrl, setPdfUrl] = useState(initialData?.pdfUrl || '');
+  const [coverImageUrl, setCoverImageUrl] = useState(initialData?.coverImageUrl || '');
+  const [isActive, setIsActive] = useState(initialData ? initialData.isActive : true);
 
   // File states for upload
   const [pdfFile, setPdfFile] = useState<File | null>(null);
@@ -55,8 +55,11 @@ export default function PrintEditionForm() {
       
       setUploadStatus('Saving edition...');
 
-      const res = await fetch('/api/print-editions', {
-        method: 'POST',
+      const method = initialData ? 'PUT' : 'POST';
+      const endpoint = initialData ? `/api/print-editions/${initialData.id}` : '/api/print-editions';
+
+      const res = await fetch(endpoint, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title,

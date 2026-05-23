@@ -13,12 +13,12 @@ async function seed() {
     return;
   }
 
-  // Create a placeholder PrintEdition to link these articles to
   const edition = await prisma.printEdition.create({
     data: {
       title: 'Volume 1: Standing For Something',
-      pdfUrl: '#',
-      coverImageUrl: 'https://pub-7540640451dd48c6af04cad9907c1784.r2.dev/vol1_cover.jpg' // Place holder if needed
+      pdfUrl: `${process.env.CLOUDFLARE_PUBLIC_URL}/Final_with_covers.pdf`,
+      coverImageUrl: 'https://pub-7540640451dd48c6af04cad9907c1784.r2.dev/vol1_cover.jpg',
+      isActive: true
     }
   });
 
