@@ -282,7 +282,7 @@ input:focus, textarea:focus {
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 2rem;
-  padding-bottom: 2rem;
+  padding-bottom: 1rem;
   border-bottom: 1px solid var(--border);
 }
 
