@@ -136,9 +136,16 @@ export default async function ArticlePage({ params, searchParams }: { params: { 
         <article style={{ padding: '0', minHeight: '60vh' }}>
           <header style={{ marginBottom: '3rem', textAlign: 'center' }}>
             <div style={{ marginBottom: '1.5rem' }}>
-              <span className="font-sans text-xs text-muted" style={{ textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700 }}>
-                {post.category}
-              </span>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}>
+                <span className="font-sans text-xs text-muted" style={{ textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700 }}>
+                  {post.category}
+                </span>
+                {post.printEditionId && (
+                  <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: 700, backgroundColor: 'var(--surface-hover)', padding: '0.15rem 0.4rem', borderRadius: '0.25rem', border: '1px solid var(--border)', color: 'var(--foreground)' }}>
+                    🗞️ Print Edition
+                  </span>
+                )}
+              </div>
             </div>
             
             <h1 className="font-serif" style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', lineHeight: 1.1, marginBottom: '1.5rem', color: 'var(--foreground)' }}>
@@ -258,7 +265,12 @@ export default async function ArticlePage({ params, searchParams }: { params: { 
             <li key={tp.id}>
               <span className="rank">{i + 1}</span>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                <span className="font-sans text-xs" style={{ color: 'var(--primary)', fontWeight: 'bold', textTransform: 'uppercase' }}>{tp.category}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span className="font-sans text-xs" style={{ color: 'var(--primary)', fontWeight: 'bold', textTransform: 'uppercase' }}>{tp.category}</span>
+                  {tp.printEditionId && (
+                    <span style={{ fontSize: '0.55rem', textTransform: 'uppercase', fontWeight: 700, backgroundColor: 'var(--surface-hover)', padding: '0.1rem 0.3rem', borderRadius: '0.25rem', border: '1px solid var(--border)', color: 'var(--foreground)' }}>🗞️ Print</span>
+                  )}
+                </div>
                 <Link href={getArticleUrl(tp)} className="font-serif" style={{ fontSize: '1.1rem', lineHeight: 1.3, fontWeight: 600 }}>
                   {tp.title}
                 </Link>
