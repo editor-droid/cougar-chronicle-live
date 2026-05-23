@@ -9,7 +9,7 @@ export async function GET() {
       where: { state: 'PUBLISHED' },
       orderBy: { publishedAt: 'desc' },
       take: 10,
-      select: { title: true, slug: true, content: true, publishedAt: true, category: true, isPremium: true }
+      select: { title: true, slug: true, content: true, publishedAt: true, category: true, isPremium: true, printEditionId: true }
     });
 
     const formattedPosts = latestPosts.map(post => {

@@ -71,7 +71,7 @@ export default async function ArticlePage({ params, searchParams }: { params: { 
     notFound();
   }
 
-  if (post.printEditionId || !post.isPremium) {
+  if (!post.printEditionId) {
     redirect(getArticleUrl(post));
   }
 

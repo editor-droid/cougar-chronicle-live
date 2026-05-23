@@ -45,9 +45,10 @@ export default async function CategoryPage({ params }: { params: { slug: string 
               <h3 className={headerFontClass} style={{ fontSize: '1.5rem', marginBottom: '0.5rem', lineHeight: '1.3' }}>
                 <Link href={getArticleUrl(post)}>{post.title}</Link>
               </h3>
-              <p className="text-muted text-sm font-sans">
-                By {post.author.name} &bull; {new Date(post.createdAt).toLocaleDateString()}
-              </p>
+              <div className="text-muted text-sm font-sans" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <span>By {post.author.name} &bull; {new Date(post.createdAt).toLocaleDateString()}</span>
+                {post.printEditionId && <span style={{ fontSize: '0.6rem', textTransform: 'uppercase', fontWeight: 700, backgroundColor: 'var(--surface-hover)', padding: '0.1rem 0.3rem', borderRadius: '0.25rem', border: '1px solid var(--border)', color: 'var(--foreground)' }}>🗞️ Print</span>}
+              </div>
             </article>
           ))}
         </div>

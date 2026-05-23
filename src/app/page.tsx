@@ -75,9 +75,16 @@ export default async function Home() {
               )}
             </div>
             <div style={{ paddingRight: '1rem' }}>
-              <span className="feed-category" style={{ textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--accent)', fontWeight: 800, fontSize: '0.8rem', display: 'block', marginBottom: '0.5rem' }}>
-                {mainStory.category}
-              </span>
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}>
+                <span className="feed-category" style={{ textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--accent)', fontWeight: 800, fontSize: '0.8rem' }}>
+                  {mainStory.category}
+                </span>
+                {mainStory.printEditionId && (
+                  <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: 700, backgroundColor: 'var(--surface-hover)', padding: '0.15rem 0.4rem', borderRadius: '0.25rem', border: '1px solid var(--border)', color: 'var(--foreground)' }}>
+                    🗞️ Print Edition
+                  </span>
+                )}
+              </div>
               <h1 className="font-serif hero-headline" style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--foreground)' }}>
                 {mainStory.title}
               </h1>
@@ -110,9 +117,16 @@ export default async function Home() {
             sideStories.map(story => (
               <Link href={getArticleUrl(story)} key={story.id} className="hero-side-card" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>
                 <div>
-                  <span className="feed-category" style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: 800, color: 'var(--accent)', marginBottom: '0.25rem' }}>
-                    {story.category}
-                  </span>
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.25rem' }}>
+                    <span className="feed-category" style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: 800, color: 'var(--accent)' }}>
+                      {story.category}
+                    </span>
+                    {story.printEditionId && (
+                      <span style={{ fontSize: '0.55rem', textTransform: 'uppercase', fontWeight: 700, backgroundColor: 'var(--surface-hover)', padding: '0.1rem 0.3rem', borderRadius: '0.25rem', border: '1px solid var(--border)', color: 'var(--foreground)' }}>
+                        🗞️ Print Edition
+                      </span>
+                    )}
+                  </div>
                   <h4 className="font-serif hero-side-headline" style={{ fontSize: '1.05rem', fontWeight: 700, lineHeight: 1.25 }}>
                     {story.title}
                   </h4>
@@ -148,8 +162,8 @@ export default async function Home() {
                     <h3 className="font-serif category-headline" style={{ fontSize: '1.15rem', fontWeight: 700, lineHeight: 1.3 }}>
                       {post.title}
                     </h3>
-                    <div className="font-sans text-xs text-muted" style={{ marginTop: '0.5rem' }}>
-                      By {post.author.name}
+                    <div className="font-sans text-xs text-muted" style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      By {post.author.name} {post.printEditionId && <span style={{ fontSize: '0.6rem', textTransform: 'uppercase', fontWeight: 700, backgroundColor: 'var(--surface-hover)', padding: '0.1rem 0.3rem', borderRadius: '0.25rem', border: '1px solid var(--border)', color: 'var(--foreground)' }}>🗞️ Print</span>}
                     </div>
                   </Link>
                 ))}
@@ -171,8 +185,8 @@ export default async function Home() {
                     <h3 className="font-serif category-headline" style={{ fontSize: '1.15rem', fontWeight: 700, lineHeight: 1.3 }}>
                       {post.title}
                     </h3>
-                    <div className="font-sans text-xs text-muted" style={{ marginTop: '0.5rem' }}>
-                      By {post.author.name}
+                    <div className="font-sans text-xs text-muted" style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      By {post.author.name} {post.printEditionId && <span style={{ fontSize: '0.6rem', textTransform: 'uppercase', fontWeight: 700, backgroundColor: 'var(--surface-hover)', padding: '0.1rem 0.3rem', borderRadius: '0.25rem', border: '1px solid var(--border)', color: 'var(--foreground)' }}>🗞️ Print</span>}
                     </div>
                   </Link>
                 ))}
@@ -211,8 +225,8 @@ export default async function Home() {
                         {post.title}
                       </h3>
                     </div>
-                    <div className="font-sans text-xs" style={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--primary)' }}>
-                      By {post.author.name}
+                    <div className="font-sans text-xs" style={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      By {post.author.name} {post.printEditionId && <span style={{ fontSize: '0.6rem', textTransform: 'uppercase', fontWeight: 700, backgroundColor: 'var(--surface-hover)', padding: '0.1rem 0.3rem', borderRadius: '0.25rem', border: '1px solid var(--border)', color: 'var(--foreground)', letterSpacing: 'normal' }}>🗞️ Print</span>}
                     </div>
                   </Link>
                 ))}
@@ -240,7 +254,7 @@ export default async function Home() {
                         {post.title}
                       </Link>
                       <span className="font-sans text-xs text-muted" style={{ marginTop: '0.25rem', display: 'block' }}>
-                        By {post.author.name}
+                        {post.category} {post.printEditionId && '🗞️ Print'} &bull; {post.views} views
                       </span>
                     </div>
                   </li>

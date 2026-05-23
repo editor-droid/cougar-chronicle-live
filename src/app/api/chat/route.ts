@@ -36,14 +36,14 @@ export async function POST(req: Request) {
       prisma.post.findMany({
         orderBy: { createdAt: 'desc' },
         take: 5,
-        select: { title: true, content: true, createdAt: true, category: true, slug: true, isPremium: true }
+        select: { title: true, content: true, createdAt: true, category: true, slug: true, isPremium: true, printEditionId: true }
       }),
       keywords.length > 0 ? prisma.post.findMany({
         // @ts-ignore
         where: { OR: orConditions.flatMap(c => c.OR) },
         orderBy: { createdAt: 'desc' },
         take: 5,
-        select: { title: true, content: true, createdAt: true, category: true, slug: true, isPremium: true }
+        select: { title: true, content: true, createdAt: true, category: true, slug: true, isPremium: true, printEditionId: true }
       }) : Promise.resolve([])
     ]);
 
