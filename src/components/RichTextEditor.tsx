@@ -1083,7 +1083,7 @@ function PreviewPane({ html }: { html: string }) {
       style={{
         background: "var(--primary)",
         color: "var(--primary)",
-        minHeight: "400px",
+        minHeight: "600px",
       }}
       dangerouslySetInnerHTML={{ __html: html }}
     />

@@ -585,66 +585,6 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
           />
         </div>
 
-        <div style={{ backgroundColor: '#f0f9ff', padding: '1.5rem', borderRadius: '0.5rem', border: '1px solid #bae6fd', marginTop: '2rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
-            <div>
-              <h2 className="font-serif" style={{ fontSize: '1.5rem', color: '#0369a1', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
-                AI SEO Assistant
-              </h2>
-              <p className="font-sans text-sm" style={{ color: '#0284c7', marginTop: '0.25rem' }}>Automatically generate optimized metadata based on your article content.</p>
-            </div>
-            <button 
-              type="button" 
-              onClick={generateSEO} 
-              disabled={isGeneratingSEO}
-              className="btn font-sans"
-              style={{ backgroundColor: '#0284c7', color: 'white', border: 'none', padding: '0.75rem 1.5rem', fontSize: '1rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: isGeneratingSEO ? 0.7 : 1 }}
-            >
-              {isGeneratingSEO ? 'Generating...' : '✨ Generate SEO Metadata'}
-            </button>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-            <div style={{ gridColumn: '1 / -1' }}>
-              <label className="font-sans text-sm font-bold" style={{ color: '#0369a1', display: 'block', marginBottom: '0.5rem' }}>SEO Title</label>
-              <input 
-                type="text" 
-                value={seoTitle} 
-                onChange={(e) => setSeoTitle(e.target.value)} 
-                style={{ width: '100%', padding: '0.75rem', borderRadius: '0.25rem', border: '1px solid #bae6fd', fontFamily: 'var(--font-sans)', backgroundColor: 'white' }}
-              />
-            </div>
-            <div style={{ gridColumn: '1 / -1' }}>
-              <label className="font-sans text-sm font-bold" style={{ color: '#0369a1', display: 'block', marginBottom: '0.5rem' }}>SEO Description</label>
-              <textarea 
-                value={seoDescription} 
-                onChange={(e) => setSeoDescription(e.target.value)} 
-                rows={3}
-                style={{ width: '100%', padding: '0.75rem', borderRadius: '0.25rem', border: '1px solid #bae6fd', fontFamily: 'var(--font-sans)', backgroundColor: 'white', resize: 'vertical' }}
-              />
-            </div>
-            <div>
-              <label className="font-sans text-sm font-bold" style={{ color: '#0369a1', display: 'block', marginBottom: '0.5rem' }}>SEO Keywords</label>
-              <input 
-                type="text" 
-                value={seoKeywords} 
-                onChange={(e) => setSeoKeywords(e.target.value)} 
-                style={{ width: '100%', padding: '0.75rem', borderRadius: '0.25rem', border: '1px solid #bae6fd', fontFamily: 'var(--font-sans)', backgroundColor: 'white' }}
-              />
-            </div>
-            <div>
-              <label className="font-sans text-sm font-bold" style={{ color: '#0369a1', display: 'block', marginBottom: '0.5rem' }}>Featured Image Alt Text</label>
-              <input 
-                type="text" 
-                value={featuredImageAlt} 
-                onChange={(e) => setFeaturedImageAlt(e.target.value)} 
-                style={{ width: '100%', padding: '0.75rem', borderRadius: '0.25rem', border: '1px solid #bae6fd', fontFamily: 'var(--font-sans)', backgroundColor: 'white' }}
-              />
-            </div>
-          </div>
-        </div>
-
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>
           <button type="button" onClick={() => router.push('/dashboard')} className="btn btn-secondary font-sans">Cancel</button>
           <button type="submit" disabled={isSubmitting} className="btn btn-primary font-sans">
@@ -703,6 +643,67 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
         </div>
       )}
 
+      <div style={{ backgroundColor: '#f0f9ff', padding: '1.5rem', borderRadius: '0.5rem', border: '1px solid #bae6fd', marginTop: '0', marginBottom: '2rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+            <div>
+              <h2 className="font-serif" style={{ fontSize: '1.5rem', color: '#0369a1', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+                AI SEO Assistant
+              </h2>
+              <p className="font-sans text-sm" style={{ color: '#0284c7', marginTop: '0.25rem' }}>Automatically generate optimized metadata based on your article content.</p>
+            </div>
+            <button 
+              type="button" 
+              onClick={generateSEO} 
+              disabled={isGeneratingSEO}
+              className="btn font-sans"
+              style={{ backgroundColor: '#0284c7', color: 'white', border: 'none', padding: '0.75rem 1.5rem', fontSize: '1rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: isGeneratingSEO ? 0.7 : 1 }}
+            >
+              {isGeneratingSEO ? 'Generating...' : '✨ Generate SEO Metadata'}
+            </button>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem' }}>
+            <div style={{ gridColumn: '1 / -1' }}>
+              <label className="font-sans text-sm font-bold" style={{ color: '#0369a1', display: 'block', marginBottom: '0.5rem' }}>SEO Title</label>
+              <input 
+                type="text" 
+                value={seoTitle} 
+                onChange={(e) => setSeoTitle(e.target.value)} 
+                style={{ width: '100%', padding: '0.75rem', borderRadius: '0.25rem', border: '1px solid #bae6fd', fontFamily: 'var(--font-sans)', backgroundColor: 'white' }}
+              />
+            </div>
+            <div style={{ gridColumn: '1 / -1' }}>
+              <label className="font-sans text-sm font-bold" style={{ color: '#0369a1', display: 'block', marginBottom: '0.5rem' }}>SEO Description</label>
+              <textarea 
+                value={seoDescription} 
+                onChange={(e) => setSeoDescription(e.target.value)} 
+                rows={3}
+                style={{ width: '100%', padding: '0.75rem', borderRadius: '0.25rem', border: '1px solid #bae6fd', fontFamily: 'var(--font-sans)', backgroundColor: 'white', resize: 'vertical' }}
+              />
+            </div>
+            <div>
+              <label className="font-sans text-sm font-bold" style={{ color: '#0369a1', display: 'block', marginBottom: '0.5rem' }}>SEO Keywords</label>
+              <input 
+                type="text" 
+                value={seoKeywords} 
+                onChange={(e) => setSeoKeywords(e.target.value)} 
+                style={{ width: '100%', padding: '0.75rem', borderRadius: '0.25rem', border: '1px solid #bae6fd', fontFamily: 'var(--font-sans)', backgroundColor: 'white' }}
+              />
+            </div>
+            <div>
+              <label className="font-sans text-sm font-bold" style={{ color: '#0369a1', display: 'block', marginBottom: '0.5rem' }}>Featured Image Alt Text</label>
+              <input 
+                type="text" 
+                value={featuredImageAlt} 
+                onChange={(e) => setFeaturedImageAlt(e.target.value)} 
+                style={{ width: '100%', padding: '0.75rem', borderRadius: '0.25rem', border: '1px solid #bae6fd', fontFamily: 'var(--font-sans)', backgroundColor: 'white' }}
+              />
+            </div>
+          </div>
+        </div>
+
+        
       {/* SEO ANALYSIS PANEL IN SIDEBAR */}
       <div style={{ position: 'sticky', top: post?.id ? 'auto' : '2rem' }}>
         <SeoAnalysisPanel

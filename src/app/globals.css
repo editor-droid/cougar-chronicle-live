@@ -741,3 +741,7 @@ button, [type='button'], [type='reset'], [type='submit'] {
 .btn-secondary {
   border: 1px solid var(--border);
 }
+
+.rich-text-editor-content .tiptap {
+  min-height: 800px;
+}

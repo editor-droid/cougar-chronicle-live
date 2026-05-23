@@ -126,7 +126,7 @@ export default async function Home() {
       </section>
 
       {/* Elegant Separator */}
-      <div style={{ borderTop: '4px double var(--border)', margin: '1rem 0 3rem 0' }}></div>
+      <div style={{ borderTop: '4px double var(--border)', margin: '1rem 0 1.5rem 0' }}></div>
 
       {/* 2. DENSE COLUMN LAYOUT (National Review style main content + right widgets) */}
       <div className="home-grid">

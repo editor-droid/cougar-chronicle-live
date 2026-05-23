@@ -81,7 +81,7 @@ export default function RootLayout({
             <a href="/contact" className="nav-link font-sans">Contact</a>
             <a href="/donate" className="nav-link font-sans">Donate</a>
           </nav>
-          <div style={{ textAlign: 'center', marginTop: '1rem', paddingBottom: '1.5rem', borderBottom: '1px solid var(--border)' }}>
+          <div style={{ textAlign: 'center', marginTop: '1rem', paddingBottom: '1.5rem' }}>
             <span className="font-serif text-muted" style={{ fontSize: '1rem', fontStyle: 'italic', letterSpacing: '0.05em' }}>
               Conservative News & Opinion for the BYU Community
             </span>
