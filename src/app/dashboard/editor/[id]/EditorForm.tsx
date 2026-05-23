@@ -19,6 +19,7 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
   const [featuredImageAlt, setFeaturedImageAlt] = useState(post?.featuredImageAlt || '');
   
   const [customAuthor, setCustomAuthor] = useState(post?.customAuthor || '');
+  const [isPremium, setIsPremium] = useState(post?.isPremium || false);
   const [keyInsights, setKeyInsights] = useState(post?.keyInsights || '');
   const [assignedAuthorId, setAssignedAuthorId] = useState(post?.authorId || authorId);
   
@@ -215,7 +216,7 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
         seoKeywords,
         keyInsights,
         featuredImageAlt,
-        customAuthor
+        customAuthor, isPremium
       });
       router.push('/dashboard');
       router.refresh();
@@ -324,7 +325,7 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
                                         await savePost({ 
                       id: post.id, title, slug, category, content, imageUrl, authorId: assignedAuthorId,
                       seoTitle, seoDescription, seoKeywords,
-        keyInsights, featuredImageAlt, customAuthor
+        keyInsights, featuredImageAlt, customAuthor, isPremium
                     });
                     
                     const fd = new FormData();
@@ -358,7 +359,7 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
                                         await savePost({ 
                       id: post.id, title, slug, category, content, imageUrl, authorId: assignedAuthorId,
                       seoTitle, seoDescription, seoKeywords,
-        keyInsights, featuredImageAlt, customAuthor
+        keyInsights, featuredImageAlt, customAuthor, isPremium
                     });
                     
                     const fd = new FormData();
@@ -391,7 +392,7 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
                                         await savePost({ 
                       id: post.id, title, slug, category, content, imageUrl, authorId: assignedAuthorId,
                       seoTitle, seoDescription, seoKeywords,
-        keyInsights, featuredImageAlt, customAuthor
+        keyInsights, featuredImageAlt, customAuthor, isPremium
                     });
                     
                     const fd = new FormData();
@@ -481,11 +482,22 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
             <label className="font-sans text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem' }}>Custom Byline (Optional)</label>
             <input 
               type="text" 
-              value={customAuthor} 
+              value={customAuthor, isPremium} 
               onChange={(e) => setCustomAuthor(e.target.value)} 
               placeholder="e.g. John Doe and Jane Smith"
               style={{ width: '100%', padding: '0.75rem', borderRadius: '0.25rem', border: '1px solid var(--border)' }}
             />
+          </div>
+          <div style={{ flex: 1, minWidth: '200px', display: 'flex', alignItems: 'flex-end', paddingBottom: '0.75rem' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+              <input 
+                type="checkbox" 
+                checked={isPremium} 
+                onChange={(e) => setIsPremium(e.target.checked)} 
+                style={{ width: '1.25rem', height: '1.25rem', cursor: 'pointer' }}
+              />
+              <span className="font-sans text-sm font-bold" style={{ color: 'var(--primary)' }}>Premium Article (Paywall)</span>
+            </label>
           </div>
 
           {(userRole === 'ADMIN' || userRole === 'EDITOR') && (

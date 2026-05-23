@@ -205,7 +205,8 @@ export async function savePost(data: any) {
         keyInsights: data.keyInsights,
         featuredImageAlt: data.featuredImageAlt,
         customAuthor: data.customAuthor,
-        authorId: data.authorId // Ensure reassignment works
+        authorId: data.authorId, // Ensure reassignment works
+        isPremium: data.isPremium !== undefined ? data.isPremium : false
       }
     });
   } else {
@@ -224,6 +225,7 @@ export async function savePost(data: any) {
         keyInsights: data.keyInsights,
         featuredImageAlt: data.featuredImageAlt,
         customAuthor: data.customAuthor,
+        isPremium: data.isPremium !== undefined ? data.isPremium : false
       }
     });
   }
