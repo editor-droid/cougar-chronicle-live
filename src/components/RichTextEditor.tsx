@@ -14,6 +14,7 @@ import TableRow from "@tiptap/extension-table-row";
 import TableCell from "@tiptap/extension-table-cell";
 import TableHeader from "@tiptap/extension-table-header";
 import Youtube from "@tiptap/extension-youtube";
+import Highlight from "@tiptap/extension-highlight";
 import {
   useEffect,
   useCallback,
@@ -53,6 +54,7 @@ import {
   MousePointerClick,
   MessageSquareQuote,
   ChevronDown,
+  Highlighter,
 } from "lucide-react";
 
 export interface RichTextEditorHandle {
@@ -1018,6 +1020,14 @@ function FloatingBubbleToolbar({
         >
           <Strikethrough size={14} />
         </ToolbarButton>
+        <ToolbarButton
+          onClick={() => editor.chain().focus().toggleHighlight().run()}
+          active={editor.isActive("highlight")}
+          title="Highlight (for Editorial Notes)"
+          size="small"
+        >
+          <Highlighter size={14} />
+        </ToolbarButton>
 
         <div
           className="w-px h-4 mx-0.5"
@@ -1113,6 +1123,7 @@ export const RichTextEditor = forwardRef<
       TableRow,
       TableHeader,
       TableCell,
+      Highlight.configure({ HTMLAttributes: { class: 'editorial-highlight', style: 'background-color: #fef08a; padding: 0.1rem 0.2rem; border-radius: 0.2rem;' } }),
       Youtube.configure({
         inline: false,
         HTMLAttributes: {

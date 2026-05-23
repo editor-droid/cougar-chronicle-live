@@ -6,7 +6,7 @@ import { auth } from '@/auth';
 import { cookies } from 'next/headers';
 import Link from 'next/link';
 import ClientLightbox from './ClientLightbox';
-import TableOfContents from '@/components/TableOfContents';
+import KeyTakeaways from '@/components/KeyTakeaways';
 import { injectHeadingIds } from '@/lib/toc';
 
 export async function generateMetadata(
@@ -163,7 +163,7 @@ export default async function ArticlePage({ params, searchParams }: { params: { 
             </div>
           )}
 
-          <TableOfContents content={post.content || ''} minHeadings={2} />
+          <KeyTakeaways content={post.keyInsights || ''} />
 
           {hasAccess ? (
             <div 

@@ -5,7 +5,7 @@ import { RichTextEditor, RichTextEditorHandle } from '@/components/RichTextEdito
 import { SeoAnalysisPanel } from '@/components/SeoAnalysisPanel';
 import { savePost, updatePostState, addEditorialNote } from '../../actions';
 import { useRouter } from 'next/navigation';
-
+import { FileDown, Loader2, X } from 'lucide-react';
 
 export default function EditorForm({ post, authorId, userRole, availableAuthors = [] }: { post: any, authorId: string, userRole: string, availableAuthors?: any[] }) {
   const router = useRouter();
@@ -32,6 +32,51 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
   const [focusKeyword, setFocusKeyword] = useState(post?.seoKeywords?.split(',')[0] || '');
   const [isGeneratingSlug, setIsGeneratingSlug] = useState(false);
   const editorRef = useRef<RichTextEditorHandle>(null);
+
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importUrl, setImportUrl] = useState("");
+  const [importing, setImporting] = useState(false);
+
+  const handleImportDoc = async () => {
+    if (!importUrl) return alert("Please enter a Google Doc URL");
+    setImporting(true);
+    try {
+      const res = await fetch('/api/docs/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: importUrl })
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error);
+      
+      if (result.success && result.data) {
+        if (result.data.title) setTitle(result.data.title);
+        if (result.data.slug) setSlug(result.data.slug);
+        if (result.data.content) {
+          setContent(result.data.content);
+          if (editorRef.current) {
+             editorRef.current.getEditor()?.commands.setContent(result.data.content);
+          }
+        }
+        if (result.data.category) setCategory(result.data.category);
+        if (result.data.imageUrl) setImageUrl(result.data.imageUrl);
+        if (result.data.featuredImageAlt) setFeaturedImageAlt(result.data.featuredImageAlt);
+        if (result.data.seoTitle) setSeoTitle(result.data.seoTitle);
+        if (result.data.seoDescription) setSeoDescription(result.data.seoDescription);
+        if (result.data.seoKeywords) setSeoKeywords(result.data.seoKeywords);
+        if (result.data.keyInsights) setKeyInsights(result.data.keyInsights);
+        if (result.data.customAuthor) setCustomAuthor(result.data.customAuthor);
+        
+        setShowImportModal(false);
+        setImportUrl("");
+        alert("Successfully imported from Google Docs!");
+      }
+    } catch(err: any) {
+      alert(err.message || "Failed to import from Google Docs");
+    } finally {
+      setImporting(false);
+    }
+  };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
@@ -182,6 +227,66 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
   };
 
   return (
+    <>
+      {showImportModal && (
+         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div 
+            className="w-full max-w-md rounded-2xl p-6 shadow-2xl relative"
+            style={{ 
+              background: "var(--surface)",
+              border: "1px solid var(--border)" 
+            }}
+          >
+            <button 
+              onClick={() => setShowImportModal(false)}
+              className="absolute top-4 right-4 p-1.5 rounded-full hover:bg-black/5 transition-colors"
+            >
+              <X size={16} />
+            </button>
+            
+            <h3 className="font-serif text-xl font-bold mb-2 flex items-center gap-2" style={{ color: "var(--foreground)" }}>
+              <FileDown size={20} style={{ color: "var(--primary)" }} />
+              Import Google Doc
+            </h3>
+            
+            <p className="font-sans text-sm mb-6" style={{ color: "var(--muted)" }}>
+              Paste your Google Doc URL below. <strong style={{ color: "var(--primary)" }}>Important:</strong> The document must be set to "Anyone with the link can view". This will overwrite your current form.
+            </p>
+            
+            <input
+              type="text"
+              placeholder="https://docs.google.com/document/d/..."
+              value={importUrl}
+              onChange={e => setImportUrl(e.target.value)}
+              className="w-full rounded-xl px-4 py-3 text-sm mb-6 outline-none transition-all focus:ring-2"
+              style={{
+                background: "var(--background)",
+                color: "var(--foreground)",
+                border: "1px solid var(--border)",
+              } as React.CSSProperties}
+            />
+            
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowImportModal(false)}
+                className="font-sans px-4 py-2 rounded-xl text-sm font-bold transition-colors text-muted"
+                type="button"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleImportDoc}
+                disabled={importing || !importUrl.trim()}
+                className="font-sans flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-bold transition-all disabled:opacity-50 btn btn-primary"
+                type="button"
+              >
+                {importing ? <Loader2 size={16} className="animate-spin" /> : <FileDown size={16} />}
+                {importing ? "Importing..." : "Import"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 350px', gap: '2rem', paddingBottom: '4rem', alignItems: 'start' }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         
@@ -317,7 +422,12 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
           <div style={{ flex: 2, minWidth: '300px' }}>
-            <label className="font-sans text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem' }}>Headline</label>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+              <label className="font-sans text-sm text-muted">Headline</label>
+              <button type="button" onClick={() => setShowImportModal(true)} className="btn btn-secondary font-sans" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                <FileDown size={14} /> Import from Google Docs
+              </button>
+            </div>
             <input 
               type="text" 
               value={title} 
@@ -614,5 +724,6 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
       </div>
       </div>
     </div>
+    </>
   );
 }

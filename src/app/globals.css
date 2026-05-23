@@ -549,10 +549,13 @@ input:focus, textarea:focus {
 }
 
 .article-content img {
-  max-width: 100% !important;
+  width: calc(100% + 4rem) !important;
+  max-width: none !important;
+  margin-left: -2rem !important;
   height: auto !important;
   border-radius: 0.5rem;
-  margin: 2rem auto;
+  margin-top: 3rem !important;
+  margin-bottom: 3rem !important;
   display: block;
 }
 

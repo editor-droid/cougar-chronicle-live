@@ -107,18 +107,7 @@ export default async function Home() {
             <p className="text-muted font-sans text-sm">No additional stories available.</p>
           ) : (
             sideStories.map(story => (
-              <Link href={`/article/${story.slug}`} key={story.id} className="hero-side-card" style={{ display: 'grid', gridTemplateColumns: story.imageUrl ? '80px 1fr' : '1fr', gap: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>
-                {story.imageUrl && (
-                  <div style={{ position: 'relative', width: '80px', height: '60px', backgroundColor: 'var(--surface-hover)', overflow: 'hidden', border: '1px solid var(--border)' }}>
-                    <Image 
-                      src={story.imageUrl} 
-                      alt={story.title} 
-                      fill 
-                      sizes="80px"
-                      style={{ objectFit: 'cover' }} 
-                    />
-                  </div>
-                )}
+              <Link href={`/article/${story.slug}`} key={story.id} className="hero-side-card" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>
                 <div>
                   <span className="feed-category" style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: 800, color: 'var(--accent)', marginBottom: '0.25rem' }}>
                     {story.category}
@@ -156,21 +145,6 @@ export default async function Home() {
               <div className="category-grid">
                 {newsPosts.map(post => (
                   <Link href={`/article/${post.slug}`} key={post.id} className="category-card">
-                    <div style={{ position: 'relative', width: '100%', aspectRatio: '16/10', backgroundColor: 'var(--surface-hover)', marginBottom: '0.75rem', overflow: 'hidden', border: '1px solid var(--border)' }}>
-                      {post.imageUrl ? (
-                        <Image 
-                          src={post.imageUrl} 
-                          alt={post.title} 
-                          fill 
-                          sizes="(max-width: 768px) 100vw, 300px"
-                          style={{ objectFit: 'cover' }} 
-                        />
-                      ) : (
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-                          <span className="font-serif text-muted" style={{ fontSize: '0.75rem' }}>The Cougar Chronicle</span>
-                        </div>
-                      )}
-                    </div>
                     <h3 className="font-serif category-headline" style={{ fontSize: '1.15rem', fontWeight: 700, lineHeight: 1.3 }}>
                       {post.title}
                     </h3>
@@ -194,21 +168,6 @@ export default async function Home() {
               <div className="category-grid">
                 {faithPosts.map(post => (
                   <Link href={`/article/${post.slug}`} key={post.id} className="category-card">
-                    <div style={{ position: 'relative', width: '100%', aspectRatio: '16/10', backgroundColor: 'var(--surface-hover)', marginBottom: '0.75rem', overflow: 'hidden', border: '1px solid var(--border)' }}>
-                      {post.imageUrl ? (
-                        <Image 
-                          src={post.imageUrl} 
-                          alt={post.title} 
-                          fill 
-                          sizes="(max-width: 768px) 100vw, 300px"
-                          style={{ objectFit: 'cover' }} 
-                        />
-                      ) : (
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-                          <span className="font-serif text-muted" style={{ fontSize: '0.75rem' }}>The Cougar Chronicle</span>
-                        </div>
-                      )}
-                    </div>
                     <h3 className="font-serif category-headline" style={{ fontSize: '1.15rem', fontWeight: 700, lineHeight: 1.3 }}>
                       {post.title}
                     </h3>
