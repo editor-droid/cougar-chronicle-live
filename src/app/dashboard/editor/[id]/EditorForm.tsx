@@ -482,7 +482,7 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
             <label className="font-sans text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem' }}>Custom Byline (Optional)</label>
             <input 
               type="text" 
-              value={customAuthor, isPremium} 
+              value={customAuthor} 
               onChange={(e) => setCustomAuthor(e.target.value)} 
               placeholder="e.g. John Doe and Jane Smith"
               style={{ width: '100%', padding: '0.75rem', borderRadius: '0.25rem', border: '1px solid var(--border)' }}
