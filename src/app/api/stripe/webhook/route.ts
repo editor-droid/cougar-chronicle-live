@@ -50,9 +50,23 @@ export async function POST(req: Request) {
       console.log(`Physical Print Edition ordered by ${customerEmail}`);
     }
     else if (type === 'digital_print') {
-      // Email them the full PDF
-      if (customerEmail) {
-        console.log(`Emailing Digital Print PDF to ${customerEmail}`);
+      if (customerEmail && session.metadata?.printEditionId) {
+        const edition = await prisma.printEdition.findUnique({
+          where: { id: session.metadata.printEditionId }
+        });
+        
+        if (edition && edition.pdfUrl) {
+          const { Resend } = require('resend');
+          const resend = new Resend(process.env.RESEND_API_KEY);
+          
+          await resend.emails.send({
+            from: 'The Cougar Chronicle <noreply@cougarchronicle.com>',
+            to: customerEmail,
+            subject: `Your Digital Print Edition: ${edition.title}`,
+            html: `<p>Thank you for purchasing the digital print edition!</p><p>You can download your PDF replica here:</p><br/><a href="${edition.pdfUrl}">${edition.pdfUrl}</a>`
+          });
+          console.log(`Emailed Digital Print PDF to ${customerEmail}`);
+        }
       }
     }
     else if (type === 'digital_article' && postId) {

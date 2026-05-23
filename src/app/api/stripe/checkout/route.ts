@@ -89,7 +89,8 @@ export async function POST(req: Request) {
         success_url: `${origin}/print-edition?success=digital`,
         cancel_url: `${origin}/print-edition`,
         metadata: {
-          type: 'digital_print'
+          type: 'digital_print',
+          printEditionId: metadata?.printEditionId
         }
       });
     }

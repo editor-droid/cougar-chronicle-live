@@ -60,6 +60,8 @@ model Post {
   featuredImageAlt String?
   isPremium        Boolean   @default(false)
   customAuthor     String?
+  printEditionId   String?
+  printEdition     PrintEdition? @relation(fields: [printEditionId], references: [id])
   articleTokens    ArticleToken[]
 }
 
@@ -105,6 +107,16 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model PrintEdition {
+  id            String   @id @default(cuid())
+  title         String   
+  pdfUrl        String   @db.Text
+  coverImageUrl String?  @db.Text
+  isActive      Boolean  @default(true) 
+  createdAt     DateTime @default(now())
+  posts         Post[]
 }
 
 model ContactSubmission {

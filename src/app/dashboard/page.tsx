@@ -53,10 +53,13 @@ export default async function DashboardPage() {
           <h1 className="font-serif" style={{ fontSize: '2.5rem' }}>
             {isEditorOrAdmin ? 'Editorial Dashboard' : 'Writer Dashboard'}
           </h1>
-          {role === 'ADMIN' && (
+          {(role === 'ADMIN' || role === 'EDITOR') && (
             <nav style={{ display: 'flex', gap: '1rem' }}>
               <span className="font-sans" style={{ fontWeight: 600, borderBottom: '2px solid var(--foreground)' }}>Posts</span>
-              <Link href="/dashboard/users" className="text-muted hover:text-foreground font-sans">Users</Link>
+              {role === 'ADMIN' && (
+                <Link href="/dashboard/users" className="text-muted hover:text-foreground font-sans">Users</Link>
+              )}
+              <Link href="/dashboard/print-editions" className="text-muted hover:text-foreground font-sans">Print Editions</Link>
             </nav>
           )}
         </div>
