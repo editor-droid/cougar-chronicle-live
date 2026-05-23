@@ -4,11 +4,13 @@ import prisma from '@/lib/prisma';
 import PrintEditionForm from '../PrintEditionForm';
 import Link from 'next/link';
 
-export default async function EditPrintEditionPage({ params }: { params: { id: string } }) {
+export default async function EditPrintEditionPage(props: { params: Promise<{ id: string }> }) {
   const session = await auth();
   if (!session?.user || (session.user.role !== 'ADMIN' && session.user.role !== 'EDITOR')) {
     redirect('/dashboard');
   }
+
+  const params = await props.params;
 
   const edition = await prisma.printEdition.findUnique({
     where: { id: params.id }
