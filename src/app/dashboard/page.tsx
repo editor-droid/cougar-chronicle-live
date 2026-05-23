@@ -146,20 +146,21 @@ export default async function DashboardPage() {
                     <td style={{ padding: '1rem' }} className="font-sans text-sm text-muted">
                       {new Date(post.updatedAt).toLocaleDateString()}
                     </td>
-                    <td style={{ padding: '1rem' }}>
+                    <td style={{ padding: '1rem', display: 'flex', gap: '0.5rem' }}>
+                      <Link href={`/dashboard/editor/${post.id}`} className="btn btn-secondary text-sm" style={{ padding: '0.25rem 0.5rem' }}>Edit</Link>
                       {/* Server Action Form */}
                       <form action={updatePostState} style={{ display: 'inline-block' }}>
                         <input type="hidden" name="postId" value={post.id} />
                         {isEditorOrAdmin && post.state === 'APPROVED' && (
                           <>
                             <input type="hidden" name="newState" value="PUBLISHED" />
-                            <button type="submit" className="btn btn-primary text-sm" style={{ padding: '0.25rem 0.5rem', backgroundColor: 'green' }}>Publish</button>
+                            <button type="submit" className="btn btn-primary text-sm" style={{ padding: '0.25rem 0.5rem', backgroundColor: 'green', color: 'white' }}>Publish</button>
                           </>
                         )}
                         {!isEditorOrAdmin && post.state === 'DRAFT' && (
                           <>
                             <input type="hidden" name="newState" value="IN_REVIEW" />
-                            <button type="submit" className="btn btn-secondary text-sm" style={{ padding: '0.25rem 0.5rem' }}>Submit for Review</button>
+                            <button type="submit" className="btn btn-primary text-sm" style={{ padding: '0.25rem 0.5rem' }}>Submit for Review</button>
                           </>
                         )}
                       </form>

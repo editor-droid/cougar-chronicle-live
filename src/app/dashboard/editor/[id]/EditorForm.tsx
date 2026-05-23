@@ -383,7 +383,7 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
               </button>
             )}
             
-            {(userRole === 'EDITOR' || userRole === 'ADMIN') && (post.state === 'APPROVED' || post.state === 'IN_REVIEW') && (
+            {(userRole === 'EDITOR' || userRole === 'ADMIN') && post.state !== 'PUBLISHED' && (
               <button 
                 type="button" 
                 onClick={async () => {
@@ -599,7 +599,7 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>
           <button type="button" onClick={() => router.push('/dashboard')} className="btn btn-secondary font-sans">Cancel</button>
-          <button type="submit" disabled={isSubmitting} className="btn btn-primary font-sans">
+          <button type="submit" disabled={isSubmitting} className="btn btn-primary font-sans" style={{ backgroundColor: 'var(--primary)', color: 'white' }}>
             {isSubmitting ? 'Saving...' : 'Save Draft'}
           </button>
         </div>
