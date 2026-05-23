@@ -21,10 +21,8 @@ export default function PrintCheckoutButtons({ printEditionId }: { printEditionI
       });
 
       const session = await res.json();
-      if (session.id) {
-        const stripe = await stripePromise;
-        // @ts-ignore
-        await stripe?.redirectToCheckout({ sessionId: session.id });
+      if (session.url) {
+        window.location.href = session.url;
       } else {
         alert('Failed to initialize checkout');
         setIsLoading(null);

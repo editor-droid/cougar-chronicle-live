@@ -3,13 +3,13 @@ import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import prisma from '@/lib/prisma';
 
-const stripe = new Stripe((process.env.STRIPE_SECRET_KEY || 'sk_test_fallback_so_build_does_not_crash') as string, {
-  apiVersion: '2023-10-16' as any,
-});
-
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
-
 export async function POST(req: Request) {
+  const stripeKey = process.env.STRIPE_SECRET_KEY || 'sk_test_fallback_so_build_does_not_crash';
+  const stripe = new Stripe(stripeKey, {
+    apiVersion: '2023-10-16' as any,
+  });
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
+
   const body = await req.text();
   const signature = (await headers()).get('Stripe-Signature') as string;
 

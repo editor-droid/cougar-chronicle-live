@@ -2,12 +2,12 @@ import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { auth } from '@/auth';
 
-const stripe = new Stripe((process.env.STRIPE_SECRET_KEY || 'sk_test_fallback_so_build_does_not_crash') as string, {
-  apiVersion: '2023-10-16' as any, // TypeScript workaround for stripe versioning
-});
-
 export async function POST(req: Request) {
   try {
+    const stripeKey = process.env.STRIPE_SECRET_KEY || 'sk_test_fallback_so_build_does_not_crash';
+    const stripe = new Stripe(stripeKey, {
+      apiVersion: '2023-10-16' as any,
+    });
     const session = await auth();
     const contentType = req.headers.get('content-type') || '';
     let type, amount, priceId, metadata, name;
