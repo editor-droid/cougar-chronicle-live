@@ -201,7 +201,7 @@ export default async function ArticlePage({ params, searchParams }: { params: { 
                     <input type="hidden" name="type" value="digital_article" />
                     <input type="hidden" name="name" value={post.title} />
                     <input type="hidden" name="metadata" value={JSON.stringify({ postId: post.id, slug: post.slug })} />
-                    <button type="submit" className="btn btn-primary font-sans" style={{ fontWeight: 600 }}>
+                    <button type="submit" className="btn font-sans" style={{ fontWeight: 600, backgroundColor: 'var(--primary)', color: 'white', border: '1px solid var(--primary)' }}>
                       Buy Article for $1.99
                     </button>
                   </form>

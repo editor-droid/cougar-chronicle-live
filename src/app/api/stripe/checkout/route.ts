@@ -9,7 +9,24 @@ const stripe = new Stripe((process.env.STRIPE_SECRET_KEY || 'sk_test_fallback_so
 export async function POST(req: Request) {
   try {
     const session = await auth();
-    const { type, amount, priceId, metadata, name } = await req.json();
+    const contentType = req.headers.get('content-type') || '';
+    let type, amount, priceId, metadata, name;
+    
+    if (contentType.includes('application/json')) {
+      const body = await req.json();
+      type = body.type;
+      amount = body.amount;
+      priceId = body.priceId;
+      metadata = body.metadata;
+      name = body.name;
+    } else {
+      const formData = await req.formData();
+      type = formData.get('type') as string;
+      amount = Number(formData.get('amount') || 0);
+      priceId = formData.get('priceId') as string;
+      metadata = JSON.parse(formData.get('metadata') as string || '{}');
+      name = formData.get('name') as string;
+    }
     const origin = req.headers.get('origin') || new URL(req.url).origin;
 
     let checkoutSession;
@@ -137,7 +154,14 @@ export async function POST(req: Request) {
       });
     }
 
-    return NextResponse.json({ url: checkoutSession?.url });
+    if (contentType.includes('application/json')) {
+      return NextResponse.json({ url: checkoutSession?.url });
+    } else {
+      if (checkoutSession?.url) {
+        return NextResponse.redirect(checkoutSession.url, 303);
+      }
+      return new NextResponse('Checkout Session Failed', { status: 500 });
+    }
   } catch (error) {
     console.error('[STRIPE_CHECKOUT]', error);
     return new NextResponse('Internal Error', { status: 500 });
