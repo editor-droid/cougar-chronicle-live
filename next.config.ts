@@ -16,7 +16,9 @@ const nextConfig: NextConfig = {
       allowedOrigins: [
         'localhost:3000',
         'cougar-chronicle-live-production-c994.up.railway.app',
-        '*.railway.app'
+        '*.railway.app',
+        'thecougarchronicle.com',
+        'www.thecougarchronicle.com'
       ],
     },
   }

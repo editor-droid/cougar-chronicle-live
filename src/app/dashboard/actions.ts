@@ -118,7 +118,7 @@ export async function updatePostState(formData: FormData) {
         });
 
         const excerpt = post.content ? post.content.replace(/<[^>]*>?/gm, '').substring(0, 200) + '...' : 'Read our latest article.';
-        const origin = process.env.NEXTAUTH_URL || 'https://cougar-chronicle-live-production-c994.up.railway.app';
+        const origin = process.env.NEXTAUTH_URL || (process.env.NEXTAUTH_URL || 'http://localhost:3000');
         const AUDIENCE_ID = process.env.RESEND_AUDIENCE_ID || '993e7864-bb3a-4543-a437-a7848b030657';
 
         let pastPostsHtml = '';
@@ -303,7 +303,7 @@ export async function addEditorialNote(formData: FormData) {
     if (post.author.email) {
       const isMock = !process.env.RESEND_API_KEY || process.env.RESEND_API_KEY.includes('fallback');
       const subject = `Changes Requested: ${post.title}`;
-      const origin = process.env.NEXTAUTH_URL || 'https://cougar-chronicle-live-production-c994.up.railway.app';
+      const origin = process.env.NEXTAUTH_URL || (process.env.NEXTAUTH_URL || 'http://localhost:3000');
       const html = `
         <p>An editor has reviewed your draft "<strong>${post.title}</strong>" and requested some changes.</p>
         <p><strong>Editor's Note:</strong></p>

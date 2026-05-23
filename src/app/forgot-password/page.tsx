@@ -51,7 +51,7 @@ export default function ForgotPasswordPage({ searchParams }: { searchParams?: { 
 
                   // 4. Send email using Resend
                   const resend = new Resend(process.env.RESEND_API_KEY);
-                  const resetUrl = `https://cougar-chronicle-live-production-c994.up.railway.app/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
+                  const resetUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
                   
                   await resend.emails.send({
                     from: 'The Cougar Chronicle <noreply@thecougarchronicle.com>',

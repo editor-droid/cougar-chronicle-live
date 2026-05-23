@@ -48,7 +48,7 @@ export async function POST(req: Request) {
 
     // Send welcome email via Resend
     if (process.env.RESEND_API_KEY && !process.env.RESEND_API_KEY.includes('placeholder')) {
-      const origin = req.headers.get('origin') || process.env.NEXTAUTH_URL || 'https://cougar-chronicle-live-production-c994.up.railway.app';
+      const origin = req.headers.get('origin') || process.env.NEXTAUTH_URL || (process.env.NEXTAUTH_URL || 'http://localhost:3000');
       const unsubLink = `${origin}/unsubscribe?email=${encodeURIComponent(email)}`;
       const greeting = name ? `Hi ${name},` : 'Hello,';
       

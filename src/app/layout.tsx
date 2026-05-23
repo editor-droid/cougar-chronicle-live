@@ -5,7 +5,7 @@ import SubscribeModal from '@/components/SubscribeModal';
 import './globals.css'
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXTAUTH_URL || 'https://cougar-chronicle-live-production-c994.up.railway.app'),
+  metadataBase: new URL(process.env.NEXTAUTH_URL || (process.env.NEXTAUTH_URL || 'http://localhost:3000')),
   title: {
     default: 'The Cougar Chronicle | Conservative News & Opinion',
     template: '%s | The Cougar Chronicle',
