@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
+import { getArticleUrl } from '@/lib/routes';
 import prisma from '@/lib/prisma';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder');
@@ -67,7 +68,7 @@ export async function POST(req: Request) {
               ${recentPosts.map(post => `
                 <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #f1f5f9;">
                   ${post.imageUrl ? `<img src="${post.imageUrl}" alt="${post.title}" style="max-width: 100%; height: auto; border-radius: 4px; margin-bottom: 10px;" />` : ''}
-                  <a href="${origin}/article/${post.slug}" style="text-decoration: none; color: #0f172a; font-family: Georgia, serif; font-size: 16px; font-weight: bold; display: block; margin-bottom: 5px;">${post.title}</a>
+                  <a href="${origin}${getArticleUrl(post)}" style="text-decoration: none; color: #0f172a; font-family: Georgia, serif; font-size: 16px; font-weight: bold; display: block; margin-bottom: 5px;">${post.title}</a>
                   <p style="color: #475569; font-size: 14px; margin: 0;">${post.content ? post.content.replace(/<[^>]*>?/gm, '').substring(0, 100) + '...' : 'Read our latest article.'}</p>
                 </div>
               `).join('')}

@@ -1,4 +1,5 @@
 import prisma from '@/lib/prisma';
+import { getArticleUrl } from '@/lib/routes';
 
 export const revalidate = 3600; // Cache for 1 hour
 
@@ -8,11 +9,11 @@ export async function GET() {
       where: { state: 'PUBLISHED' },
       orderBy: { publishedAt: 'desc' },
       take: 10,
-      select: { title: true, slug: true, content: true, publishedAt: true, category: true }
+      select: { title: true, slug: true, content: true, publishedAt: true, category: true, isPremium: true }
     });
 
     const formattedPosts = latestPosts.map(post => {
-      const url = `https://cougarchronicle.com/article/${post.slug}`;
+      const url = `https://cougarchronicle.com${getArticleUrl(post)}`;
       const excerpt = post.content ? post.content.replace(/<[^>]*>?/gm, '').substring(0, 300) + '...' : '';
       return `- [${post.title}](${url}) (${post.category}) - ${excerpt}`;
     }).join('\n');

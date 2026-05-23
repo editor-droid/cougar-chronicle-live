@@ -1,7 +1,7 @@
 import { google } from '@ai-sdk/google';
 import { streamText } from 'ai';
 import prisma from '@/lib/prisma';
-
+import { getArticleUrl } from '@/lib/routes';
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
@@ -9,7 +9,7 @@ export async function POST(req: Request) {
     const { messages, pathname } = await req.json();
 
     let currentPageContext = '';
-    if (pathname && pathname.startsWith('/article/')) {
+    if (pathname && (pathname.startsWith('/article/') || pathname.startsWith('/premium-article/'))) {
       const slug = pathname.split('/').pop();
       const currentArticle = await prisma.post.findUnique({
         where: { slug },
@@ -36,14 +36,14 @@ export async function POST(req: Request) {
       prisma.post.findMany({
         orderBy: { createdAt: 'desc' },
         take: 5,
-        select: { title: true, content: true, createdAt: true, category: true, slug: true }
+        select: { title: true, content: true, createdAt: true, category: true, slug: true, isPremium: true }
       }),
       keywords.length > 0 ? prisma.post.findMany({
         // @ts-ignore
         where: { OR: orConditions.flatMap(c => c.OR) },
         orderBy: { createdAt: 'desc' },
         take: 5,
-        select: { title: true, content: true, createdAt: true, category: true, slug: true }
+        select: { title: true, content: true, createdAt: true, category: true, slug: true, isPremium: true }
       }) : Promise.resolve([])
     ]);
 
@@ -59,7 +59,7 @@ export async function POST(req: Request) {
 Title: ${a.title}
 Category: ${a.category}
 Date: ${a.createdAt.toDateString()}
-URL: /article/${a.slug}
+URL: ${getArticleUrl(a)}
 Excerpt: ${a.content ? a.content.substring(0, 1500) : ''}...
 `).join('\n---\n');
 
@@ -73,7 +73,7 @@ Info should be current and ONLY from the website/database. NOWHERE ELSE!!!!
 FORMATTING INSTRUCTIONS:
 - Use Markdown for all formatting.
 - Use bold and italics naturally to emphasize points.
-- If you reference an article, you MUST provide a clickable Markdown link using the URL provided, e.g. [Article Title](/article/slug).
+- If you reference an article, you MUST provide a clickable Markdown link using the URL provided, e.g. [Article Title](URL).
 - If the user asks a question you cannot answer with the provided articles, or requests to contact the editor/staff, you MUST output exactly the string "[CONTACT_FORM]" on its own line.
 
 --- LATEST & RELEVANT ARTICLES DATABASE ---

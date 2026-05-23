@@ -21,7 +21,7 @@ export async function restorePurchases(email: string) {
     const resend = new Resend(process.env.RESEND_API_KEY);
     
     let linksHtml = tokens.map(t => {
-      const link = `${process.env.NEXTAUTH_URL}/article/${t.post.slug}?token=${t.token}`;
+      const link = `${process.env.NEXTAUTH_URL}/premium-article/${t.post.slug}?token=${t.token}`;
       return `<li><strong>${t.post.title}:</strong> <br/><a href="${link}">${link}</a></li>`;
     }).join('<br/>');
 

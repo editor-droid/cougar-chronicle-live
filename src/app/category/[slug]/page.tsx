@@ -1,5 +1,6 @@
 import prisma from '@/lib/prisma';
 import Link from 'next/link';
+import { getArticleUrl } from '@/lib/routes';
 import Image from 'next/image';
 import type { Metadata } from 'next';
 
@@ -36,13 +37,13 @@ export default async function CategoryPage({ params }: { params: { slug: string 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '2.5rem' }}>
           {posts.map((post) => (
             <article key={post.id} style={{ display: 'flex', flexDirection: 'column' }}>
-              <Link href={`/article/${post.slug}`} style={{ position: 'relative', width: '100%', aspectRatio: '16/9', backgroundColor: 'var(--surface-hover)', borderRadius: '0.5rem', marginBottom: '1rem', display: 'block', overflow: 'hidden' }}>
+              <Link href={getArticleUrl(post)} style={{ position: 'relative', width: '100%', aspectRatio: '16/9', backgroundColor: 'var(--surface-hover)', borderRadius: '0.5rem', marginBottom: '1rem', display: 'block', overflow: 'hidden' }}>
                 {post.imageUrl && (
                   <Image src={post.imageUrl} alt={post.title} fill sizes="(max-width: 768px) 100vw, 300px" style={{ objectFit: 'cover' }} />
                 )}
               </Link>
               <h3 className={headerFontClass} style={{ fontSize: '1.5rem', marginBottom: '0.5rem', lineHeight: '1.3' }}>
-                <Link href={`/article/${post.slug}`}>{post.title}</Link>
+                <Link href={getArticleUrl(post)}>{post.title}</Link>
               </h3>
               <p className="text-muted text-sm font-sans">
                 By {post.author.name} &bull; {new Date(post.createdAt).toLocaleDateString()}

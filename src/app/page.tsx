@@ -1,5 +1,6 @@
 import prisma from '@/lib/prisma';
 import Link from 'next/link';
+import { getArticleUrl } from '@/lib/routes';
 import Image from 'next/image';
 import SubscribeForm from '@/components/SubscribeForm';
 
@@ -56,7 +57,7 @@ export default async function Home() {
       {/* 1. TOP NEWS HEADER BLOCK (National Review / Daily Wire Style Hero) */}
       <section className="hero-section" style={{ marginBottom: '2.5rem' }}>
         {mainStory ? (
-          <Link href={`/article/${mainStory.slug}`} className="hero-main">
+          <Link href={getArticleUrl(mainStory)} className="hero-main">
             <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', backgroundColor: 'var(--surface-hover)', marginBottom: '1.25rem', overflow: 'hidden', border: '1px solid var(--border)' }}>
               {mainStory.imageUrl ? (
                 <Image 
@@ -107,7 +108,7 @@ export default async function Home() {
             <p className="text-muted font-sans text-sm">No additional stories available.</p>
           ) : (
             sideStories.map(story => (
-              <Link href={`/article/${story.slug}`} key={story.id} className="hero-side-card" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>
+              <Link href={getArticleUrl(story)} key={story.id} className="hero-side-card" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>
                 <div>
                   <span className="feed-category" style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: 800, color: 'var(--accent)', marginBottom: '0.25rem' }}>
                     {story.category}
@@ -143,7 +144,7 @@ export default async function Home() {
               </div>
               <div className="category-grid">
                 {newsPosts.map(post => (
-                  <Link href={`/article/${post.slug}`} key={post.id} className="category-card">
+                  <Link href={getArticleUrl(post)} key={post.id} className="category-card">
                     <h3 className="font-serif category-headline" style={{ fontSize: '1.15rem', fontWeight: 700, lineHeight: 1.3 }}>
                       {post.title}
                     </h3>
@@ -166,7 +167,7 @@ export default async function Home() {
               </div>
               <div className="category-grid">
                 {faithPosts.map(post => (
-                  <Link href={`/article/${post.slug}`} key={post.id} className="category-card">
+                  <Link href={getArticleUrl(post)} key={post.id} className="category-card">
                     <h3 className="font-serif category-headline" style={{ fontSize: '1.15rem', fontWeight: 700, lineHeight: 1.3 }}>
                       {post.title}
                     </h3>
@@ -190,7 +191,7 @@ export default async function Home() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
                 {opinionPosts.map(post => (
                   <Link 
-                    href={`/article/${post.slug}`} 
+                    href={getArticleUrl(post)} 
                     key={post.id} 
                     style={{ 
                       padding: '1.5rem', 
@@ -235,7 +236,7 @@ export default async function Home() {
                   <li key={post.id}>
                     <span className="rank font-serif">{index + 1}</span>
                     <div>
-                      <Link href={`/article/${post.slug}`} className="font-serif" style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--foreground)', display: 'block', lineHeight: 1.3 }}>
+                      <Link href={getArticleUrl(post)} className="font-serif" style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--foreground)', display: 'block', lineHeight: 1.3 }}>
                         {post.title}
                       </Link>
                       <span className="font-sans text-xs text-muted" style={{ marginTop: '0.25rem', display: 'block' }}>

@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import prisma from '@/lib/prisma';
 import Link from 'next/link';
 import { updatePostState } from './actions';
+import { getArticleUrl } from '@/lib/routes';
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -203,7 +204,7 @@ export default async function DashboardPage() {
                       </span>
                     </td>
                     <td style={{ padding: '1rem', display: 'flex', gap: '0.5rem' }}>
-                      <Link href={`/article/${post.slug}`} className="btn btn-secondary text-sm" style={{ padding: '0.25rem 0.5rem' }}>View Live</Link>
+                      <Link href={getArticleUrl(post)} className="btn btn-secondary text-sm" style={{ padding: '0.25rem 0.5rem' }}>View Live</Link>
                       <Link href={`/dashboard/editor/${post.id}`} className="btn btn-primary text-sm" style={{ padding: '0.25rem 0.5rem' }}>Edit</Link>
                     </td>
                   </tr>

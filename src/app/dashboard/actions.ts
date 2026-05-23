@@ -5,6 +5,7 @@ import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { PostState, Role } from '@prisma/client';
 import { Resend } from 'resend';
+import { getArticleUrl } from '@/lib/routes';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_fallback_key_so_build_does_not_crash');
 
@@ -94,7 +95,7 @@ export async function updatePostState(formData: FormData) {
     } else if (newState === 'PUBLISHED' && post.state === 'APPROVED') {
       if (post.author.email) {
         const subject = `Your post is now live: ${post.title}`;
-        const html = `<p>Congratulations! Your post "<strong>${post.title}</strong>" has been published.</p><p><a href="https://thecougarchronicle.com/article/${post.slug}">View it live here</a></p>`;
+        const html = `<p>Congratulations! Your post "<strong>${post.title}</strong>" has been published.</p><p><a href="https://thecougarchronicle.com${getArticleUrl(post)}">View it live here</a></p>`;
         
         console.log(`\n=========================================\n[EMAIL NOTIFICATION] Publication\nTo: ${post.author.email}\nSubject: ${subject}\n=========================================\n`);
 
@@ -128,7 +129,7 @@ export async function updatePostState(formData: FormData) {
               <ul style="list-style: none; padding: 0;">
                 ${pastPosts.map(p => `
                   <li style="margin-bottom: 15px;">
-                    <a href="${origin}/article/${p.slug}" style="color: #1B2253; text-decoration: none; font-weight: bold; font-family: Georgia, serif; font-size: 16px;">${p.title}</a>
+                    <a href="${origin}${getArticleUrl(p)}" style="color: #1B2253; text-decoration: none; font-weight: bold; font-family: Georgia, serif; font-size: 16px;">${p.title}</a>
                   </li>
                 `).join('')}
               </ul>
@@ -143,14 +144,14 @@ export async function updatePostState(formData: FormData) {
             </div>
             
             <h2 style="font-family: Georgia, serif; font-size: 24px; color: #1A1A1A; line-height: 1.3;">
-              <a href="${origin}/article/${post.slug}" style="color: #1A1A1A; text-decoration: none;">${post.title}</a>
+              <a href="${origin}${getArticleUrl(post)}" style="color: #1A1A1A; text-decoration: none;">${post.title}</a>
             </h2>
             <p style="color: #6B7280; font-size: 14px; font-weight: bold; text-transform: uppercase;">By ${post.author.name}</p>
             
             <p style="font-size: 16px; line-height: 1.6; color: #444;">${excerpt}</p>
             
             <div style="margin-top: 25px;">
-              <a href="${origin}/article/${post.slug}" style="display: inline-block; background-color: #1B2253; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 4px; font-weight: bold;">Read Full Article</a>
+              <a href="${origin}${getArticleUrl(post)}" style="display: inline-block; background-color: #1B2253; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 4px; font-weight: bold;">Read Full Article</a>
             </div>
 
             ${pastPostsHtml}

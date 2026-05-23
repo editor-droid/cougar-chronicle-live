@@ -27,5 +27,5 @@ export async function GET(request: Request) {
     path: '/'
   });
 
-  return NextResponse.redirect(new URL(`/article/${validToken.post.slug}`, request.url));
+  return NextResponse.redirect(new URL(`/premium-article/${validToken.post.slug}`, request.url));
 }

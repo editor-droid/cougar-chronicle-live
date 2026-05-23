@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import prisma from '@/lib/prisma';
 import Link from 'next/link';
+import { getArticleUrl } from '@/lib/routes';
 import PrintCheckoutButtons from './PrintCheckoutButtons';
 
 export const metadata: Metadata = {
@@ -62,7 +63,7 @@ export default async function PrintEditionPage() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
               {edition.posts.length > 0 ? (
                 edition.posts.map(post => (
-                  <Link href={`/article/${post.slug}`} key={post.id} style={{ textDecoration: 'none' }}>
+                  <Link href={getArticleUrl(post)} key={post.id} style={{ textDecoration: 'none' }}>
                     <div style={{ padding: '1.5rem', backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '0.5rem', height: '100%', transition: 'box-shadow 0.2s ease', cursor: 'pointer' }} className="article-card-hover">
                       <h4 className="font-serif" style={{ fontSize: '1.25rem', color: 'var(--primary)', marginBottom: '0.5rem', lineHeight: '1.3' }}>{post.title}</h4>
                       <p className="font-sans text-sm text-muted">

@@ -50,7 +50,7 @@ export async function GET(request: Request) {
           path: '/'
         });
 
-        return NextResponse.redirect(new URL(`/article/${slug}`, request.url));
+        return NextResponse.redirect(new URL(`/premium-article/${slug}`, request.url));
       }
     }
 
