@@ -112,12 +112,12 @@ export default async function ArticlePage({ params, searchParams }: { params: { 
   }
 
   const nextPost = await prisma.post.findFirst({
-    where: { state: 'PUBLISHED', createdAt: { gt: post.createdAt } },
+    where: { state: 'PUBLISHED', createdAt: { gt: post.createdAt }, printEditionId: post.printEditionId },
     orderBy: { createdAt: 'asc' }
   });
   
   const prevPost = await prisma.post.findFirst({
-    where: { state: 'PUBLISHED', createdAt: { lt: post.createdAt } },
+    where: { state: 'PUBLISHED', createdAt: { lt: post.createdAt }, printEditionId: post.printEditionId },
     orderBy: { createdAt: 'desc' }
   });
 
@@ -193,21 +193,18 @@ export default async function ArticlePage({ params, searchParams }: { params: { 
               </div>
               
               <div style={{ marginTop: '2rem', padding: '3rem', backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '0.5rem', textAlign: 'center' }}>
-                <h2 className="font-serif" style={{ fontSize: '1.5rem', marginBottom: '1rem', color: 'var(--primary)' }}>This article is for subscribers only.</h2>
-                <p className="font-sans text-muted" style={{ marginBottom: '2rem' }}>You can purchase lifetime access to this individual article, or subscribe for unlimited access.</p>
+                <h2 className="font-serif" style={{ fontSize: '1.5rem', marginBottom: '1rem', color: 'var(--primary)' }}>This article is exclusive to the Print Edition.</h2>
+                <p className="font-sans text-muted" style={{ marginBottom: '2rem' }}>Purchase lifetime digital access to read this individual article.</p>
                 
                 <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
                   <form action="/api/stripe/checkout" method="POST">
                     <input type="hidden" name="type" value="digital_article" />
                     <input type="hidden" name="name" value={post.title} />
                     <input type="hidden" name="metadata" value={JSON.stringify({ postId: post.id, slug: post.slug })} />
-                    <button type="submit" className="btn btn-secondary font-sans" style={{ fontWeight: 600 }}>
+                    <button type="submit" className="btn btn-primary font-sans" style={{ fontWeight: 600 }}>
                       Buy Article for $1.99
                     </button>
                   </form>
-                  <a href="/subscribe" className="btn btn-primary font-sans" style={{ fontWeight: 600 }}>
-                    Subscribe Now
-                  </a>
                 </div>
                 <div style={{ marginTop: '1.5rem' }}>
                   <a href="/restore-purchases" className="font-sans text-sm text-muted" style={{ textDecoration: 'underline' }}>Already bought this? Restore your purchase link.</a>
