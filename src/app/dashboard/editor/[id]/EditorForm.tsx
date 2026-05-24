@@ -454,7 +454,7 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
             </select>
           </div>
         </div>
-        
+             {(userRole === 'ADMIN' || userRole === 'EDITOR') && (
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
           <div style={{ flex: 1, minWidth: '200px' }}>
             <label className="font-sans text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem' }}>URL Slug</label>
@@ -479,13 +479,13 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
           </div>
           
           <div style={{ flex: 1, minWidth: '200px' }}>
-            <label className="font-sans text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem' }}>Custom Byline (Optional)</label>
+            <label className="font-sans text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem' }}>Custom Author Name</label>
             <input 
               type="text" 
               value={customAuthor} 
               onChange={(e) => setCustomAuthor(e.target.value)} 
-              placeholder="e.g. John Doe and Jane Smith"
-              style={{ width: '100%', padding: '0.75rem', borderRadius: '0.25rem', border: '1px solid var(--border)' }}
+              placeholder="Leave blank to use your name"
+              style={{ width: '100%', padding: '0.75rem', borderRadius: '0.25rem', border: '1px solid var(--border)', fontFamily: 'var(--font-sans)', fontSize: '1rem' }}
             />
           </div>
           <div style={{ flex: 1, minWidth: '200px', display: 'flex', alignItems: 'flex-end', paddingBottom: '0.75rem' }}>
@@ -500,7 +500,6 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
             </label>
           </div>
 
-          {(userRole === 'ADMIN' || userRole === 'EDITOR') && (
             <div style={{ flex: 1, minWidth: '200px' }}>
               <label className="font-sans text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem' }}>Assigned Author</label>
               <select
@@ -513,8 +512,8 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
                 ))}
               </select>
             </div>
-          )}
         </div>
+        )}
 
         {/* Featured Image Management Panel */}
         <div style={{ padding: '1.5rem', backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '0.5rem', display: 'flex', gap: '1.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -655,7 +654,8 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
         </div>
       )}
 
-      <div style={{ backgroundColor: '#f0f9ff', padding: '1.5rem', borderRadius: '0.5rem', border: '1px solid #bae6fd', marginTop: '0', marginBottom: '2rem' }}>
+      {(userRole === 'ADMIN' || userRole === 'EDITOR') && (
+        <div style={{ backgroundColor: '#f0f9ff', padding: '1.5rem', borderRadius: '0.5rem', border: '1px solid #bae6fd', marginTop: '0', marginBottom: '2rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
             <div>
               <h2 className="font-serif" style={{ fontSize: '1.5rem', color: '#0369a1', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -714,27 +714,29 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
             </div>
           </div>
         </div>
+      )}
 
-        
       {/* SEO ANALYSIS PANEL IN SIDEBAR */}
-      <div style={{ position: 'sticky', top: post?.id ? 'auto' : '2rem' }}>
-        <SeoAnalysisPanel
-          title={title}
-          seoTitle={seoTitle}
-          seoDescription={seoDescription}
-          slug={slug}
-          content={content}
-          excerpt={content.replace(/<[^>]+>/g, ' ').substring(0, 150)}
-          category={category}
-          focusKeyword={focusKeyword}
-          onFocusKeywordChange={setFocusKeyword}
-          schemaTypes={['Article', 'NewsArticle']}
-          onApplySeoTitle={setSeoTitle}
-          onApplySeoDescription={setSeoDescription}
-          onApplyTitle={setTitle}
-          onApplySlug={setSlug}
-        />
-      </div>
+      {(userRole === 'ADMIN' || userRole === 'EDITOR') && (
+        <div style={{ position: 'sticky', top: post?.id ? 'auto' : '2rem' }}>
+          <SeoAnalysisPanel
+            title={title}
+            seoTitle={seoTitle}
+            seoDescription={seoDescription}
+            slug={slug}
+            content={content}
+            excerpt={content.replace(/<[^>]+>/g, ' ').substring(0, 150)}
+            category={category}
+            focusKeyword={focusKeyword}
+            onFocusKeywordChange={setFocusKeyword}
+            schemaTypes={['Article', 'NewsArticle']}
+            onApplySeoTitle={setSeoTitle}
+            onApplySeoDescription={setSeoDescription}
+            onApplyTitle={setTitle}
+            onApplySlug={setSlug}
+          />
+        </div>
+      )}
       </div>
     </div>
     </>
