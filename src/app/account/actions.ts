@@ -6,7 +6,7 @@ import { revalidatePath } from 'next/cache';
 
 export async function toggleNewsletter(formData: FormData) {
   const session = await auth();
-  if (!session?.user?.email) return { error: 'Unauthorized' };
+  if (!session?.user?.email) return;
   
   const email = session.user.email;
   const wantsNews = formData.get('wantsNews') === 'on';
@@ -39,9 +39,7 @@ export async function toggleNewsletter(formData: FormData) {
     }
 
     revalidatePath('/account');
-    return { success: true };
   } catch (error) {
     console.error('Error toggling newsletter:', error);
-    return { error: 'Failed to update preferences.' };
   }
 }
