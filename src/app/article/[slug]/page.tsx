@@ -111,18 +111,33 @@ export default async function ArticlePage({ params, searchParams }: { params: { 
     }
   }
 
+  // Isolate flows: regular articles only link to regular articles
   const nextPost = await prisma.post.findFirst({
-    where: { state: 'PUBLISHED', createdAt: { gt: post.createdAt } },
+    where: { 
+      state: 'PUBLISHED', 
+      createdAt: { gt: post.createdAt },
+      printEditionId: null,
+      isPremium: false
+    },
     orderBy: { createdAt: 'asc' }
   });
   
   const prevPost = await prisma.post.findFirst({
-    where: { state: 'PUBLISHED', createdAt: { lt: post.createdAt } },
+    where: { 
+      state: 'PUBLISHED', 
+      createdAt: { lt: post.createdAt },
+      printEditionId: null,
+      isPremium: false
+    },
     orderBy: { createdAt: 'desc' }
   });
 
   const topPosts = await prisma.post.findMany({
-    where: { state: 'PUBLISHED', id: { not: post.id } },
+    where: { 
+      state: 'PUBLISHED', 
+      id: { not: post.id },
+      printEditionId: null // Keep print editions out of the trending sidebar
+    },
     orderBy: { views: 'desc' },
     take: 5
   });
