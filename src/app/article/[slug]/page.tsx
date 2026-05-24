@@ -41,7 +41,7 @@ export async function generateMetadata(
     description: description,
     keywords: keywords,
     openGraph: {
-      title: title,
+      title: `${title} | The Cougar Chronicle`,
       description: description,
       type: 'article',
       url: getArticleUrl(post),
@@ -51,7 +51,7 @@ export async function generateMetadata(
     },
     twitter: {
       card: 'summary_large_image',
-      title: title,
+      title: `${title} | The Cougar Chronicle`,
       description: description,
       images: post.imageUrl ? [post.imageUrl] : [],
     }
