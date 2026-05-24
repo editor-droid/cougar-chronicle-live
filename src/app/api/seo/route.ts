@@ -28,6 +28,7 @@ export async function POST(req: Request) {
         seoDescription: z.string().describe('An engaging meta description for search engines, max 155 characters.'),
         seoKeywords: z.string().describe('A comma-separated list of 3-5 highly relevant SEO keywords.'),
         featuredImageAlt: z.string().describe('A descriptive, accessibility-friendly alt text for the featured image based on the context of the article.'),
+        keyInsights: z.string().describe('An HTML unordered list (<ul>) with 3 concise bullet points (<li>) summarizing the most important takeaways from the article. Do NOT use markdown. Only output raw HTML tags.')
       }),
       prompt: `You are an expert SEO specialist with 20 years of experience in digital publishing. 
       Analyze the following article draft and generate perfectly optimized SEO metadata to maximize click-through rates on Google search results and social media.

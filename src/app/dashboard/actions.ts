@@ -36,8 +36,47 @@ export async function updatePostState(formData: FormData) {
   if (!post) throw new Error('Post not found');
 
   const updateData: any = { state: newState };
-  if (newState === 'PUBLISHED' && !post.publishedAt) {
-    updateData.publishedAt = new Date();
+  if (newState === 'PUBLISHED') {
+    if (!post.publishedAt) {
+      updateData.publishedAt = new Date();
+    }
+    
+    // Auto-generate missing SEO and Key Insights if they weren't manually set
+    if (!post.keyInsights || !post.seoTitle) {
+      try {
+        const { generateObject } = await import('ai');
+        const { google } = await import('@ai-sdk/google');
+        const { z } = await import('zod');
+        
+        const cleanContent = (post.content || '').replace(/<[^>]*>?/gm, ' ');
+        const result = await generateObject({
+          model: google('gemini-3.5-flash'),
+          schema: z.object({
+            seoTitle: z.string(),
+            seoDescription: z.string(),
+            seoKeywords: z.string(),
+            featuredImageAlt: z.string(),
+            keyInsights: z.string()
+          }),
+          prompt: `You are an expert SEO specialist with 20 years of experience in digital publishing. 
+          Analyze the following article draft and generate perfectly optimized SEO metadata.
+          For keyInsights, return an HTML unordered list (<ul>) with 3 concise bullet points (<li>) summarizing the most important takeaways. Do NOT use markdown.
+
+          Current Headline: ${post.title || 'Untitled'}
+          
+          Article Content:
+          ${cleanContent.substring(0, 5000)}`
+        });
+        
+        if (!post.seoTitle) updateData.seoTitle = result.object.seoTitle;
+        if (!post.seoDescription) updateData.seoDescription = result.object.seoDescription;
+        if (!post.seoKeywords) updateData.seoKeywords = result.object.seoKeywords;
+        if (!post.featuredImageAlt) updateData.featuredImageAlt = result.object.featuredImageAlt;
+        if (!post.keyInsights) updateData.keyInsights = result.object.keyInsights;
+      } catch (e) {
+        console.error('Auto-generate SEO failed:', e);
+      }
+    }
   }
 
   await prisma.post.update({
