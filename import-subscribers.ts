@@ -24,7 +24,7 @@ async function main() {
 
   console.log(`Found ${records.length} total rows in CSV...`);
 
-  for (const record of records) {
+  for (const record of records as Record<string, string>[]) {
     const email = record.Email?.trim();
     const status = record.Email_Subscriber?.trim();
 
