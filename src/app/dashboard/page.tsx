@@ -12,6 +12,10 @@ export default async function DashboardPage() {
     redirect('/login');
   }
 
+  if (session.user.role === 'USER') {
+    redirect('/account');
+  }
+
   const role = session.user.role;
   const isEditorOrAdmin = role === 'EDITOR' || role === 'ADMIN';
 

@@ -137,6 +137,7 @@ export default function RootLayout({
                 <li><a href="/about" style={{ color: 'white', opacity: 0.8, textDecoration: 'none' }}>About Us</a></li>
                 <li><a href="/contact" style={{ color: 'white', opacity: 0.8, textDecoration: 'none' }}>Contact</a></li>
                 <li><a href="/donate" style={{ color: 'white', opacity: 0.8, textDecoration: 'none' }}>Donate</a></li>
+                <li><a href="/account" style={{ color: 'white', opacity: 0.8, textDecoration: 'none' }}>My Account</a></li>
                 <li><a href="/login" style={{ color: 'white', opacity: 0.8, textDecoration: 'none' }}>Staff Login</a></li>
               </ul>
             </div>
