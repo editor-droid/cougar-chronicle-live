@@ -103,7 +103,7 @@ export async function POST(req: Request) {
             quantity: 1,
           },
         ],
-        success_url: `${origin}/print-edition?success=digital`,
+        success_url: `${origin}/print-edition?success=digital&purchase=10.00`,
         cancel_url: `${origin}/print-edition`,
         metadata: {
           type: 'digital_print',
@@ -133,7 +133,7 @@ export async function POST(req: Request) {
             quantity: 1,
           },
         ],
-        success_url: `${origin}/print-edition?success=physical`,
+        success_url: `${origin}/print-edition?success=physical&purchase=15.00`,
         cancel_url: `${origin}/print-edition`,
         metadata: {
           type: 'physical_print'

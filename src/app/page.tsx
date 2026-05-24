@@ -3,13 +3,14 @@ import Link from 'next/link';
 import { getArticleUrl } from '@/lib/routes';
 import Image from 'next/image';
 import SubscribeForm from '@/components/SubscribeForm';
+import PrintCheckoutButtons from '@/app/print-edition/PrintCheckoutButtons';
 
 export const revalidate = 60; // ISR revalidation
 
 export default async function Home() {
   // Query all published posts
   const allPosts = await prisma.post.findMany({
-    where: { state: 'PUBLISHED' },
+    where: { state: 'PUBLISHED', printEditionId: null },
     orderBy: { createdAt: 'desc' },
     include: { author: true },
     take: 20
@@ -21,7 +22,7 @@ export default async function Home() {
 
   // News category posts
   const newsPosts = await prisma.post.findMany({
-    where: { state: 'PUBLISHED', category: 'news' },
+    where: { state: 'PUBLISHED', category: 'news', printEditionId: null },
     orderBy: { createdAt: 'desc' },
     include: { author: true },
     take: 4
@@ -29,7 +30,7 @@ export default async function Home() {
 
   // Faith category posts
   const faithPosts = await prisma.post.findMany({
-    where: { state: 'PUBLISHED', category: 'faith' },
+    where: { state: 'PUBLISHED', category: 'faith', printEditionId: null },
     orderBy: { createdAt: 'desc' },
     include: { author: true },
     take: 4
@@ -37,7 +38,7 @@ export default async function Home() {
 
   // Opinion category posts (Text-centric focus)
   const opinionPosts = await prisma.post.findMany({
-    where: { state: 'PUBLISHED', category: 'opinion' },
+    where: { state: 'PUBLISHED', category: 'opinion', printEditionId: null },
     orderBy: { createdAt: 'desc' },
     include: { author: true },
     take: 4
@@ -45,10 +46,22 @@ export default async function Home() {
 
   // Trending posts ordered by views
   const trendingPosts = await prisma.post.findMany({
-    where: { state: 'PUBLISHED' },
+    where: { state: 'PUBLISHED', printEditionId: null },
     orderBy: { views: 'desc' },
     include: { author: true },
     take: 5
+  });
+
+  // Active Print Edition
+  const activePrintEdition = await prisma.printEdition.findFirst({
+    where: { isActive: true },
+    include: {
+      posts: {
+        include: { author: true },
+        take: 3
+      }
+    },
+    orderBy: { createdAt: 'desc' }
   });
 
   return (
@@ -230,6 +243,57 @@ export default async function Home() {
                     </div>
                   </Link>
                 ))}
+              </div>
+            </section>
+          )}
+
+          {/* PRINT EDITION BAND */}
+          {activePrintEdition && (
+            <section className="category-band" style={{ backgroundColor: '#faf9f5', padding: '2rem', borderRadius: '0.5rem', border: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem', borderBottom: '3px double var(--primary)', paddingBottom: '0.5rem' }}>
+                <h2 className="font-serif" style={{ fontSize: '1.5rem', margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--primary)', fontWeight: 800 }}>Print Edition</h2>
+                <div style={{ flex: 1, height: '1px', backgroundColor: 'var(--border)' }}></div>
+                <Link href="/print-edition" className="font-sans text-sm" style={{ fontWeight: 'bold', textTransform: 'uppercase', color: 'var(--accent)' }}>Order Now &rarr;</Link>
+              </div>
+              <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
+                <div style={{ flex: '1 1 200px', maxWidth: '250px' }}>
+                  {activePrintEdition.coverImageUrl ? (
+                    <img 
+                      src={activePrintEdition.coverImageUrl} 
+                      alt={`Cover of ${activePrintEdition.title}`} 
+                      style={{ width: '100%', height: 'auto', borderRadius: '0.25rem', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}
+                    />
+                  ) : (
+                    <div style={{ width: '100%', aspectRatio: '8.5/11', backgroundColor: 'var(--surface)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '0.25rem' }}>
+                      <span className="font-serif text-muted">No Cover</span>
+                    </div>
+                  )}
+                </div>
+                <div style={{ flex: '2 1 300px', display: 'flex', flexDirection: 'column' }}>
+                  <h3 className="font-serif" style={{ fontSize: '1.75rem', fontWeight: 700, marginBottom: '0.5rem', color: 'var(--foreground)' }}>
+                    {activePrintEdition.title}
+                  </h3>
+                  <p className="font-sans text-muted" style={{ marginBottom: '1.5rem', fontSize: '0.95rem', lineHeight: 1.5 }}>
+                    Support independent conservative journalism at BYU by ordering our high-quality physical print edition directly to your door.
+                  </p>
+                  <PrintCheckoutButtons printEditionId={activePrintEdition.id} />
+                  
+                  {activePrintEdition.posts && activePrintEdition.posts.length > 0 && (
+                    <div style={{ marginTop: '2rem' }}>
+                      <h4 className="font-sans text-xs text-muted" style={{ fontWeight: 800, textTransform: 'uppercase', marginBottom: '0.75rem' }}>Inside This Issue</h4>
+                      <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                        {activePrintEdition.posts.map(post => (
+                          <li key={post.id}>
+                            <Link href={getArticleUrl(post)} className="font-serif" style={{ fontSize: '1.1rem', fontWeight: 700, display: 'block', lineHeight: 1.3 }}>
+                              {post.title}
+                            </Link>
+                            <span className="font-sans text-xs text-muted">By {post.author.name}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
               </div>
             </section>
           )}

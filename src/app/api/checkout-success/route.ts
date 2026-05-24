@@ -4,11 +4,12 @@ import Stripe from 'stripe';
 import prisma from '@/lib/prisma';
 import crypto from 'crypto';
 
-const stripe = new Stripe((process.env.STRIPE_SECRET_KEY || 'sk_test_fallback') as string, {
-  apiVersion: '2023-10-16' as any,
-});
-
 export async function GET(request: Request) {
+  const stripeKey = process.env.STRIPE_SECRET_KEY || 'sk_test_fallback';
+  const stripe = new Stripe(stripeKey, {
+    apiVersion: '2023-10-16' as any,
+  });
+
   const { searchParams } = new URL(request.url);
   const sessionId = searchParams.get('session_id');
 
@@ -50,7 +51,7 @@ export async function GET(request: Request) {
           path: '/'
         });
 
-        return NextResponse.redirect(new URL(`/premium-article/${slug}`, request.url));
+        return NextResponse.redirect(new URL(`/premium-article/${slug}?purchase=1.99`, request.url));
       }
     }
 
