@@ -40,6 +40,9 @@ export async function generateMetadata(
     title: title,
     description: description,
     keywords: keywords,
+    alternates: {
+      canonical: getArticleUrl(post),
+    },
     openGraph: {
       title: `${title} | The Cougar Chronicle`,
       description: description,
@@ -144,8 +147,33 @@ export default async function ArticlePage({ params, searchParams }: { params: { 
 
   const htmlContent = post.content ? injectHeadingIds(post.content) : '';
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'NewsArticle',
+    headline: post.title,
+    image: post.imageUrl ? [post.imageUrl] : [],
+    datePublished: post.publishedAt?.toISOString() || post.createdAt.toISOString(),
+    dateModified: post.updatedAt.toISOString(),
+    author: [{
+      '@type': 'Person',
+      name: post.customAuthor || post.author.name || 'Staff'
+    }],
+    publisher: {
+      '@type': 'Organization',
+      name: 'The Cougar Chronicle',
+      logo: {
+        '@type': 'ImageObject',
+        url: 'https://thecougarchronicle.com/icon.png'
+      }
+    }
+  };
+
   return (
     <div className="article-page-layout">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <ClientLightbox />
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         <article style={{ padding: '0', minHeight: '60vh' }}>

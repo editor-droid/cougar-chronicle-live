@@ -42,6 +42,24 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "NewsMediaOrganization",
+              "name": "The Cougar Chronicle",
+              "url": "https://thecougarchronicle.com",
+              "logo": "https://thecougarchronicle.com/icon.png",
+              "sameAs": [
+                "https://twitter.com/TheCougChron",
+                "https://www.instagram.com/thecougchron/",
+                "https://www.youtube.com/@TheCougChron",
+                "http://facebook.com/thecougchron"
+              ]
+            })
+          }}
+        />
         <div style={{ backgroundColor: 'var(--primary)', color: 'white', padding: '0.25rem 0', fontSize: '0.875rem' }}>
           <div className="container" style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', alignItems: 'center' }}>
             <span className="font-sans font-bold">Follow Us:</span>

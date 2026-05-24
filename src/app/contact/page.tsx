@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import VolunteerForm from '@/components/VolunteerForm';
 
 export const metadata: Metadata = {
   title: 'Contact Us',
@@ -67,14 +68,13 @@ export default function ContactPage() {
       </div>
 
       {/* Volunteer Section */}
-      <div style={{ backgroundColor: 'var(--surface)', padding: '4rem 2rem', borderRadius: '1rem', border: '1px solid var(--border)', marginBottom: '5rem', textAlign: 'center' }}>
+      <div style={{ padding: '4rem 0', marginBottom: '5rem', textAlign: 'center' }}>
         <h2 className="font-serif" style={{ fontSize: '2.5rem', marginBottom: '1.5rem', color: 'var(--primary)' }}>Work with the Cougar Chronicle</h2>
-        <p className="font-sans text-foreground" style={{ fontSize: '1.15rem', marginBottom: '2rem', lineHeight: 1.8, maxWidth: '800px', margin: '0 auto 2rem' }}>
+        <p className="font-sans text-foreground" style={{ fontSize: '1.15rem', marginBottom: '3rem', lineHeight: 1.8, maxWidth: '800px', margin: '0 auto 3rem' }}>
           The Cougar Chronicle is looking for ambitious students interested in writing, editing, video content, graphic design, or copywriting. Contributing to The Cougar Chronicle has opened doors to internships, job opportunities, and a voice in the political sphere unlike any other campus journalism.
         </p>
-        <a href="mailto:editor@thecougarchronicle.com?subject=Volunteer Application" className="btn btn-secondary font-sans" style={{ padding: '1rem 2rem', fontSize: '1.1rem', fontWeight: 'bold' }}>
-          Apply to Volunteer
-        </a>
+        
+        <VolunteerForm />
       </div>
 
       {/* Alumni Section */}

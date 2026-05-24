@@ -36,17 +36,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // 3. Articles
   const posts = await prisma.post.findMany({
     where: { state: 'PUBLISHED' },
-    select: { slug: true, updatedAt: true, printEditionId: true }
+    select: { slug: true, updatedAt: true, printEditionId: true, isPremium: true }
   });
 
-  const postRoutes = posts.map((post) => ({
-    url: post.printEditionId 
-      ? `${baseUrl}/print-edition/${post.slug}` 
-      : `${baseUrl}/article/${post.slug}`,
-    lastModified: post.updatedAt,
-    changeFrequency: 'weekly' as const,
-    priority: 0.6,
-  }));
+  const postRoutes = posts.map((post) => {
+    let route = `/article/${post.slug}`;
+    if (post.printEditionId) {
+      route = `/print-edition/${post.slug}`;
+    } else if (post.isPremium) {
+      route = `/premium-article/${post.slug}`;
+    }
+    
+    return {
+      url: `${baseUrl}${route}`,
+      lastModified: post.updatedAt,
+      changeFrequency: 'weekly' as const,
+      priority: 0.6,
+    };
+  });
 
   return [...staticRoutes, ...categoryRoutes, ...postRoutes];
 }
