@@ -13,14 +13,28 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   };
 }
 
-export default async function CategoryPage({ params }: { params: { slug: string } }) {
+export default async function CategoryPage({ params, searchParams }: { params: Promise<{ slug: string }>, searchParams: Promise<{ page?: string }> }) {
   const { slug } = await params;
+  const resolvedSearchParams = await searchParams;
   
-  const posts = await prisma.post.findMany({
-    where: { category: slug, state: 'PUBLISHED' },
-    orderBy: { createdAt: 'desc' },
-    include: { author: true }
-  });
+  const currentPage = parseInt(resolvedSearchParams.page || '1', 10);
+  const postsPerPage = 18;
+  const skip = (currentPage - 1) * postsPerPage;
+  
+  const [posts, totalPosts] = await Promise.all([
+    prisma.post.findMany({
+      where: { category: slug, state: 'PUBLISHED' },
+      orderBy: { createdAt: 'desc' },
+      include: { author: true },
+      take: postsPerPage,
+      skip: skip,
+    }),
+    prisma.post.count({
+      where: { category: slug, state: 'PUBLISHED' }
+    })
+  ]);
+  
+  const totalPages = Math.ceil(totalPosts / postsPerPage);
 
   const categoryName = slug.charAt(0).toUpperCase() + slug.slice(1);
   const headerFontClass = 'font-serif';
@@ -51,6 +65,34 @@ export default async function CategoryPage({ params }: { params: { slug: string 
               </div>
             </article>
           ))}
+        </div>
+      )}
+
+      {totalPages > 1 && (
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '4rem' }}>
+          {currentPage > 1 ? (
+            <Link href={`/category/${slug}?page=${currentPage - 1}`} className="btn font-sans" style={{ border: '1px solid var(--border)' }}>
+              &larr; Previous Page
+            </Link>
+          ) : (
+            <span className="btn font-sans" style={{ opacity: 0.5, cursor: 'not-allowed', border: '1px solid var(--border)' }}>
+              &larr; Previous Page
+            </span>
+          )}
+          
+          <span className="font-sans" style={{ display: 'flex', alignItems: 'center', margin: '0 1rem' }}>
+            Page {currentPage} of {totalPages}
+          </span>
+          
+          {currentPage < totalPages ? (
+            <Link href={`/category/${slug}?page=${currentPage + 1}`} className="btn font-sans" style={{ border: '1px solid var(--border)' }}>
+              Next Page &rarr;
+            </Link>
+          ) : (
+            <span className="btn font-sans" style={{ opacity: 0.5, cursor: 'not-allowed', border: '1px solid var(--border)' }}>
+              Next Page &rarr;
+            </span>
+          )}
         </div>
       )}
     </div>

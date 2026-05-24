@@ -13,26 +13,42 @@ export const metadata: Metadata = {
   }
 };
 
-export default async function SearchPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+export default async function SearchPage({ searchParams }: { searchParams: Promise<{ q?: string, page?: string }> }) {
   const resolvedParams = await searchParams;
   const query = resolvedParams.q || '';
   
+  const currentPage = parseInt(resolvedParams.page || '1', 10);
+  const postsPerPage = 18;
+  const skip = (currentPage - 1) * postsPerPage;
+  
   let posts: any[] = [];
+  let totalPosts = 0;
   
   if (query.trim()) {
-    posts = await prisma.post.findMany({
-      where: { 
-        state: 'PUBLISHED',
-        OR: [
-          { title: { contains: query, mode: 'insensitive' } },
-          { content: { contains: query, mode: 'insensitive' } }
-        ]
-      },
-      orderBy: { createdAt: 'desc' },
-      include: { author: true },
-      take: 50 // Limit results
-    });
+    const whereClause = { 
+      state: 'PUBLISHED',
+      OR: [
+        { title: { contains: query, mode: 'insensitive' } },
+        { content: { contains: query, mode: 'insensitive' } }
+      ]
+    } as any;
+
+    const [fetchedPosts, count] = await Promise.all([
+      prisma.post.findMany({
+        where: whereClause,
+        orderBy: { createdAt: 'desc' },
+        include: { author: true },
+        take: postsPerPage,
+        skip: skip,
+      }),
+      prisma.post.count({ where: whereClause })
+    ]);
+    
+    posts = fetchedPosts;
+    totalPosts = count;
   }
+
+  const totalPages = Math.ceil(totalPosts / postsPerPage);
 
   const headerFontClass = 'font-serif';
 
@@ -76,6 +92,34 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
               </div>
             </article>
           ))}
+        </div>
+      )}
+
+      {totalPages > 1 && (
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '4rem' }}>
+          {currentPage > 1 ? (
+            <Link href={`/search?q=${encodeURIComponent(query)}&page=${currentPage - 1}`} className="btn font-sans" style={{ border: '1px solid var(--border)' }}>
+              &larr; Previous Page
+            </Link>
+          ) : (
+            <span className="btn font-sans" style={{ opacity: 0.5, cursor: 'not-allowed', border: '1px solid var(--border)' }}>
+              &larr; Previous Page
+            </span>
+          )}
+          
+          <span className="font-sans" style={{ display: 'flex', alignItems: 'center', margin: '0 1rem' }}>
+            Page {currentPage} of {totalPages}
+          </span>
+          
+          {currentPage < totalPages ? (
+            <Link href={`/search?q=${encodeURIComponent(query)}&page=${currentPage + 1}`} className="btn font-sans" style={{ border: '1px solid var(--border)' }}>
+              Next Page &rarr;
+            </Link>
+          ) : (
+            <span className="btn font-sans" style={{ opacity: 0.5, cursor: 'not-allowed', border: '1px solid var(--border)' }}>
+              Next Page &rarr;
+            </span>
+          )}
         </div>
       )}
     </div>
