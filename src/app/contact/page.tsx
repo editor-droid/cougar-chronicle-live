@@ -5,6 +5,12 @@ import VolunteerForm from '@/components/VolunteerForm';
 export const metadata: Metadata = {
   title: 'Contact Us',
   description: 'Get in touch with The Cougar Chronicle or join our team.',
+  keywords: [
+    'Contact conservative BYU writers',
+    'Write for The Cougar Chronicle',
+    'Daily Universe alternative',
+    'Turning Point USA BYU'
+  ]
 };
 
 export default function ContactPage() {

@@ -3,6 +3,13 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'About Us',
   description: 'Learn about The Cougar Chronicle, our mission, and our editorial board.',
+  keywords: [
+    'About The Cougar Chronicle',
+    'Conservative student organization BYU',
+    'Independent journalism Brigham Young University',
+    'Daily Universe alternative',
+    'Turning Point USA BYU'
+  ]
 };
 
 export default function AboutPage() {

@@ -7,9 +7,20 @@ import type { Metadata } from 'next';
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const { slug } = await params;
   const categoryName = slug.charAt(0).toUpperCase() + slug.slice(1);
+  
+  let keywords: string[] = [];
+  if (slug === 'news') {
+    keywords = ['BYU campus news', 'Independent BYU news', 'Conservative student journalism', 'Brigham Young University events', 'Utah university news', 'BYU student reporting'];
+  } else if (slug === 'opinion') {
+    keywords = ['BYU conservative opinion', 'LDS student perspectives', 'Traditional values on campus', 'Brigham Young University student voices', 'Faith-based political commentary', 'Campus culture wars'];
+  } else if (slug === 'faith') {
+    keywords = ['BYU faith articles', 'Latter-day Saint student news', 'LDS perspectives', 'Defending the faith on campus', 'Brigham Young University religious news', 'Gospel-centered news'];
+  }
+
   return {
     title: categoryName,
     description: `Browse all articles filed under ${categoryName} in The Cougar Chronicle.`,
+    keywords
   };
 }
 

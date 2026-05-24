@@ -12,6 +12,17 @@ export const metadata: Metadata = {
     template: '%s | The Cougar Chronicle',
   },
   description: 'National-grade news platform for the BYU community. Faith, News, and Opinion.',
+  keywords: [
+    'BYU conservative news',
+    'The Cougar Chronicle',
+    'Brigham Young University independent news',
+    'LDS conservative opinion',
+    'BYU faith and news',
+    'Conservative student newspaper',
+    'Daily Universe alternative',
+    'Turning Point USA BYU',
+    'Provo Utah conservative news'
+  ],
   openGraph: {
     title: 'The Cougar Chronicle',
     description: 'Conservative News & Opinion for the BYU community.',

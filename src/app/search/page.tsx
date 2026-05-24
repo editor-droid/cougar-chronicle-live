@@ -7,6 +7,12 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Search Results',
   description: 'Search for articles in The Cougar Chronicle.',
+  keywords: [
+    'Search BYU conservative news',
+    'Find The Cougar Chronicle articles',
+    'Daily Universe alternative',
+    'Turning Point USA BYU'
+  ],
   robots: {
     index: false,
     follow: false,
