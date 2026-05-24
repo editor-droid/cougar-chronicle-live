@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { GoogleAnalytics } from '@next/third-parties/google';
 import Chatbot from '@/components/Chatbot';
 import SubscribeModal from '@/components/SubscribeModal';
+import SearchBar from '@/components/SearchBar';
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -85,7 +86,8 @@ export default function RootLayout({
                 <span style={{ fontSize: '40px', fontWeight: 400 }}>Cougar Chronicle</span>
               </a>
             </div>
-            <div className="header-actions">
+            <div className="header-actions" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <SearchBar />
               <SubscribeModal />
             </div>
           </div>
