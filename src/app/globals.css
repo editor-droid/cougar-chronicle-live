@@ -551,12 +551,27 @@ input:focus, textarea:focus {
 @media (max-width: 1024px) {
   .article-page-layout {
     grid-template-columns: 1fr;
+    padding: 0; /* Remove double padding on mobile */
   }
 }
 
+.article-content {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+}
+
+.article-content * {
+  max-width: 100%;
+}
+
+.article-content figure,
+.article-content .wp-block-image,
+.article-content .wp-block-embed,
 .article-content img {
   max-width: 100% !important;
   height: auto !important;
+  box-sizing: border-box;
   border-radius: 0.5rem;
   margin: 2rem auto !important;
   display: block;
