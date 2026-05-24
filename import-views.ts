@@ -1,7 +1,6 @@
 import fs from 'fs';
 import prisma from './src/lib/prisma';
 
-// Basic CSV line parser handling quotes
 function parseCsvLine(text: string): string[] {
   const result = [];
   let current = '';
@@ -11,7 +10,7 @@ function parseCsvLine(text: string): string[] {
     const char = text[i];
     if (char === '"' && text[i+1] === '"') {
       current += '"';
-      i++; // Skip escaped quote
+      i++; 
     } else if (char === '"') {
       inQuotes = !inQuotes;
     } else if (char === ',' && !inQuotes) {
@@ -40,13 +39,12 @@ async function run() {
 
   const dataLines = lines.slice(headerIndex + 1);
 
-  let updatedCount = 0;
-  let notFoundCount = 0;
-
   const allPosts = await prisma.post.findMany({
     select: { id: true, title: true, views: true }
   });
   console.log(`Loaded ${allPosts.length} posts from database.`);
+
+  const accumulatedViews: Record<string, number> = {};
 
   for (const line of dataLines) {
     if (!line.trim()) continue;
@@ -60,7 +58,6 @@ async function run() {
     const views = parseInt(viewsStr.replace(/,/g, ''), 10);
     if (isNaN(views) || views === 0) continue;
 
-    // Clean up title
     let cleanTitle = rawTitle.replace(' - The Cougar Chronicle', '').trim();
     cleanTitle = cleanTitle.replace(' - Nexus News', '').trim();
     cleanTitle = cleanTitle.replace(/^"|"$/g, '').trim(); 
@@ -78,22 +75,29 @@ async function run() {
     }
 
     if (matchingPost) {
-      // Add GA views to any existing organic views we already started tracking today
-      const finalViews = matchingPost.views + views;
-      
+      if (!accumulatedViews[matchingPost.id]) accumulatedViews[matchingPost.id] = 0;
+      accumulatedViews[matchingPost.id] += views;
+    }
+  }
+
+  let updatedCount = 0;
+  // Now apply the accumulated views to the DB!
+  for (const postId of Object.keys(accumulatedViews)) {
+    const originalPost = allPosts.find((p: any) => p.id === postId);
+    if (originalPost) {
+      // NOTE: Because the previous script completely botched the views (it set them to small numbers),
+      // we should just overwrite them with the accumulated views from the CSV (which is historical + accurate).
+      // We will assume the CSV views are the single source of truth for historical views.
       await prisma.post.update({
-        where: { id: matchingPost.id },
-        data: { views: finalViews } 
+        where: { id: postId },
+        data: { views: accumulatedViews[postId] }
       });
       updatedCount++;
-    } else {
-      notFoundCount++;
     }
   }
 
   console.log(`\nDONE!`);
-  console.log(`Successfully matched and updated views for ${updatedCount} articles.`);
-  console.log(`Could not match ${notFoundCount} rows (these are likely pages, categories, or deleted posts).`);
+  console.log(`Successfully accumulated and updated views for ${updatedCount} unique articles.`);
 }
 
 run()
