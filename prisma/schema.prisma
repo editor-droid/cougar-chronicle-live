@@ -129,11 +129,14 @@ model ContactSubmission {
 }
 
 model Subscriber {
-  id        String   @id @default(cuid())
-  name      String?
-  email     String   @unique
-  createdAt DateTime @default(now())
-  isActive  Boolean  @default(true)
+  id           String   @id @default(cuid())
+  name         String?
+  email        String   @unique
+  createdAt    DateTime @default(now())
+  isActive     Boolean  @default(true)
+  wantsNews    Boolean  @default(true)
+  wantsFaith   Boolean  @default(true)
+  wantsOpinion Boolean  @default(true)
 }
 
 model EditorialNote {

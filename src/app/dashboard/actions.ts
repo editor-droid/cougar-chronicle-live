@@ -202,17 +202,36 @@ export async function updatePostState(formData: FormData) {
           </div>
         `;
 
-        console.log(`\n=========================================\n[BROADCAST NOTIFICATION] Triggering Audience Broadcast\nAudience ID: ${AUDIENCE_ID}\nSubject: New Post: ${post.title}\n=========================================\n`);
+        console.log(`\n=========================================\n[BROADCAST NOTIFICATION] Triggering Batched Email\nCategory: ${post.category}\nSubject: New Post: ${post.title}\n=========================================\n`);
 
         if (!isMock) {
-          await resend.broadcasts.create({
-            audienceId: AUDIENCE_ID,
-            name: `Broadcast: ${post.title}`,
-            from: 'The Cougar Chronicle <newsletter@updates.thecougarchronicle.com>',
-            subject: `New Post: ${post.title}`,
-            html: broadcastHtml,
-            send: true,
+          const whereClause: any = { isActive: true };
+          if (post.category === 'news') whereClause.wantsNews = true;
+          else if (post.category === 'faith') whereClause.wantsFaith = true;
+          else if (post.category === 'opinion') whereClause.wantsOpinion = true;
+
+          const subscribers = await prisma.subscriber.findMany({
+            where: whereClause,
+            select: { email: true }
           });
+          const emails = subscribers.map(s => s.email);
+
+          if (emails.length > 0) {
+            const CHUNK_SIZE = 100;
+            for (let i = 0; i < emails.length; i += CHUNK_SIZE) {
+              const chunk = emails.slice(i, i + CHUNK_SIZE);
+              const payloads = chunk.map(email => ({
+                from: 'The Cougar Chronicle <newsletter@updates.thecougarchronicle.com>',
+                to: email,
+                subject: `New Post: ${post.title}`,
+                html: broadcastHtml
+              }));
+              await resend.batch.send(payloads);
+            }
+            console.log(`Successfully sent to ${emails.length} subscribers.`);
+          } else {
+            console.log('No subscribers opted into this category.');
+          }
         }
       } catch (broadcastError) {
         console.error('Failed to trigger broadcast:', broadcastError);

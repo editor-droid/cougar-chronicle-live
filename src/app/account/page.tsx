@@ -49,26 +49,28 @@ export default async function AccountPage() {
         <section>
           <h2 className="font-serif" style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Email Preferences</h2>
           <div style={{ backgroundColor: 'var(--surface)', padding: '1.5rem', borderRadius: '0.5rem', border: '1px solid var(--border)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-              <div>
-                <h3 className="font-sans font-bold" style={{ fontSize: '1.1rem', marginBottom: '0.25rem' }}>Newsletter Subscription</h3>
-                <p className="font-sans text-sm text-muted">Receive the latest news and opinion pieces directly to your inbox.</p>
-              </div>
-              <form action={toggleNewsletter} style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <input type="hidden" name="subscribe" value={isSubscribedToEmails ? 'false' : 'true'} />
-                <button 
-                  type="submit" 
-                  className="btn font-sans text-sm" 
-                  style={{ 
-                    backgroundColor: isSubscribedToEmails ? 'var(--surface-hover)' : 'var(--primary)', 
-                    color: isSubscribedToEmails ? 'var(--foreground)' : 'white',
-                    border: '1px solid var(--border)'
-                  }}
-                >
-                  {isSubscribedToEmails ? 'Unsubscribe' : 'Subscribe Now'}
-                </button>
-              </form>
+            <div style={{ marginBottom: '1rem' }}>
+              <h3 className="font-sans font-bold" style={{ fontSize: '1.1rem', marginBottom: '0.25rem' }}>Newsletter Categories</h3>
+              <p className="font-sans text-sm text-muted">Select which types of articles you want to receive in your inbox.</p>
             </div>
+            <form action={toggleNewsletter} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
+                <input type="checkbox" name="wantsNews" defaultChecked={subscriber?.wantsNews ?? true} style={{ width: '1.2rem', height: '1.2rem' }} />
+                <span className="font-sans font-medium">Campus & National News</span>
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
+                <input type="checkbox" name="wantsFaith" defaultChecked={subscriber?.wantsFaith ?? true} style={{ width: '1.2rem', height: '1.2rem' }} />
+                <span className="font-sans font-medium">Faith & Religion</span>
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
+                <input type="checkbox" name="wantsOpinion" defaultChecked={subscriber?.wantsOpinion ?? true} style={{ width: '1.2rem', height: '1.2rem' }} />
+                <span className="font-sans font-medium">Opinion & Editorial</span>
+              </label>
+              
+              <div style={{ marginTop: '1rem', borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
+                <button type="submit" className="btn btn-primary font-sans text-sm">Save Preferences</button>
+              </div>
+            </form>
           </div>
         </section>
 

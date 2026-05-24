@@ -9,7 +9,11 @@ export async function toggleNewsletter(formData: FormData) {
   if (!session?.user?.email) return { error: 'Unauthorized' };
   
   const email = session.user.email;
-  const wantsNewsletter = formData.get('subscribe') === 'true';
+  const wantsNews = formData.get('wantsNews') === 'on';
+  const wantsFaith = formData.get('wantsFaith') === 'on';
+  const wantsOpinion = formData.get('wantsOpinion') === 'on';
+  // If any category is selected, they are considered "active"
+  const isActive = wantsNews || wantsFaith || wantsOpinion;
 
   try {
     const existing = await prisma.subscriber.findUnique({
@@ -19,14 +23,17 @@ export async function toggleNewsletter(formData: FormData) {
     if (existing) {
       await prisma.subscriber.update({
         where: { email },
-        data: { isActive: wantsNewsletter }
+        data: { isActive, wantsNews, wantsFaith, wantsOpinion }
       });
-    } else if (wantsNewsletter) {
+    } else if (isActive) {
       await prisma.subscriber.create({
         data: {
           email,
           name: session.user.name || undefined,
-          isActive: true
+          isActive,
+          wantsNews,
+          wantsFaith,
+          wantsOpinion
         }
       });
     }
