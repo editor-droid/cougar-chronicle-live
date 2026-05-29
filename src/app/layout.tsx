@@ -114,7 +114,7 @@ export default function RootLayout({
           </nav>
           <div style={{ textAlign: 'center', marginTop: '1rem', paddingBottom: '1.5rem' }}>
             <span className="font-serif text-muted" style={{ fontSize: '1rem', fontStyle: 'italic', letterSpacing: '0.05em' }}>
-              Conservative News & Opinion for the BYU Community
+              Faith, Reason, and Politics at BYU
             </span>
           </div>
         </header>
