@@ -43,9 +43,12 @@ export default function AboutPage() {
   };
 
   return (
-    <div className="container animate-fade-in" style={{ padding: '4rem 2rem', maxWidth: '1000px', margin: '0 auto' }}>
-      <h1 className="font-serif text-center" style={{ fontSize: '3.5rem', marginBottom: '1rem', color: 'var(--primary)' }}>About Us</h1>
-      <h2 className="font-sans text-center text-muted" style={{ fontSize: '1.25rem', marginBottom: '3rem', fontWeight: 400 }}>
+    <div className="container animate-fade-in" style={{ marginTop: '2rem' }}>
+      <div style={{ marginBottom: '3rem', borderBottom: '2px solid var(--border)', paddingBottom: '1rem' }}>
+        <h1 className="font-serif" style={{ fontSize: '3.5rem', margin: 0 }}>About Us</h1>
+      </div>
+      
+      <h2 className="font-sans text-muted" style={{ fontSize: '1.25rem', marginBottom: '3rem', fontWeight: 400 }}>
         News for the BYU community, from the conservative perspective.
       </h2>
       

@@ -60,11 +60,13 @@ export default function ContactPage() {
   ];
 
   return (
-    <div className="container animate-fade-in" style={{ padding: '4rem 2rem', maxWidth: '1200px', margin: '0 auto' }}>
+    <div className="container animate-fade-in" style={{ marginTop: '2rem' }}>
       
       {/* Contact Section */}
-      <div style={{ textAlign: 'center', marginBottom: '5rem', maxWidth: '800px', margin: '0 auto 5rem' }}>
-        <h1 className="font-serif" style={{ fontSize: '3.5rem', marginBottom: '1rem', color: 'var(--primary)' }}>Contact Us</h1>
+      <div style={{ marginBottom: '5rem', maxWidth: '800px', margin: '0 auto 5rem' }}>
+        <div style={{ marginBottom: '3rem', borderBottom: '2px solid var(--border)', paddingBottom: '1rem' }}>
+          <h1 className="font-serif" style={{ fontSize: '3.5rem', margin: 0 }}>Contact Us</h1>
+        </div>
         <p className="font-sans text-muted" style={{ fontSize: '1.15rem', marginBottom: '2rem', lineHeight: 1.8 }}>
           We value your feedback, inquiries, and contributions. Reach out to us below, and we’ll get back to you as soon as possible.
         </p>

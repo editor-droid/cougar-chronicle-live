@@ -23,13 +23,14 @@ export default async function PrintEditionPage() {
   });
 
   return (
-    <div style={{ padding: '3rem 2rem', maxWidth: '1000px', margin: '0 auto', minHeight: '60vh' }}>
-      <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-        <h1 className="font-serif" style={{ fontSize: '3rem', marginBottom: '1rem', color: 'var(--primary)' }}>Print Edition</h1>
-        <p className="font-sans" style={{ fontSize: '1.25rem', maxWidth: '600px', margin: '0 auto', color: 'var(--muted)' }}>
-          Get the latest physical copy of The Cougar Chronicle delivered straight to your door, or download the digital PDF instantly.
-        </p>
+    <div className="container animate-fade-in" style={{ marginTop: '2rem' }}>
+      <div style={{ marginBottom: '3rem', borderBottom: '2px solid var(--border)', paddingBottom: '1rem' }}>
+        <h1 className="font-serif" style={{ fontSize: '3.5rem', margin: 0 }}>Print Edition</h1>
       </div>
+      
+      <p className="font-sans" style={{ fontSize: '1.25rem', maxWidth: '600px', color: 'var(--muted)', marginBottom: '3rem' }}>
+        Get the latest physical copy of The Cougar Chronicle delivered straight to your door, or download the digital PDF instantly.
+      </p>
       
       {edition ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>

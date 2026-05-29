@@ -60,16 +60,18 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
 
   return (
     <div className="container animate-fade-in" style={{ marginTop: '2rem' }}>
-      <h1 className={`${headerFontClass} text-center`} style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>
-        Search Results
-      </h1>
+      <div style={{ marginBottom: '3rem', borderBottom: '2px solid var(--border)', paddingBottom: '1rem' }}>
+        <h1 className="font-serif" style={{ fontSize: '3.5rem', margin: 0 }}>
+          Search Results
+        </h1>
+      </div>
       
       {query ? (
-        <p className="text-center font-sans text-muted" style={{ marginBottom: '3rem', borderBottom: '2px solid var(--border)', paddingBottom: '1rem' }}>
-          Found {posts.length} {posts.length === 1 ? 'result' : 'results'} for <strong>"{query}"</strong>
+        <p className="font-sans text-muted" style={{ marginBottom: '3rem', fontSize: '1.25rem' }}>
+          Found {totalPosts} {totalPosts === 1 ? 'result' : 'results'} for <strong>"{query}"</strong>
         </p>
       ) : (
-        <p className="text-center font-sans text-muted" style={{ marginBottom: '3rem', borderBottom: '2px solid var(--border)', paddingBottom: '1rem' }}>
+        <p className="font-sans text-muted" style={{ marginBottom: '3rem', fontSize: '1.25rem' }}>
           Enter a search term to find articles.
         </p>
       )}
