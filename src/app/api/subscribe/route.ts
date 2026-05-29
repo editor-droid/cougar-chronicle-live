@@ -2,12 +2,19 @@ import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { getArticleUrl } from '@/lib/routes';
 import prisma from '@/lib/prisma';
+import { rateLimit } from '@/lib/rate-limit';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder');
 const AUDIENCE_ID = process.env.RESEND_AUDIENCE_ID || '993e7864-bb3a-4543-a437-a7848b030657';
 
 export async function POST(req: Request) {
   try {
+    const ip = req.headers.get('x-forwarded-for') || 'unknown';
+    const { success } = rateLimit(ip, 5, 60 * 1000); // 5 requests per minute
+    if (!success) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+    }
+
     const { email, name } = await req.json();
 
     if (!email) {

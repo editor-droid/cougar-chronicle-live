@@ -24,18 +24,19 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   };
 }
 
-export default async function CategoryPage({ params, searchParams }: { params: Promise<{ slug: string }>, searchParams: Promise<{ page?: string }> }) {
+export default async function CategoryPage({ params, searchParams }: { params: Promise<{ slug: string }>, searchParams: Promise<{ page?: string, sort?: string }> }) {
   const { slug } = await params;
   const resolvedSearchParams = await searchParams;
   
   const currentPage = parseInt(resolvedSearchParams.page || '1', 10);
+  const sortOrder = resolvedSearchParams.sort === 'oldest' ? 'asc' : 'desc';
   const postsPerPage = 18;
   const skip = (currentPage - 1) * postsPerPage;
   
   const [posts, totalPosts] = await Promise.all([
     prisma.post.findMany({
       where: { category: slug, state: 'PUBLISHED' },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { publishedAt: sortOrder },
       include: { author: true },
       take: postsPerPage,
       skip: skip,
@@ -52,9 +53,17 @@ export default async function CategoryPage({ params, searchParams }: { params: P
 
   return (
     <div className="container animate-fade-in" style={{ marginTop: '2rem' }}>
-      <h1 className={`${headerFontClass} text-center`} style={{ fontSize: '3.5rem', marginBottom: '3rem', borderBottom: '2px solid var(--border)', paddingBottom: '1rem' }}>
-        {categoryName}
-      </h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem', borderBottom: '2px solid var(--border)', paddingBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
+        <h1 className={headerFontClass} style={{ fontSize: '3.5rem', margin: 0 }}>
+          {categoryName}
+        </h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <span className="font-sans text-sm text-muted">Sort by:</span>
+          <Link href={`/category/${slug}?sort=newest`} className="font-sans text-sm" style={{ fontWeight: sortOrder === 'desc' ? 'bold' : 'normal', color: sortOrder === 'desc' ? 'var(--primary)' : 'var(--foreground)', textDecoration: sortOrder === 'desc' ? 'underline' : 'none' }}>Newest</Link>
+          <span className="text-muted">|</span>
+          <Link href={`/category/${slug}?sort=oldest`} className="font-sans text-sm" style={{ fontWeight: sortOrder === 'asc' ? 'bold' : 'normal', color: sortOrder === 'asc' ? 'var(--primary)' : 'var(--foreground)', textDecoration: sortOrder === 'asc' ? 'underline' : 'none' }}>Oldest</Link>
+        </div>
+      </div>
       
       {posts.length === 0 ? (
         <p className="text-center text-muted font-sans">No articles published in this category yet.</p>

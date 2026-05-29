@@ -35,6 +35,12 @@ export async function updatePostState(formData: FormData) {
 
   if (!post) throw new Error('Post not found');
 
+  // Strict ownership and role check
+  if (role !== 'EDITOR' && role !== 'ADMIN') {
+    if (role !== 'WRITER') throw new Error('Unauthorized role');
+    if (post.authorId !== session.user.id) throw new Error('You can only modify your own posts');
+  }
+
   const updateData: any = { state: newState };
   if (newState === 'PUBLISHED') {
     if (!post.publishedAt) {
@@ -249,7 +255,19 @@ export async function savePost(data: any) {
   const session = await auth();
   if (!session?.user) throw new Error('Unauthorized');
 
+  const role = session.user.role;
+  if (role !== 'EDITOR' && role !== 'ADMIN' && role !== 'WRITER') {
+    throw new Error('Unauthorized role');
+  }
+
   if (data.id) {
+    const existing = await prisma.post.findUnique({ where: { id: data.id } });
+    if (!existing) throw new Error('Post not found');
+    
+    if (role === 'WRITER' && existing.authorId !== session.user.id) {
+      throw new Error('You can only edit your own posts');
+    }
+
     await prisma.post.update({
       where: { id: data.id },
       data: {
@@ -264,7 +282,7 @@ export async function savePost(data: any) {
         keyInsights: data.keyInsights,
         featuredImageAlt: data.featuredImageAlt,
         customAuthor: data.customAuthor,
-        authorId: data.authorId, // Ensure reassignment works
+        authorId: role === 'WRITER' ? session.user.id : data.authorId, // Ensure WRITERs can't reassign
         isPremium: data.isPremium !== undefined ? data.isPremium : false
       }
     });
@@ -276,7 +294,7 @@ export async function savePost(data: any) {
         category: data.category,
         content: data.content,
         imageUrl: data.imageUrl,
-        authorId: data.authorId,
+        authorId: role === 'WRITER' ? session.user.id : data.authorId, // Ensure WRITERs can't assign to others
         state: 'DRAFT',
         seoTitle: data.seoTitle,
         seoDescription: data.seoDescription,
