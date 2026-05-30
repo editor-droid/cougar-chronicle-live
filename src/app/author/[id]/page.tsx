@@ -84,11 +84,11 @@ export default async function AuthorPage({ params }: { params: { id: string } })
         {posts.length === 0 ? (
           <p className="text-muted">No published articles found for this author.</p>
         ) : (
-          <div className="article-grid">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '2rem' }}>
             {posts.map((post) => (
-              <article key={post.id} className="article-card">
+              <article key={post.id} style={{ display: 'flex', flexDirection: 'column', backgroundColor: 'var(--surface)', borderRadius: '0.5rem', overflow: 'hidden', border: '1px solid var(--border)' }}>
                 {post.imageUrl && (
-                  <Link href={getArticleUrl(post)} className="article-image-container">
+                  <Link href={getArticleUrl(post)} style={{ position: 'relative', width: '100%', aspectRatio: '16/9', display: 'block' }}>
                     <Image
                       src={post.imageUrl}
                       alt={post.featuredImageAlt || post.title}
@@ -98,17 +98,17 @@ export default async function AuthorPage({ params }: { params: { id: string } })
                     />
                   </Link>
                 )}
-                <div className="article-content">
-                  <div className="article-meta">
-                    <span className="category">{post.category}</span>
-                    <span className="date">
+                <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--accent)' }}>{post.category}</span>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>
                       {new Date(post.publishedAt || post.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </span>
                   </div>
-                  <h3 className="article-title">
-                    <Link href={getArticleUrl(post)}>{post.title}</Link>
+                  <h3 style={{ fontSize: '1.25rem', fontFamily: 'var(--font-serif)', marginBottom: '0.5rem', lineHeight: 1.3, fontWeight: 'bold' }}>
+                    <Link href={getArticleUrl(post)} style={{ textDecoration: 'none', color: 'var(--foreground)' }}>{post.title}</Link>
                   </h3>
-                  <p className="article-excerpt">
+                  <p style={{ fontSize: '0.9rem', color: 'var(--muted)', lineHeight: 1.5, margin: 0 }}>
                     {post.seoDescription || (post.content ? post.content.replace(/<[^>]*>?/gm, '').substring(0, 120) + '...' : '')}
                   </p>
                 </div>
