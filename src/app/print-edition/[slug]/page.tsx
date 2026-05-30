@@ -114,15 +114,18 @@ export default async function ArticlePage({ params, searchParams }: { params: { 
     }
   }
 
-  const nextPost = await prisma.post.findFirst({
-    where: { state: 'PUBLISHED', createdAt: { gt: post.createdAt }, printEditionId: post.printEditionId },
-    orderBy: { createdAt: 'asc' }
+  const allEditionPosts = await prisma.post.findMany({
+    where: { state: 'PUBLISHED', printEditionId: post.printEditionId },
+    orderBy: [
+      { printEditionOrder: 'asc' },
+      { createdAt: 'asc' }
+    ],
+    select: { id: true, title: true, slug: true, imageUrl: true, category: true, printEditionId: true }
   });
-  
-  const prevPost = await prisma.post.findFirst({
-    where: { state: 'PUBLISHED', createdAt: { lt: post.createdAt }, printEditionId: post.printEditionId },
-    orderBy: { createdAt: 'desc' }
-  });
+
+  const currentIndex = allEditionPosts.findIndex(p => p.id === post.id);
+  const prevPost = currentIndex > 0 ? allEditionPosts[currentIndex - 1] : null;
+  const nextPost = currentIndex >= 0 && currentIndex < allEditionPosts.length - 1 ? allEditionPosts[currentIndex + 1] : null;
 
   const topPosts = await prisma.post.findMany({
     where: { state: 'PUBLISHED', id: { not: post.id } },

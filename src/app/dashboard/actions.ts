@@ -283,7 +283,9 @@ export async function savePost(data: any) {
         featuredImageAlt: data.featuredImageAlt,
         customAuthor: data.customAuthor,
         authorId: role === 'WRITER' ? session.user.id : data.authorId, // Ensure WRITERs can't reassign
-        isPremium: data.isPremium !== undefined ? data.isPremium : false
+        isPremium: data.isPremium !== undefined ? data.isPremium : false,
+        printEditionOrder: data.printEditionOrder ? parseInt(data.printEditionOrder) : null,
+        imageCaption: data.imageCaption
       }
     });
   } else {
@@ -302,7 +304,9 @@ export async function savePost(data: any) {
         keyInsights: data.keyInsights,
         featuredImageAlt: data.featuredImageAlt,
         customAuthor: data.customAuthor,
-        isPremium: data.isPremium !== undefined ? data.isPremium : false
+        isPremium: data.isPremium !== undefined ? data.isPremium : false,
+        printEditionOrder: data.printEditionOrder ? parseInt(data.printEditionOrder) : null,
+        imageCaption: data.imageCaption
       }
     });
   }

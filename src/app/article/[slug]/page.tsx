@@ -196,7 +196,12 @@ export default async function ArticlePage({ params, searchParams }: { params: { 
             </h1>
             
             <div className="font-sans text-sm text-muted" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-              <span style={{ fontWeight: 600 }}>By {post.customAuthor || post.author.name || 'Staff'}</span>
+              <span style={{ fontWeight: 600 }}>
+                By{' '}
+                <Link href={`/author/${post.authorId}`} style={{ textDecoration: 'none', color: 'inherit' }} className="hover:text-primary transition-colors">
+                  {post.customAuthor || post.author.name || 'Staff'}
+                </Link>
+              </span>
               <span>•</span>
               <span>{new Date(post.publishedAt || post.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
               <span>•</span>
@@ -205,16 +210,23 @@ export default async function ArticlePage({ params, searchParams }: { params: { 
           </header>
 
           {post.imageUrl && (
-            <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', marginBottom: '2.5rem', borderRadius: '0.5rem', overflow: 'hidden', backgroundColor: 'var(--surface-hover)', border: '1px solid var(--border)' }}>
-              <Image 
-                src={post.imageUrl} 
-                alt={post.featuredImageAlt || post.title} 
-                fill 
-                priority
-                sizes="(max-width: 800px) 100vw, 800px"
-                style={{ objectFit: 'cover' }}
-              />
-            </div>
+            <figure style={{ marginBottom: '2.5rem', width: '100%' }}>
+              <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', borderRadius: '0.5rem', overflow: 'hidden', backgroundColor: 'var(--surface-hover)', border: '1px solid var(--border)' }}>
+                <Image 
+                  src={post.imageUrl} 
+                  alt={post.featuredImageAlt || post.title} 
+                  fill 
+                  priority
+                  sizes="(max-width: 800px) 100vw, 800px"
+                  style={{ objectFit: 'cover' }}
+                />
+              </div>
+              {post.imageCaption && (
+                <figcaption className="font-sans text-xs text-muted" style={{ marginTop: '0.5rem', fontStyle: 'italic', textAlign: 'right' }}>
+                  {post.imageCaption}
+                </figcaption>
+              )}
+            </figure>
           )}
 
           <KeyTakeaways content={post.keyInsights || ''} />

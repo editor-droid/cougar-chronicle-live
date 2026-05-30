@@ -61,6 +61,8 @@ model Post {
   isPremium        Boolean   @default(false)
   customAuthor     String?
   printEditionId   String?
+  printEditionOrder Int?
+  imageCaption     String?
   printEdition     PrintEdition? @relation(fields: [printEditionId], references: [id])
   articleTokens    ArticleToken[]
 }

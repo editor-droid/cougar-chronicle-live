@@ -22,6 +22,8 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
   const [isPremium, setIsPremium] = useState(post?.isPremium || false);
   const [keyInsights, setKeyInsights] = useState(post?.keyInsights || '');
   const [assignedAuthorId, setAssignedAuthorId] = useState(post?.authorId || authorId);
+  const [printEditionOrder, setPrintEditionOrder] = useState(post?.printEditionOrder?.toString() || '');
+  const [imageCaption, setImageCaption] = useState(post?.imageCaption || '');
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGeneratingSEO, setIsGeneratingSEO] = useState(false);
@@ -216,7 +218,9 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
         seoKeywords,
         keyInsights,
         featuredImageAlt,
-        customAuthor, isPremium
+        customAuthor, isPremium,
+        printEditionOrder,
+        imageCaption
       });
       router.push('/dashboard');
       router.refresh();
@@ -512,6 +516,17 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
                 ))}
               </select>
             </div>
+            
+            <div style={{ flex: 1, minWidth: '150px' }}>
+              <label className="font-sans text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem' }}>Print Edition Order</label>
+              <input 
+                type="number" 
+                value={printEditionOrder} 
+                onChange={(e) => setPrintEditionOrder(e.target.value)} 
+                placeholder="e.g. 3"
+                style={{ width: '100%', padding: '0.75rem', borderRadius: '0.25rem', border: '1px solid var(--border)', fontFamily: 'var(--font-sans)', fontSize: '1rem' }}
+              />
+            </div>
         </div>
         )}
 
@@ -545,6 +560,18 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
                 style={{ display: 'none' }} 
               />
             </div>
+          </div>
+          
+          <div style={{ flex: 1, minWidth: '250px' }}>
+            <label className="font-sans text-sm text-muted" style={{ display: 'block', marginBottom: '0.25rem', fontWeight: 600 }}>IMAGE CAPTION / CREDIT</label>
+            <p className="font-sans text-xs text-muted" style={{ marginBottom: '1rem' }}>Displays subtly below the cover image on the article.</p>
+            <input 
+              type="text" 
+              value={imageCaption} 
+              onChange={(e) => setImageCaption(e.target.value)} 
+              placeholder="e.g. Photo by John Doe"
+              style={{ width: '100%', padding: '0.5rem', borderRadius: '0.25rem', border: '1px solid var(--border)' }}
+            />
           </div>
           
           {imageUrl && (

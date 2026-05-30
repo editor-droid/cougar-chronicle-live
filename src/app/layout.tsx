@@ -22,7 +22,9 @@ export const metadata: Metadata = {
     'Conservative student newspaper',
     'Daily Universe alternative',
     'Turning Point USA BYU',
-    'Provo Utah conservative news'
+    'Provo Utah conservative news',
+    'conservatives at byu',
+    'byu conservatives'
   ],
   openGraph: {
     title: 'The Cougar Chronicle',
