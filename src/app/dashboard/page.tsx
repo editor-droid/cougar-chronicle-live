@@ -93,7 +93,7 @@ export default async function DashboardPage() {
                     <td style={{ padding: '1rem' }} className="font-serif">
                       <Link href={`/dashboard/editor/${post.id}`} style={{ fontWeight: 'bold' }}>{post.title}</Link>
                     </td>
-                    <td style={{ padding: '1rem' }} className="font-sans text-sm">{post.author.name}</td>
+                    <td style={{ padding: '1rem' }} className="font-sans text-sm"><Link href={`/author/${post.authorId}`} style={{textDecoration: 'none', color: 'inherit'}}>{post.customAuthor || post.author.name}</Link></td>
                     <td style={{ padding: '1rem' }} className="font-sans text-sm text-muted">
                       {new Date(post.updatedAt).toLocaleDateString()}
                     </td>
@@ -198,7 +198,7 @@ export default async function DashboardPage() {
                     <td style={{ padding: '1rem' }} className="font-serif">
                       <Link href={`/dashboard/editor/${post.id}`} style={{ fontWeight: 'bold' }}>{post.title}</Link>
                     </td>
-                    <td style={{ padding: '1rem' }} className="font-sans text-sm">{post.author.name}</td>
+                    <td style={{ padding: '1rem' }} className="font-sans text-sm"><Link href={`/author/${post.authorId}`} style={{textDecoration: 'none', color: 'inherit'}}>{post.customAuthor || post.author.name}</Link></td>
                     <td style={{ padding: '1rem' }} className="font-sans text-sm text-muted">
                       {new Date(post.publishedAt || post.updatedAt).toLocaleDateString()}
                     </td>

@@ -184,7 +184,12 @@ export default async function ArticlePage({ params, searchParams }: { params: { 
             </h1>
             
             <div className="font-sans text-sm text-muted" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-              <span style={{ fontWeight: 600 }}>By {post.customAuthor || post.author.name || 'Staff'}</span>
+              <span style={{ fontWeight: 600 }}>
+                By{' '}
+                <Link href={`/author/${post.authorId}`} style={{ textDecoration: 'none', color: 'inherit' }} className="hover:text-primary transition-colors">
+                  {post.customAuthor || post.author.name || 'Staff'}
+                </Link>
+              </span>
               <span>•</span>
               <span>{new Date(post.publishedAt || post.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
               <span>•</span>
