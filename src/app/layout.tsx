@@ -3,6 +3,7 @@ import { GoogleAnalytics } from '@next/third-parties/google';
 import Chatbot from '@/components/Chatbot';
 import SubscribeModal from '@/components/SubscribeModal';
 import SearchBar from '@/components/SearchBar';
+import MobileMenu from '@/components/MobileMenu';
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -101,6 +102,7 @@ export default function RootLayout({
               <SearchBar />
               <SubscribeModal />
             </div>
+            <MobileMenu />
           </div>
           
           <nav className="main-nav" style={{ marginTop: '1.5rem', borderTop: '1px solid var(--border)', paddingTop: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
