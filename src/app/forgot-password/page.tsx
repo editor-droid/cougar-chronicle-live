@@ -15,7 +15,7 @@ export default function ForgotPasswordPage({ searchParams }: { searchParams?: { 
   const isSent = searchParams?.sent === 'true';
 
   return (
-    <div className="container animate-fade-in" style={{ maxWidth: '400px', marginTop: '4rem', marginBottom: '8rem' }}>
+    <div className="container animate-fade-in" style={{ maxWidth: '400px', marginTop: '1rem', marginBottom: '8rem' }}>
       <h1 className="font-serif text-center" style={{ marginBottom: '1rem', fontSize: '2rem' }}>Reset Password</h1>
       <p className="font-sans text-muted text-center text-sm" style={{ marginBottom: '2rem' }}>
         {isSent 

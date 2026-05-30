@@ -18,7 +18,7 @@ export default function ResetPasswordPage({ searchParams }: { searchParams?: { t
 
   if (!token || !email) {
     return (
-      <div className="container animate-fade-in" style={{ maxWidth: '400px', marginTop: '4rem', marginBottom: '8rem', textAlign: 'center' }}>
+      <div className="container animate-fade-in" style={{ maxWidth: '400px', marginTop: '1rem', marginBottom: '8rem', textAlign: 'center' }}>
         <h1 className="font-serif text-center" style={{ marginBottom: '1rem', fontSize: '2rem', color: 'red' }}>Invalid Link</h1>
         <p className="font-sans text-muted text-sm">This password reset link is invalid or missing required information.</p>
         <Link href="/forgot-password" className="btn btn-primary" style={{ marginTop: '2rem' }}>Request New Link</Link>
@@ -27,7 +27,7 @@ export default function ResetPasswordPage({ searchParams }: { searchParams?: { t
   }
 
   return (
-    <div className="container animate-fade-in" style={{ maxWidth: '400px', marginTop: '4rem', marginBottom: '8rem' }}>
+    <div className="container animate-fade-in" style={{ maxWidth: '400px', marginTop: '1rem', marginBottom: '8rem' }}>
       <h1 className="font-serif text-center" style={{ marginBottom: '1rem', fontSize: '2rem' }}>Create New Password</h1>
       
       {success ? (

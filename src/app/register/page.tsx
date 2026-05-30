@@ -56,7 +56,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="container" style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', paddingTop: '4rem', paddingBottom: '4rem' }}>
+    <div className="container" style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', paddingTop: '1rem', paddingBottom: '4rem' }}>
       <div style={{ maxWidth: '400px', width: '100%', backgroundColor: 'var(--surface)', padding: '2rem', borderRadius: '0.5rem', border: '1px solid var(--border)', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <h1 className="font-serif" style={{ fontSize: '2rem', marginBottom: '0.5rem', color: 'var(--foreground)' }}>Writer Registration</h1>

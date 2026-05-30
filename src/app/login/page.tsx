@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
   return (
-    <div className="container animate-fade-in" style={{ maxWidth: '400px', marginTop: '4rem' }}>
+    <div className="container animate-fade-in" style={{ maxWidth: '400px', marginTop: '1rem' }}>
       <h1 className="font-serif text-center" style={{ marginBottom: '2rem' }}>Sign In</h1>
       <div style={{ backgroundColor: 'var(--surface)', padding: '2rem', borderRadius: '0.5rem', border: '1px solid var(--border)' }}>
         <form

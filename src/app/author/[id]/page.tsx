@@ -47,7 +47,7 @@ export default async function AuthorPage({ params }: { params: { id: string } })
   const posts = author.posts;
 
   return (
-    <div className="container" style={{ padding: '4rem 1rem', maxWidth: '1200px', margin: '0 auto' }}>
+    <div className="container" style={{ padding: '1rem', maxWidth: '1200px', margin: '0 auto' }}>
       <header style={{ marginBottom: '4rem', textAlign: 'center' }}>
         {author.image ? (
           <div style={{ width: '100px', height: '100px', borderRadius: '50%', overflow: 'hidden', margin: '0 auto 1.5rem auto', border: '2px solid var(--border)' }}>
