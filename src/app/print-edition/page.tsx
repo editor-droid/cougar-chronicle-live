@@ -22,6 +22,17 @@ export default async function PrintEditionPage() {
     orderBy: { createdAt: 'desc' }
   });
 
+  if (edition && edition.posts) {
+    edition.posts.sort((a, b) => {
+      if (a.printEditionOrder !== null && b.printEditionOrder !== null) {
+        return a.printEditionOrder - b.printEditionOrder;
+      }
+      if (a.printEditionOrder !== null) return -1;
+      if (b.printEditionOrder !== null) return 1;
+      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    });
+  }
+
   return (
     <div className="container animate-fade-in" style={{ marginTop: '2rem' }}>
       <div style={{ marginBottom: '3rem', borderBottom: '2px solid var(--border)', paddingBottom: '1rem' }}>
