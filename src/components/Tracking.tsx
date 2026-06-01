@@ -4,8 +4,8 @@ import Script from 'next/script';
 import { useSearchParams, usePathname } from 'next/navigation';
 import { useEffect, useRef } from 'react';
 
-const GA_MEASUREMENT_ID = 'G-QTRB8KFLZX';
-const FB_PIXEL_ID = '1269599180626709';
+const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_ID || 'G-QTRB8KFLZX';
+const FB_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID || '1269599180626709';
 
 export default function Tracking() {
   const pathname = usePathname();

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { GoogleAnalytics } from '@next/third-parties/google';
+
 import Chatbot from '@/components/Chatbot';
 import SubscribeModal from '@/components/SubscribeModal';
 import SearchBar from '@/components/SearchBar';
@@ -168,7 +168,6 @@ export default function RootLayout({
           </div>
         </footer>
       </body>
-      <GoogleAnalytics gaId="G-XYZ1234567" />
     </html>
   )
 }
