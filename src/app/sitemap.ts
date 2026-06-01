@@ -1,6 +1,8 @@
 import { MetadataRoute } from 'next';
 import prisma from '@/lib/prisma';
 
+export const revalidate = 3600; // Cache for 1 hour
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXTAUTH_URL || 'https://thecougarchronicle.com';
 
