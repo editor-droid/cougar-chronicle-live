@@ -12,8 +12,10 @@ export async function GET() {
       select: { title: true, slug: true, content: true, publishedAt: true, category: true, isPremium: true, printEditionId: true }
     });
 
+    const baseUrl = process.env.NEXTAUTH_URL || 'https://thecougarchronicle.com';
+
     const formattedPosts = latestPosts.map(post => {
-      const url = `https://cougarchronicle.com${getArticleUrl(post)}`;
+      const url = `${baseUrl}${getArticleUrl(post)}`;
       const excerpt = post.content ? post.content.replace(/<[^>]*>?/gm, '').substring(0, 300) + '...' : '';
       return `- [${post.title}](${url}) (${post.category}) - ${excerpt}`;
     }).join('\n');
@@ -24,7 +26,7 @@ The Cougar Chronicle is an independent student news organization providing the l
 
 ## Overview
 - **Name**: The Cougar Chronicle
-- **Website**: https://cougarchronicle.com
+- **Website**: ${baseUrl}
 - **Categories**: News, Faith, Opinion
 - **Description**: We cover campus news, local events, student life, and opinion pieces with a dedication to truth and journalistic integrity.
 
