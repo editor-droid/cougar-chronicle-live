@@ -54,7 +54,7 @@ export default function ForgotPasswordPage({ searchParams }: { searchParams?: { 
                   const resetUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
                   
                   await resend.emails.send({
-                    from: 'The Cougar Chronicle <noreply@thecougarchronicle.com>',
+                    from: 'The Cougar Chronicle <noreply@updates.thecougarchronicle.com>',
                     to: email,
                     subject: 'Reset your password - The Cougar Chronicle',
                     html: `
