@@ -207,11 +207,11 @@ function SuggestionCard({
         className="text-xs rounded px-2 py-1.5"
         style={{
           background: "var(--primary)",
-          color: "var(--foreground)",
+          color: "white",
           border: "1px solid var(--primary)",
         }}
       >
-        <span className="font-bold" style={{ color: "var(--primary)" }}>
+        <span className="font-bold" style={{ color: "rgba(255,255,255,0.7)" }}>
           Suggested:{" "}
         </span>
         {suggested}

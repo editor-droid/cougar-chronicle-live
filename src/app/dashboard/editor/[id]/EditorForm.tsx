@@ -258,35 +258,38 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
               Paste your Google Doc URL below. <strong style={{ color: "var(--primary)" }}>Important:</strong> The document must be set to "Anyone with the link can view". This will overwrite your current form.
             </p>
             
-            <input
-              type="text"
-              placeholder="https://docs.google.com/document/d/..."
-              value={importUrl}
-              onChange={e => setImportUrl(e.target.value)}
-              className="w-full rounded-xl px-4 py-3 text-sm mb-6 outline-none transition-all focus:ring-2"
-              style={{
-                background: "var(--background)",
-                color: "var(--foreground)",
-                border: "1px solid var(--border)",
-              } as React.CSSProperties}
-            />
-            
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setShowImportModal(false)}
-                className="font-sans px-4 py-2 rounded-xl text-sm font-bold transition-colors text-muted"
-                type="button"
-              >
-                Cancel
-              </button>
+            <div className="flex items-stretch gap-2 mb-6">
+              <input
+                type="text"
+                placeholder="https://docs.google.com/document/d/..."
+                value={importUrl}
+                onChange={e => setImportUrl(e.target.value)}
+                className="flex-1 rounded-xl px-4 py-3 text-sm outline-none transition-all focus:ring-2"
+                style={{
+                  background: "var(--background)",
+                  color: "var(--foreground)",
+                  border: "1px solid var(--border)",
+                } as React.CSSProperties}
+              />
               <button
                 onClick={handleImportDoc}
                 disabled={importing || !importUrl.trim()}
-                className="font-sans flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-bold transition-all disabled:opacity-50 btn btn-primary"
+                className="font-sans flex items-center gap-2 px-6 rounded-xl text-sm font-bold transition-all disabled:opacity-50 btn btn-primary"
                 type="button"
+                style={{ whiteSpace: 'nowrap' }}
               >
                 {importing ? <Loader2 size={16} className="animate-spin" /> : <FileDown size={16} />}
-                {importing ? "Importing..." : "Import"}
+                {importing ? "Importing..." : "Run Import"}
+              </button>
+            </div>
+            
+            <div className="flex justify-end">
+              <button
+                onClick={() => setShowImportModal(false)}
+                className="font-sans px-4 py-2 rounded-xl text-sm font-bold transition-colors text-muted hover:bg-black/5"
+                type="button"
+              >
+                Cancel
               </button>
             </div>
           </div>
