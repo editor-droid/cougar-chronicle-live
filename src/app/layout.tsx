@@ -112,7 +112,7 @@ export default function RootLayout({
             <MobileMenu />
           </div>
           
-          <nav className="main-nav" style={{ marginTop: '1.5rem', borderTop: '1px solid var(--border)', paddingTop: '1rem', justifyContent: 'center', flexWrap: 'wrap', paddingBottom: '1.5rem' }}>
+          <nav className="main-nav" style={{ marginTop: '1.5rem', borderTop: '1px solid var(--border)', paddingTop: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
             <a href="/category/news" className="nav-link font-sans">News</a>
             <a href="/category/faith" className="nav-link font-sans">Faith</a>
             <a href="/category/opinion" className="nav-link font-sans">Opinion</a>
