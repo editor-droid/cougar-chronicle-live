@@ -94,7 +94,7 @@ export default function RootLayout({
         </div>
         <header className="site-header container">
           <div className="header-top">
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <div className="brand" style={{ fontFamily: "'Cormorant Garamond', serif", color: 'var(--primary)', lineHeight: 1 }}>
                 <a href="/" style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
                   <span style={{ fontSize: '22.3px', fontWeight: 400 }}>The</span>
