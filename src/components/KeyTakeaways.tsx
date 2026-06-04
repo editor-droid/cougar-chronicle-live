@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { ChevronDown, ChevronUp, Lightbulb } from 'lucide-react';
 
 export default function KeyTakeaways({ content }: { content: string }) {
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(false);
 
   if (!content) return null;
 
