@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import prisma from '@/lib/prisma';
 import Link from 'next/link';
 import { updateUser } from '../actions';
+import DashboardHeader from '@/components/DashboardHeader';
 
 export default async function UsersPage() {
   const session = await auth();
@@ -17,17 +18,8 @@ export default async function UsersPage() {
 
   return (
     <div className="container animate-fade-in" style={{ marginTop: '2rem' }}>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: '2rem' }}>
-          <h1 className="font-serif" style={{ fontSize: '2.5rem' }}>
-            User Management
-          </h1>
-          <nav style={{ display: 'flex', gap: '1rem' }}>
-            <Link href="/dashboard" className="text-muted hover:text-foreground font-sans">Posts</Link>
-            <span className="font-sans" style={{ fontWeight: 600, borderBottom: '2px solid var(--foreground)' }}>Users</span>
-          </nav>
-        </div>
-      </header>
+      <DashboardHeader currentTab="users" title="User Management" />
+
 
       <div style={{ backgroundColor: 'var(--surface)', borderRadius: '0.5rem', border: '1px solid var(--border)', overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>

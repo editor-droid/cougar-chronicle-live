@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { redirect } from 'next/navigation';
 import PrintEditionForm from './PrintEditionForm';
 import Link from 'next/link';
+import DashboardHeader from '@/components/DashboardHeader';
 
 export default async function PrintEditionsAdminPage() {
   const session = await auth();
@@ -21,24 +22,7 @@ export default async function PrintEditionsAdminPage() {
 
   return (
     <div className="container animate-fade-in" style={{ marginTop: '2rem' }}>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: '2rem' }}>
-          <h1 className="font-serif" style={{ fontSize: '2.5rem' }}>
-            Editorial Dashboard
-          </h1>
-          <nav style={{ display: 'flex', gap: '1rem' }}>
-            <Link href="/dashboard" className="text-muted hover:text-foreground font-sans">Posts</Link>
-            {session.user.role === 'ADMIN' && (
-              <Link href="/dashboard/users" className="text-muted hover:text-foreground font-sans">Users</Link>
-            )}
-            <span className="font-sans" style={{ fontWeight: 600, borderBottom: '2px solid var(--foreground)' }}>Print Editions</span>
-          </nav>
-        </div>
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          <span className="text-muted font-sans" style={{ alignSelf: 'center' }}>Logged in as {session.user.name || session.user.email} ({session.user.role})</span>
-          <Link href="/dashboard/print-editions/new" className="btn btn-primary font-sans">New Edition</Link>
-        </div>
-      </header>
+      <DashboardHeader currentTab="print-editions" />
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <h2 className="font-serif" style={{ fontSize: '2rem', color: 'var(--primary)' }}>Print Editions</h2>

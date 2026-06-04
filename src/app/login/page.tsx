@@ -45,7 +45,7 @@ export default function LoginPage() {
 
         <form action={async () => {
           'use server';
-          await signIn('google');
+          await signIn('google', { redirectTo: '/dashboard' });
         }}>
           <button type="submit" className="btn btn-secondary" style={{ width: '100%', padding: '0.75rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
             <svg viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg">
