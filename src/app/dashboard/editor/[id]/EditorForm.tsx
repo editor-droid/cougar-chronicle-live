@@ -7,7 +7,7 @@ import { savePost, updatePostState, addEditorialNote } from '../../actions';
 import { useRouter } from 'next/navigation';
 import { FileDown, Loader2, X } from 'lucide-react';
 
-export default function EditorForm({ post, authorId, userRole, availableAuthors = [] }: { post: any, authorId: string, userRole: string, availableAuthors?: any[] }) {
+export default function EditorForm({ post, authorId, userRole, availableAuthors = [], customAuthorsList = [] }: { post: any, authorId: string, userRole: string, availableAuthors?: any[], customAuthorsList?: string[] }) {
   const router = useRouter();
   const [title, setTitle] = useState(post?.title || '');
   const [category, setCategory] = useState(post?.category || 'news');
@@ -489,11 +489,19 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
             <label className="font-sans text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem' }}>Custom Author Name</label>
             <input 
               type="text" 
+              list="custom-authors-list"
               value={customAuthor} 
               onChange={(e) => setCustomAuthor(e.target.value)} 
               placeholder="Leave blank to use your name"
               style={{ width: '100%', padding: '0.75rem', borderRadius: '0.25rem', border: '1px solid var(--border)', fontFamily: 'var(--font-sans)', fontSize: '1rem' }}
             />
+            {customAuthorsList && customAuthorsList.length > 0 && (
+              <datalist id="custom-authors-list">
+                {customAuthorsList.map(name => (
+                  <option key={name} value={name} />
+                ))}
+              </datalist>
+            )}
           </div>
           <div style={{ flex: 1, minWidth: '200px', display: 'flex', alignItems: 'flex-end', paddingBottom: '0.75rem' }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>

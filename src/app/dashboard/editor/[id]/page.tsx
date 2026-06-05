@@ -28,11 +28,21 @@ export default async function EditorPage({ params }: { params: { id: string } })
   }
 
   let authors: any[] = [];
+  let customAuthorsList: string[] = [];
+  
   if (session.user.role === 'ADMIN' || session.user.role === 'EDITOR') {
     authors = await prisma.user.findMany({
       where: { role: { in: ['ADMIN', 'EDITOR', 'WRITER'] } },
       orderBy: { name: 'asc' }
     });
+
+    const distinctAuthors = await prisma.post.findMany({
+      where: { customAuthor: { not: null } },
+      select: { customAuthor: true },
+      distinct: ['customAuthor'],
+      orderBy: { customAuthor: 'asc' }
+    });
+    customAuthorsList = distinctAuthors.map(a => a.customAuthor as string).filter(a => a && a.trim() !== '');
   }
 
   return (
@@ -40,7 +50,13 @@ export default async function EditorPage({ params }: { params: { id: string } })
       <h1 className="font-serif" style={{ fontSize: '2rem', marginBottom: '2rem' }}>
         {id === 'new' ? 'Create New Draft' : 'Edit Post'}
       </h1>
-      <EditorForm post={post} authorId={session.user.id} userRole={session.user.role} availableAuthors={authors} />
+      <EditorForm 
+        post={post} 
+        authorId={session.user.id} 
+        userRole={session.user.role} 
+        availableAuthors={authors} 
+        customAuthorsList={customAuthorsList}
+      />
     </div>
   );
 }
