@@ -440,5 +440,4 @@ export async function createWriter(formData: FormData) {
 
   revalidatePath('/dashboard/users');
   revalidatePath('/dashboard/editor/[id]', 'page');
-  return { success: true };
 }
