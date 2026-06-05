@@ -410,3 +410,35 @@ export async function addEditorialNote(formData: FormData) {
 
   revalidatePath(`/dashboard/editor/${postId}`);
 }
+
+export async function createWriter(formData: FormData) {
+  const session = await auth();
+  if (!session?.user || session.user.role !== 'ADMIN') throw new Error('Unauthorized');
+
+  const name = formData.get('name') as string;
+  const email = formData.get('email') as string;
+  
+  if (!name || !email) throw new Error('Missing fields');
+
+  // Check if user already exists
+  const existing = await prisma.user.findUnique({ where: { email } });
+  if (existing) throw new Error('User with this email already exists');
+
+  const bcrypt = await import('bcryptjs');
+  // Generate random dummy password since they might just be a ghostwriter
+  const randomPassword = Math.random().toString(36).slice(-8) + 'A1!';
+  const hashedPassword = await bcrypt.hash(randomPassword, 10);
+
+  await prisma.user.create({
+    data: {
+      name,
+      email,
+      password: hashedPassword,
+      role: 'WRITER'
+    }
+  });
+
+  revalidatePath('/dashboard/users');
+  revalidatePath('/dashboard/editor/[id]', 'page');
+  return { success: true };
+}

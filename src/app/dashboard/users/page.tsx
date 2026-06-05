@@ -2,7 +2,7 @@ import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import prisma from '@/lib/prisma';
 import Link from 'next/link';
-import { updateUser } from '../actions';
+import { updateUser, createWriter } from '../actions';
 import DashboardHeader from '@/components/DashboardHeader';
 
 export default async function UsersPage() {
@@ -19,6 +19,21 @@ export default async function UsersPage() {
   return (
     <div className="container animate-fade-in" style={{ marginTop: '2rem' }}>
       <DashboardHeader currentTab="users" title="User Management" />
+
+      <div style={{ marginBottom: '2rem', padding: '1.5rem', backgroundColor: 'var(--surface)', borderRadius: '0.5rem', border: '1px solid var(--border)' }}>
+        <h2 className="font-serif" style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Quick Add New Writer</h2>
+        <form action={createWriter} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+          <div style={{ flex: 1, minWidth: '200px' }}>
+            <label className="font-sans text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem' }}>Full Name</label>
+            <input type="text" name="name" required placeholder="John Doe" style={{ width: '100%', padding: '0.75rem', borderRadius: '0.25rem', border: '1px solid var(--border)', backgroundColor: 'var(--surface)' }} />
+          </div>
+          <div style={{ flex: 1, minWidth: '200px' }}>
+            <label className="font-sans text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem' }}>Email Address</label>
+            <input type="email" name="email" required placeholder="john@example.com" style={{ width: '100%', padding: '0.75rem', borderRadius: '0.25rem', border: '1px solid var(--border)', backgroundColor: 'var(--surface)' }} />
+          </div>
+          <button type="submit" className="btn btn-primary" style={{ padding: '0.75rem 1.5rem' }}>Add Writer</button>
+        </form>
+      </div>
 
 
       <div style={{ backgroundColor: 'var(--surface)', borderRadius: '0.5rem', border: '1px solid var(--border)', overflow: 'hidden' }}>
