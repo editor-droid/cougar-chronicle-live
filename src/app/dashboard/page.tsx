@@ -6,7 +6,8 @@ import { updatePostState } from './actions';
 import { getArticleUrl } from '@/lib/routes';
 import DashboardHeader from '@/components/DashboardHeader';
 
-export default async function DashboardPage({ searchParams }: { searchParams?: { q?: string, page?: string, sort?: string, order?: string } }) {
+export default async function DashboardPage(props: { searchParams?: Promise<{ [key: string]: string | string[] | undefined }> }) {
+  const searchParams = await props.searchParams;
   const session = await auth();
   
   if (!session?.user) {
@@ -21,15 +22,19 @@ export default async function DashboardPage({ searchParams }: { searchParams?: {
   const isEditorOrAdmin = role === 'EDITOR' || role === 'ADMIN';
 
   // Parse search and pagination params
-  const pageNumber = parseInt(searchParams?.page || '1');
+  const pageParam = searchParams?.page;
+  const pageNumber = parseInt(typeof pageParam === 'string' ? pageParam : '1') || 1;
   const pageSize = 20;
   const skip = (pageNumber - 1) * pageSize;
-  const query = searchParams?.q || '';
+  const queryParam = searchParams?.q;
+  const query = typeof queryParam === 'string' ? queryParam : '';
   
   // Validate sort column
   const validSortCols = ['title', 'publishedAt', 'views'];
-  const sortCol = validSortCols.includes(searchParams?.sort as string) ? searchParams?.sort! : 'publishedAt';
-  const sortOrder = searchParams?.order === 'asc' ? 'asc' : 'desc';
+  const sortParam = searchParams?.sort;
+  const sortCol = typeof sortParam === 'string' && validSortCols.includes(sortParam) ? sortParam : 'publishedAt';
+  const orderParam = searchParams?.order;
+  const sortOrder = orderParam === 'asc' ? 'asc' : 'desc';
 
   // Fetch posts based on role
   let needsReviewPosts: any[] = [];
