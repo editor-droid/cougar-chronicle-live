@@ -416,16 +416,18 @@ export async function createWriter(formData: FormData) {
   if (!session?.user || session.user.role !== 'ADMIN') throw new Error('Unauthorized');
 
   const name = formData.get('name') as string;
-  const email = formData.get('email') as string;
+  const rawEmail = formData.get('email') as string;
+  const email = rawEmail && rawEmail.trim() !== '' ? rawEmail.trim() : null;
   
-  if (!name || !email) throw new Error('Missing fields');
+  if (!name) throw new Error('Name is required');
 
-  // Check if user already exists
-  const existing = await prisma.user.findUnique({ where: { email } });
-  if (existing) throw new Error('User with this email already exists');
+  if (email) {
+    const existing = await prisma.user.findUnique({ where: { email } });
+    if (existing) throw new Error('User with this email already exists');
+  }
 
   const bcrypt = await import('bcryptjs');
-  // Generate random dummy password since they might just be a ghostwriter
+  // Generate random dummy password 
   const randomPassword = Math.random().toString(36).slice(-8) + 'A1!';
   const hashedPassword = await bcrypt.hash(randomPassword, 10);
 
@@ -437,6 +439,49 @@ export async function createWriter(formData: FormData) {
       role: 'WRITER'
     }
   });
+
+  if (email) {
+    try {
+      // 1. Generate Reset Token
+      const token = crypto.randomUUID();
+      
+      // 2. Save to VerificationToken (expires in 24 hours)
+      const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      await prisma.verificationToken.create({
+        data: {
+          identifier: email,
+          token,
+          expires
+        }
+      });
+
+      // 3. Send email using Resend
+      const origin = process.env.NEXTAUTH_URL || process.env.AUTH_URL || 'https://thecougarchronicle.com';
+      const resetLink = `${origin}/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
+      
+      const isMock = !process.env.RESEND_API_KEY || process.env.RESEND_API_KEY.includes('fallback');
+      
+      const subject = `You've been added as a Writer for The Cougar Chronicle!`;
+      const html = `<p>Hi ${name},</p>
+      <p>An administrator has created a writer account for you at The Cougar Chronicle.</p>
+      <p>Please click the link below to set your password and log into your dashboard:</p>
+      <p><a href="${resetLink}" style="display: inline-block; background-color: #1B2253; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 4px; font-weight: bold;">Set My Password</a></p>
+      <p>If the button doesn't work, copy and paste this link into your browser: <br/>${resetLink}</p>`;
+
+      console.log(`\n=========================================\n[EMAIL NOTIFICATION] Set Password\nTo: ${email}\nLink: ${resetLink}\n=========================================\n`);
+
+      if (!isMock) {
+        await resend.emails.send({
+          from: 'notifications@thecougarchronicle.com',
+          to: email,
+          subject,
+          html
+        });
+      }
+    } catch (e) {
+      console.error('Failed to generate or send password set email:', e);
+    }
+  }
 
   revalidatePath('/dashboard/users');
   revalidatePath('/dashboard/editor/[id]', 'page');

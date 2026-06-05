@@ -28,8 +28,8 @@ export default async function UsersPage() {
             <input type="text" name="name" required placeholder="John Doe" style={{ width: '100%', padding: '0.75rem', borderRadius: '0.25rem', border: '1px solid var(--border)', backgroundColor: 'var(--surface)' }} />
           </div>
           <div style={{ flex: 1, minWidth: '200px' }}>
-            <label className="font-sans text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem' }}>Email Address</label>
-            <input type="email" name="email" required placeholder="john@example.com" style={{ width: '100%', padding: '0.75rem', borderRadius: '0.25rem', border: '1px solid var(--border)', backgroundColor: 'var(--surface)' }} />
+            <label className="font-sans text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem' }}>Email Address (Optional)</label>
+            <input type="email" name="email" placeholder="john@example.com" style={{ width: '100%', padding: '0.75rem', borderRadius: '0.25rem', border: '1px solid var(--border)', backgroundColor: 'var(--surface)' }} />
           </div>
           <button type="submit" className="btn btn-primary" style={{ padding: '0.75rem 1.5rem' }}>Add Writer</button>
         </form>
