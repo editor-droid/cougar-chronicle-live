@@ -1,9 +1,11 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 
 import Chatbot from '@/components/Chatbot';
 import SubscribeModal from '@/components/SubscribeModal';
 import SearchBar from '@/components/SearchBar';
 import MobileMenu from '@/components/MobileMenu';
+import Tracking from '@/components/Tracking';
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -57,6 +59,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <Suspense fallback={null}>
+          <Tracking />
+        </Suspense>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
