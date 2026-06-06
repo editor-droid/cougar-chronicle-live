@@ -51,7 +51,7 @@ export async function POST(req: Request) {
             quantity: 1,
           },
         ],
-        success_url: `${origin}/donate?success=true`,
+        success_url: `${origin}/donate?success=true&purchase=${amount}`,
         cancel_url: `${origin}/donate`,
         metadata: {
           type: 'donation'

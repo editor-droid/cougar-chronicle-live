@@ -55,6 +55,32 @@ export default function Tracking() {
     }
   }, [searchParams]);
 
+  useEffect(() => {
+    // 3. Handle Scroll Depth Tracking (75%)
+    let scrollTracked = false;
+    
+    const handleScroll = () => {
+      if (scrollTracked) return;
+      
+      const scrollPosition = window.scrollY + window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
+      
+      if (scrollPosition > documentHeight * 0.75) {
+        scrollTracked = true;
+        if ((window as any).gtag) {
+          (window as any).gtag('event', 'scroll_depth_75');
+        }
+        if ((window as any).fbq) {
+          (window as any).fbq('trackCustom', 'ScrollDepth75');
+        }
+        console.log('[Tracking] Scroll depth 75% fired');
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [pathname]);
+
   return (
     <>
       {/* Global Site Tag (gtag.js) - Google Analytics */}

@@ -26,6 +26,17 @@ export default function SubscribeForm({ onSuccess }: { onSuccess?: () => void })
         setMessage('Thank you for subscribing!');
         setEmail('');
         setName('');
+        
+        if (typeof window !== 'undefined') {
+          if ((window as any).gtag) {
+            (window as any).gtag('event', 'generate_lead', { currency: 'USD', value: 0 });
+          }
+          if ((window as any).fbq) {
+            (window as any).fbq('track', 'Lead');
+          }
+          console.log('[Tracking] Lead event fired');
+        }
+
         if (onSuccess) {
           setTimeout(onSuccess, 1500);
         }
