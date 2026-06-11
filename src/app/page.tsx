@@ -8,10 +8,9 @@ import PrintCheckoutButtons from '@/app/print-edition/PrintCheckoutButtons';
 export const revalidate = 60; // ISR revalidation
 
 export default async function Home() {
-  // Query all published posts
   const allPosts = await prisma.post.findMany({
     where: { state: 'PUBLISHED', printEditionId: null },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { publishedAt: { sort: 'desc', nulls: 'last' } },
     include: { author: true },
     take: 20
   });
@@ -23,7 +22,7 @@ export default async function Home() {
   // News category posts
   const newsPosts = await prisma.post.findMany({
     where: { state: 'PUBLISHED', category: 'news', printEditionId: null },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { publishedAt: { sort: 'desc', nulls: 'last' } },
     include: { author: true },
     take: 4
   });
@@ -31,7 +30,7 @@ export default async function Home() {
   // Faith category posts
   const faithPosts = await prisma.post.findMany({
     where: { state: 'PUBLISHED', category: 'faith', printEditionId: null },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { publishedAt: { sort: 'desc', nulls: 'last' } },
     include: { author: true },
     take: 4
   });
@@ -39,7 +38,7 @@ export default async function Home() {
   // Opinion category posts (Text-centric focus)
   const opinionPosts = await prisma.post.findMany({
     where: { state: 'PUBLISHED', category: 'opinion', printEditionId: null },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { publishedAt: { sort: 'desc', nulls: 'last' } },
     include: { author: true },
     take: 4
   });
