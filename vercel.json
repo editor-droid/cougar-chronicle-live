@@ -1,9 +1,0 @@
-{
-  "name": "cougar-chronicle-live-app",
-  "crons": [
-    {
-      "path": "/api/cron/publish",
-      "schedule": "*/5 * * * *"
-    }
-  ]
-}
