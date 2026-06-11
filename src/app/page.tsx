@@ -9,7 +9,7 @@ export const revalidate = 60; // ISR revalidation
 
 export default async function Home() {
   const allPosts = await prisma.post.findMany({
-    where: { state: 'PUBLISHED', printEditionId: null },
+    where: { state: 'PUBLISHED', printEditionId: null, publishedAt: { lte: new Date() } },
     orderBy: { publishedAt: { sort: 'desc', nulls: 'last' } },
     include: { author: true },
     take: 20
@@ -21,7 +21,7 @@ export default async function Home() {
 
   // News category posts
   const newsPosts = await prisma.post.findMany({
-    where: { state: 'PUBLISHED', category: 'news', printEditionId: null },
+    where: { state: 'PUBLISHED', category: 'news', printEditionId: null, publishedAt: { lte: new Date() } },
     orderBy: { publishedAt: { sort: 'desc', nulls: 'last' } },
     include: { author: true },
     take: 4
@@ -29,7 +29,7 @@ export default async function Home() {
 
   // Faith category posts
   const faithPosts = await prisma.post.findMany({
-    where: { state: 'PUBLISHED', category: 'faith', printEditionId: null },
+    where: { state: 'PUBLISHED', category: 'faith', printEditionId: null, publishedAt: { lte: new Date() } },
     orderBy: { publishedAt: { sort: 'desc', nulls: 'last' } },
     include: { author: true },
     take: 4
@@ -37,7 +37,7 @@ export default async function Home() {
 
   // Opinion category posts (Text-centric focus)
   const opinionPosts = await prisma.post.findMany({
-    where: { state: 'PUBLISHED', category: 'opinion', printEditionId: null },
+    where: { state: 'PUBLISHED', category: 'opinion', printEditionId: null, publishedAt: { lte: new Date() } },
     orderBy: { publishedAt: { sort: 'desc', nulls: 'last' } },
     include: { author: true },
     take: 4
@@ -45,7 +45,7 @@ export default async function Home() {
 
   // Trending posts ordered by views
   const trendingPosts = await prisma.post.findMany({
-    where: { state: 'PUBLISHED', printEditionId: null },
+    where: { state: 'PUBLISHED', printEditionId: null, publishedAt: { lte: new Date() } },
     orderBy: { views: 'desc' },
     include: { author: true },
     take: 5

@@ -34,7 +34,7 @@ export default async function AuthorPage({ params }: { params: { id: string } })
     where: { id },
     include: {
       posts: {
-        where: { state: 'PUBLISHED' },
+        where: { state: 'PUBLISHED', publishedAt: { lte: new Date() } },
         orderBy: { publishedAt: { sort: 'desc', nulls: 'last' } },
       }
     }

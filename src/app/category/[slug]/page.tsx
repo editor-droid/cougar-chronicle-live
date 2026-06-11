@@ -35,14 +35,14 @@ export default async function CategoryPage({ params, searchParams }: { params: P
   
   const [posts, totalPosts] = await Promise.all([
     prisma.post.findMany({
-      where: { category: slug, state: 'PUBLISHED' },
+      where: { category: slug, state: 'PUBLISHED', publishedAt: { lte: new Date() } },
       orderBy: { publishedAt: sortOrder },
       include: { author: true },
       take: postsPerPage,
       skip: skip,
     }),
     prisma.post.count({
-      where: { category: slug, state: 'PUBLISHED' }
+      where: { category: slug, state: 'PUBLISHED', publishedAt: { lte: new Date() } }
     })
   ]);
   

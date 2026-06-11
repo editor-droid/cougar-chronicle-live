@@ -24,6 +24,13 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
   const [assignedAuthorId, setAssignedAuthorId] = useState(post?.authorId || authorId);
   const [printEditionOrder, setPrintEditionOrder] = useState(post?.printEditionOrder?.toString() || '');
   const [imageCaption, setImageCaption] = useState(post?.imageCaption || '');
+  const [publishedAt, setPublishedAt] = useState(() => {
+    if (post?.publishedAt) {
+      const d = new Date(post.publishedAt);
+      return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    }
+    return '';
+  });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGeneratingSEO, setIsGeneratingSEO] = useState(false);
@@ -220,7 +227,8 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
         featuredImageAlt,
         customAuthor, isPremium,
         printEditionOrder,
-        imageCaption
+        imageCaption,
+        publishedAt: publishedAt || undefined
       });
       router.push('/dashboard');
       router.refresh();
@@ -332,7 +340,7 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
                                         await savePost({ 
                       id: post.id, title, slug, category, content, imageUrl, authorId: assignedAuthorId,
                       seoTitle, seoDescription, seoKeywords,
-        keyInsights, featuredImageAlt, customAuthor, isPremium
+                      keyInsights, featuredImageAlt, customAuthor, isPremium, publishedAt: publishedAt || undefined
                     });
                     
                     const fd = new FormData();
@@ -366,7 +374,7 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
                                         await savePost({ 
                       id: post.id, title, slug, category, content, imageUrl, authorId: assignedAuthorId,
                       seoTitle, seoDescription, seoKeywords,
-        keyInsights, featuredImageAlt, customAuthor, isPremium
+                      keyInsights, featuredImageAlt, customAuthor, isPremium, publishedAt: publishedAt || undefined
                     });
                     
                     const fd = new FormData();
@@ -396,22 +404,24 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
                 onClick={async () => {
                   setIsSubmitting(true);
                   try {
-                                        await savePost({ 
+                                        const isScheduling = publishedAt && new Date(publishedAt) > new Date();
+                    
+                    await savePost({ 
                       id: post.id, title, slug, category, content, imageUrl, authorId: assignedAuthorId,
                       seoTitle, seoDescription, seoKeywords,
-        keyInsights, featuredImageAlt, customAuthor, isPremium
+                      keyInsights, featuredImageAlt, customAuthor, isPremium, publishedAt: publishedAt || undefined
                     });
                     
                     const fd = new FormData();
                     fd.append('postId', post.id);
-                    fd.append('newState', 'PUBLISHED');
+                    fd.append('newState', isScheduling ? 'APPROVED' : 'PUBLISHED');
                     await updatePostState(fd);
                     
-                    alert('Post Published Live!');
+                    alert(isScheduling ? 'Post Scheduled Successfully!' : 'Post Published Live!');
                     router.push('/dashboard');
                     router.refresh();
                   } catch (err) {
-                    alert('Failed to publish post.');
+                    alert('Failed to publish/schedule post.');
                   } finally {
                     setIsSubmitting(false);
                   }
@@ -420,7 +430,7 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
                 style={{ backgroundColor: 'green', color: 'white' }}
                 disabled={isSubmitting}
               >
-                Publish Live
+                {publishedAt && new Date(publishedAt) > new Date() ? 'Schedule Post' : 'Publish Live'}
               </button>
             )}
           </div>
@@ -536,6 +546,16 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
                 onChange={(e) => setPrintEditionOrder(e.target.value)} 
                 placeholder="e.g. 3"
                 style={{ width: '100%', padding: '0.75rem', borderRadius: '0.25rem', border: '1px solid var(--border)', fontFamily: 'var(--font-sans)', fontSize: '1rem' }}
+              />
+            </div>
+
+            <div style={{ flex: 1, minWidth: '200px' }}>
+              <label className="font-sans text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem' }}>Publish Date / Schedule</label>
+              <input 
+                type="datetime-local" 
+                value={publishedAt} 
+                onChange={(e) => setPublishedAt(e.target.value)} 
+                style={{ width: '100%', padding: '0.75rem', backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '0.25rem', fontFamily: 'var(--font-sans)', fontSize: '1rem' }}
               />
             </div>
         </div>
