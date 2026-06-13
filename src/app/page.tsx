@@ -257,11 +257,15 @@ export default async function Home() {
               <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
                 <div style={{ flex: '1 1 200px', maxWidth: '250px' }}>
                   {activePrintEdition.coverImageUrl ? (
-                    <img 
-                      src={activePrintEdition.coverImageUrl} 
-                      alt={`Cover of ${activePrintEdition.title}`} 
-                      style={{ width: '100%', height: 'auto', borderRadius: '0.25rem', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}
-                    />
+                    <div style={{ position: 'relative', width: '100%', aspectRatio: '8.5/11', borderRadius: '0.25rem', overflow: 'hidden', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
+                      <Image 
+                        src={activePrintEdition.coverImageUrl} 
+                        alt={`Cover of ${activePrintEdition.title}`} 
+                        fill
+                        sizes="(max-width: 768px) 100vw, 250px"
+                        style={{ objectFit: 'cover' }}
+                      />
+                    </div>
                   ) : (
                     <div style={{ width: '100%', aspectRatio: '8.5/11', backgroundColor: 'var(--surface)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '0.25rem' }}>
                       <span className="font-serif text-muted">No Cover</span>

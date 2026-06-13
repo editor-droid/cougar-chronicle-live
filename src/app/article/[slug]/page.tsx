@@ -277,8 +277,13 @@ export default async function ArticlePage({ params, searchParams }: { params: { 
           {prevPost ? (
             <Link href={getArticleUrl(prevPost)} className="article-nav-card" style={{ display: 'flex', gap: '1rem', alignItems: 'center', padding: '1rem', borderRadius: '0.5rem', border: '1px solid var(--border)', textDecoration: 'none', color: 'inherit' }}>
               {prevPost.imageUrl && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={prevPost.imageUrl} alt={prevPost.title} style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '0.25rem' }} />
+                <Image 
+                  src={prevPost.imageUrl} 
+                  alt={prevPost.title} 
+                  width={80} 
+                  height={80} 
+                  style={{ objectFit: 'cover', borderRadius: '0.25rem' }} 
+                />
               )}
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <span className="font-sans text-xs text-muted" style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}>Previous Article</span>
@@ -294,8 +299,13 @@ export default async function ArticlePage({ params, searchParams }: { params: { 
                 <h4 className="font-serif" style={{ margin: '0.25rem 0 0 0', fontSize: '1.1rem', lineHeight: '1.3' }}>{nextPost.title}</h4>
               </div>
               {nextPost.imageUrl && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={nextPost.imageUrl} alt={nextPost.title} style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '0.25rem' }} />
+                <Image 
+                  src={nextPost.imageUrl} 
+                  alt={nextPost.title} 
+                  width={80} 
+                  height={80} 
+                  style={{ objectFit: 'cover', borderRadius: '0.25rem' }} 
+                />
               )}
             </Link>
           ) : <div></div>}

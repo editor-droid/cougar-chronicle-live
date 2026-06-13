@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
+import Image from 'next/image';
 
 type Message = {
   id: string;
@@ -135,8 +136,7 @@ export default function Chatbot() {
           onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
           onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/chat-icon.png" alt="Chat" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <Image src="/chat-icon.png" alt="Chat" width={64} height={64} style={{ objectFit: 'cover' }} />
         </button>
       </div>
     );
@@ -147,8 +147,7 @@ export default function Chatbot() {
       {/* Header */}
       <div style={{ backgroundColor: 'var(--primary)', color: 'white', padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', zIndex: 2 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/chat-icon.png" alt="Logo" style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'white', objectFit: 'contain', padding: '2px', border: '2px solid rgba(255,255,255,0.2)' }} />
+          <Image src="/chat-icon.png" alt="Logo" width={40} height={40} style={{ borderRadius: '50%', backgroundColor: 'white', objectFit: 'contain', padding: '2px', border: '2px solid rgba(255,255,255,0.2)' }} />
           <div>
             <div style={{ fontWeight: 600, fontSize: '1.1rem', lineHeight: 1.2 }} className="font-sans">Cougar Chronicle AI</div>
             <div style={{ fontSize: '0.8rem', opacity: 0.9, display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }} className="font-sans">
@@ -166,8 +165,7 @@ export default function Chatbot() {
         {/* Welcome Message */}
         {messages.length === 0 && (
           <div style={{ display: 'flex', gap: '0.5rem', alignSelf: 'flex-start', maxWidth: '85%', marginBottom: '0.5rem' }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/chat-icon.png" alt="AI" style={{ width: '28px', height: '28px', borderRadius: '50%', flexShrink: 0, marginTop: 'auto', backgroundColor: 'white', padding: '2px', border: '1px solid #ddd' }} />
+            <Image src="/chat-icon.png" alt="AI" width={28} height={28} style={{ borderRadius: '50%', flexShrink: 0, marginTop: 'auto', backgroundColor: 'white', padding: '2px', border: '1px solid #ddd' }} />
             <div style={{ backgroundColor: 'white', color: '#111', padding: '0.75rem 1rem', borderRadius: '1.2rem', borderBottomLeftRadius: '0.2rem', boxShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>
               <p className="font-sans text-sm" style={{ whiteSpace: 'pre-wrap', margin: 0, lineHeight: 1.5 }}>
                 Hi! I am the Cougar Chronicle AI. I can help answer questions about our articles or the BYU community. How can I help you today?
@@ -184,8 +182,7 @@ export default function Chatbot() {
           return (
             <div key={m.id} style={{ display: 'flex', gap: '0.5rem', alignSelf: isUser ? 'flex-end' : 'flex-start', maxWidth: '85%', marginBottom: '0.5rem' }}>
               {!isUser && (
-                /* eslint-disable-next-line @next/next/no-img-element */
-                <img src="/chat-icon.png" alt="AI" style={{ width: '28px', height: '28px', borderRadius: '50%', flexShrink: 0, marginTop: 'auto', backgroundColor: 'white', padding: '2px', border: '1px solid #ddd' }} />
+                <Image src="/chat-icon.png" alt="AI" width={28} height={28} style={{ borderRadius: '50%', flexShrink: 0, marginTop: 'auto', backgroundColor: 'white', padding: '2px', border: '1px solid #ddd' }} />
               )}
               <div style={{
                 backgroundColor: isUser ? '#1B2253' : 'white',
@@ -216,8 +213,7 @@ export default function Chatbot() {
         })}
         {isLoading && (
           <div style={{ display: 'flex', gap: '0.5rem', alignSelf: 'flex-start', maxWidth: '85%' }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/chat-icon.png" alt="AI" style={{ width: '28px', height: '28px', borderRadius: '50%', flexShrink: 0, marginTop: 'auto', backgroundColor: 'white', padding: '2px', border: '1px solid #ddd' }} />
+            <Image src="/chat-icon.png" alt="AI" width={28} height={28} style={{ borderRadius: '50%', flexShrink: 0, marginTop: 'auto', backgroundColor: 'white', padding: '2px', border: '1px solid #ddd' }} />
             <div style={{ backgroundColor: 'white', padding: '0.75rem 1rem', borderRadius: '1.2rem', borderBottomLeftRadius: '0.2rem', boxShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>
               <div className="text-muted text-sm font-sans" style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                 Typing...

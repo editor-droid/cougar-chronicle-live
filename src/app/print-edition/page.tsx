@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import prisma from '@/lib/prisma';
 import Link from 'next/link';
+import Image from 'next/image';
 import { getArticleUrl } from '@/lib/routes';
 import PrintCheckoutButtons from './PrintCheckoutButtons';
 
@@ -49,11 +50,15 @@ export default async function PrintEditionPage() {
             {/* Cover Image */}
             <div style={{ flex: '1 1 300px', maxWidth: '400px', margin: '0 auto' }}>
               {edition.coverImageUrl ? (
-                <img 
-                  src={edition.coverImageUrl} 
-                  alt={`Cover of ${edition.title}`} 
-                  style={{ width: '100%', height: 'auto', borderRadius: '0.5rem', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}
-                />
+                <div style={{ position: 'relative', width: '100%', aspectRatio: '8.5/11', borderRadius: '0.5rem', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
+                  <Image 
+                    src={edition.coverImageUrl} 
+                    alt={`Cover of ${edition.title}`} 
+                    fill
+                    sizes="(max-width: 768px) 100vw, 400px"
+                    style={{ objectFit: 'cover' }}
+                  />
+                </div>
               ) : (
                 <div style={{ width: '100%', aspectRatio: '8.5/11', backgroundColor: 'var(--surface)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '0.5rem' }}>
                   <span className="font-serif text-muted">No Cover Image</span>

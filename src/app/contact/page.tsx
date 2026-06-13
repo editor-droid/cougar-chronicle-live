@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import Image from 'next/image';
 import VolunteerForm from '@/components/VolunteerForm';
 
 export const metadata: Metadata = {
@@ -97,10 +98,12 @@ export default function ContactPage() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
           {alumni.map((alum, i) => (
             <div key={i} style={{ backgroundColor: 'var(--background)', padding: '2rem', borderRadius: '0.75rem', border: '1px solid var(--border)', textAlign: 'center', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
-              <img 
+              <Image 
                 src={alum.image} 
                 alt={alum.name} 
-                style={{ width: '120px', height: '120px', borderRadius: '50%', objectFit: 'cover', margin: '0 auto 1.5rem', border: '3px solid var(--primary)' }}
+                width={120}
+                height={120}
+                style={{ borderRadius: '50%', objectFit: 'cover', margin: '0 auto 1.5rem', border: '3px solid var(--primary)' }}
               />
               <h3 className="font-serif" style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--foreground)', marginBottom: '0.5rem' }}>{alum.name}</h3>
               <p className="font-sans text-primary" style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem' }}>{alum.role}</p>
