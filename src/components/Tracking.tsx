@@ -85,12 +85,12 @@ export default function Tracking() {
     <>
       {/* Global Site Tag (gtag.js) - Google Analytics */}
       <Script
-        strategy="afterInteractive"
+        strategy="lazyOnload"
         src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
       />
       <Script
         id="gtag-init"
-        strategy="afterInteractive"
+        strategy="lazyOnload"
         dangerouslySetInnerHTML={{
           __html: `
             window.dataLayer = window.dataLayer || [];
@@ -106,7 +106,7 @@ export default function Tracking() {
       {/* Meta Pixel Code */}
       <Script
         id="fb-pixel"
-        strategy="afterInteractive"
+        strategy="lazyOnload"
         dangerouslySetInnerHTML={{
           __html: `
             !function(f,b,e,v,n,t,s)

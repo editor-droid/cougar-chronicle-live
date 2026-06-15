@@ -77,6 +77,7 @@ export default async function Home() {
                   alt={mainStory.title} 
                   fill 
                   priority 
+                  fetchPriority="high"
                   sizes="(max-width: 768px) 100vw, 800px"
                   style={{ objectFit: 'cover' }} 
                 />
@@ -120,9 +121,9 @@ export default async function Home() {
 
         {/* Sidebar stack of secondary stories */}
         <div className="hero-sidebar">
-          <h3 className="font-sans text-xs text-muted" style={{ fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>
+          <h2 className="font-sans text-xs text-muted" style={{ fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', marginBottom: '1rem', fontSize: '0.75rem', margin: 0 }}>
             LATEST DEVELOPMENTS
-          </h3>
+          </h2>
           {sideStories.length === 0 ? (
             <p className="text-muted font-sans text-sm">No additional stories available.</p>
           ) : (
@@ -139,9 +140,9 @@ export default async function Home() {
                       </span>
                     )}
                   </div>
-                  <h4 className="font-serif hero-side-headline" style={{ fontSize: '1.05rem', fontWeight: 700, lineHeight: 1.25 }}>
+                  <h3 className="font-serif hero-side-headline" style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, lineHeight: 1.25 }}>
                     {story.title}
-                  </h4>
+                  </h3>
                   <div className="font-sans text-muted" style={{ fontSize: '0.75rem', marginTop: '0.25rem' }}>
                     By {story.author.name}
                   </div>
@@ -309,9 +310,9 @@ export default async function Home() {
           {/* TRENDING WIDGET */}
           {trendingPosts.length > 0 && (
             <div style={{ marginBottom: '3rem' }}>
-              <h3 className="font-sans text-xs text-muted" style={{ fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', borderBottom: '2px solid var(--primary)', paddingBottom: '0.5rem', marginBottom: '1.25rem' }}>
+              <h2 className="font-sans text-xs text-muted" style={{ fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', borderBottom: '2px solid var(--primary)', paddingBottom: '0.5rem', marginBottom: '1.25rem', fontSize: '0.75rem', margin: 0 }}>
                 MOST POPULAR
-              </h3>
+              </h2>
               <ol className="trending-list-dense">
                 {trendingPosts.map((post, index) => (
                   <li key={post.id}>
@@ -332,7 +333,7 @@ export default async function Home() {
 
           {/* NEWSLETTER SUBSCRIBE BOX */}
           <div id="subscribe" className="newsletter-box" style={{ padding: '2rem', border: '1px solid var(--border)', borderRadius: '0.5rem', backgroundColor: 'var(--primary)', color: '#fff', textAlign: 'center' }}>
-            <h3 className="font-serif" style={{ fontSize: '1.75rem', marginBottom: '0.5rem', color: '#fff' }}>Stay Connected</h3>
+            <h2 className="font-serif" style={{ fontSize: '1.75rem', marginBottom: '0.5rem', color: '#fff', marginTop: 0 }}>Stay Connected</h2>
             <p className="font-sans text-sm" style={{ opacity: 0.9, marginBottom: '1.5rem', lineHeight: 1.4 }}>
               Get our curated faith, campus news, and columns delivered straight to your inbox daily.
             </p>
@@ -344,7 +345,7 @@ export default async function Home() {
             <span className="font-sans text-xs" style={{ fontWeight: 800, letterSpacing: '0.1em', color: 'var(--accent)', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>
               SUPPORT CHRONICLE
             </span>
-            <h4 className="font-serif" style={{ fontSize: '1.25rem', marginBottom: '0.75rem' }}>Order Print Editions</h4>
+            <h2 className="font-serif" style={{ fontSize: '1.25rem', marginBottom: '0.75rem', marginTop: 0 }}>Order Print Editions</h2>
             <p className="font-sans text-xs text-muted" style={{ marginBottom: '1.25rem', lineHeight: 1.5 }}>
               Receive our high-grade quarterly physical papers shipped directly to your house. Help keep conservative BYU reporting alive.
             </p>

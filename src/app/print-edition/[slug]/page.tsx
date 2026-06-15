@@ -265,7 +265,7 @@ export default async function ArticlePage({ params, searchParams }: { params: { 
               )}
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <span className="font-sans text-xs text-muted" style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}>Previous Article</span>
-                <h4 className="font-serif" style={{ margin: '0.25rem 0 0 0', fontSize: '1.1rem', lineHeight: '1.3' }}>{prevPost.title}</h4>
+                <h3 className="font-serif" style={{ margin: '0.25rem 0 0 0', fontSize: '1.1rem', lineHeight: '1.3' }}>{prevPost.title}</h3>
               </div>
             </Link>
           ) : <div></div>}
@@ -274,7 +274,7 @@ export default async function ArticlePage({ params, searchParams }: { params: { 
             <Link href={getArticleUrl(nextPost)} className="article-nav-card" style={{ display: 'flex', gap: '1rem', alignItems: 'center', padding: '1rem', borderRadius: '0.5rem', border: '1px solid var(--border)', textDecoration: 'none', color: 'inherit', justifyContent: 'flex-end', textAlign: 'right' }}>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <span className="font-sans text-xs text-muted" style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}>Next Article</span>
-                <h4 className="font-serif" style={{ margin: '0.25rem 0 0 0', fontSize: '1.1rem', lineHeight: '1.3' }}>{nextPost.title}</h4>
+                <h3 className="font-serif" style={{ margin: '0.25rem 0 0 0', fontSize: '1.1rem', lineHeight: '1.3' }}>{nextPost.title}</h3>
               </div>
               {nextPost.imageUrl && (
                 <Image 
@@ -291,7 +291,7 @@ export default async function ArticlePage({ params, searchParams }: { params: { 
 
         {/* Bottom Newsletter Signup */}
         <div className="newsletter-box" style={{ marginTop: '3rem', borderRadius: '0.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <h3 className="font-serif" style={{ color: 'white' }}>The Cougar Chronicle</h3>
+          <h2 className="font-serif" style={{ color: 'white', fontSize: '1.75rem', margin: '0 0 0.5rem 0' }}>The Cougar Chronicle</h2>
           <p className="font-sans text-sm" style={{ marginBottom: '1.5rem', opacity: 0.9 }}>Get the best conservative journalism delivered to your inbox daily.</p>
           <form action="/api/subscribe" method="POST" className="newsletter-form-container" style={{ display: 'flex', gap: '0.5rem', maxWidth: '400px', width: '100%' }}>
             <input type="email" name="email" placeholder="Your email address" className="newsletter-input" required style={{ borderRadius: '0.25rem', marginBottom: 0, flex: 1 }} />
@@ -302,7 +302,7 @@ export default async function ArticlePage({ params, searchParams }: { params: { 
 
       {/* Sidebar */}
       <aside className="article-sidebar">
-        <h3 className="widget-title">Most Read</h3>
+        <h2 className="widget-title">Most Read</h2>
         <ol className="trending-list-dense">
           {topPosts.map((tp, i) => (
             <li key={tp.id}>

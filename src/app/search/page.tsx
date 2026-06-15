@@ -83,11 +83,11 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '2.5rem' }}>
-          {posts.map((post) => (
+          {posts.map((post, index) => (
             <article key={post.id} style={{ display: 'flex', flexDirection: 'column' }}>
               <Link href={getArticleUrl(post)} style={{ position: 'relative', width: '100%', aspectRatio: '16/9', backgroundColor: 'var(--surface-hover)', borderRadius: '0.5rem', marginBottom: '1rem', display: 'block', overflow: 'hidden' }}>
                 {post.imageUrl && (
-                  <Image src={post.imageUrl} alt={post.title} fill sizes="(max-width: 768px) 100vw, 300px" style={{ objectFit: 'cover' }} />
+                  <Image src={post.imageUrl} alt={post.title} fill priority={index < 3} sizes="(max-width: 768px) 100vw, 450px" style={{ objectFit: 'cover' }} />
                 )}
               </Link>
               <h3 className={headerFontClass} style={{ fontSize: '1.5rem', marginBottom: '0.5rem', lineHeight: '1.3' }}>

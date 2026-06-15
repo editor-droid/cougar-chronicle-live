@@ -132,11 +132,12 @@ export default function Chatbot() {
         </div>
         <button 
           onClick={() => setIsOpen(true)}
+          aria-label="Open AI Chatbot"
           style={{ width: '64px', height: '64px', borderRadius: '50%', backgroundColor: 'var(--primary)', color: 'var(--primary-foreground)', border: 'none', boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'transform 0.2s', overflow: 'hidden' }}
           onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
           onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
         >
-          <Image src="/chat-icon.png" alt="Chat" width={64} height={64} style={{ objectFit: 'cover' }} />
+          <Image src="/chat-icon.png" alt="Chat" width={64} height={64} priority style={{ objectFit: 'cover' }} />
         </button>
       </div>
     );
@@ -156,7 +157,7 @@ export default function Chatbot() {
             </div>
           </div>
         </div>
-        <button onClick={() => setIsOpen(false)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', fontSize: '1.5rem', opacity: 0.8 }}>&times;</button>
+        <button onClick={() => setIsOpen(false)} aria-label="Close AI Chatbot" style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', fontSize: '1.5rem', opacity: 0.8 }}>&times;</button>
       </div>
       
       {/* Messages Window */}
@@ -240,8 +241,8 @@ export default function Chatbot() {
           style={{ flex: 1, border: 'none', padding: '0.75rem 1.25rem', borderRadius: '2rem', outline: 'none', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}
           className="font-sans text-sm"
         />
-        <button type="submit" disabled={isLoading || !input?.trim()} style={{ backgroundColor: '#1B2253', color: 'white', border: 'none', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', opacity: (isLoading || !input?.trim()) ? 0.5 : 1, transition: 'opacity 0.2s', flexShrink: 0 }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: 'translateX(-1px) translateY(1px)' }}>
+        <button type="submit" aria-label="Send message" disabled={isLoading || !input?.trim()} style={{ backgroundColor: '#1B2253', color: 'white', border: 'none', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', opacity: (isLoading || !input?.trim()) ? 0.5 : 1, transition: 'opacity 0.2s', flexShrink: 0 }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: 'translateX(-1px) translateY(1px)' }} aria-hidden="true">
             <line x1="22" y1="2" x2="11" y2="13"></line>
             <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
           </svg>

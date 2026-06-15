@@ -25,8 +25,8 @@ export default function SearchBar() {
         className="font-sans"
         style={{ border: 'none', background: 'transparent', padding: '0.5rem', fontSize: '0.9rem', outline: 'none', color: 'var(--foreground)', width: '150px' }}
       />
-      <button type="submit" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.25rem' }}>
-        <Search size={16} />
+      <button type="submit" aria-label="Search" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.25rem' }}>
+        <Search size={16} aria-hidden="true" />
       </button>
     </form>
   );

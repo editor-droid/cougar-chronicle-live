@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import PrintEditionForm from './PrintEditionForm';
 import Link from 'next/link';
 import DashboardHeader from '@/components/DashboardHeader';
+import Image from 'next/image';
 
 export default async function PrintEditionsAdminPage() {
   const session = await auth();
@@ -33,7 +34,7 @@ export default async function PrintEditionsAdminPage() {
           <div key={edition.id} style={{ display: 'flex', gap: '1.5rem', padding: '1.5rem', backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '0.5rem' }}>
             <div style={{ width: '100px', height: '140px', backgroundColor: '#e9ecef', borderRadius: '0.25rem', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               {edition.coverImageUrl ? (
-                <img src={edition.coverImageUrl} alt="Cover" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <Image src={edition.coverImageUrl} alt="Cover" width={100} height={140} style={{ objectFit: 'cover' }} />
               ) : (
                 <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>No Cover</span>
               )}

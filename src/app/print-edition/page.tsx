@@ -55,7 +55,8 @@ export default async function PrintEditionPage() {
                     src={edition.coverImageUrl} 
                     alt={`Cover of ${edition.title}`} 
                     fill
-                    sizes="(max-width: 768px) 100vw, 400px"
+                    priority
+                    sizes="(max-width: 480px) 100vw, 400px"
                     style={{ objectFit: 'cover' }}
                   />
                 </div>

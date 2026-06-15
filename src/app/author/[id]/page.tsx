@@ -56,6 +56,7 @@ export default async function AuthorPage({ params }: { params: { id: string } })
               alt={author.name || 'Author'} 
               width={100} 
               height={100} 
+              priority
               style={{ objectFit: 'cover', width: '100%', height: '100%' }}
             />
           </div>
