@@ -67,6 +67,7 @@ export default async function UsersPage() {
                   {user.id !== session.user.id && (
                     <form action={updateUser} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
                       <input type="hidden" name="userId" value={user.id} />
+                      <input type="text" name="name" defaultValue={user.name || ''} placeholder="Name" style={{ padding: '0.25rem', width: '150px', borderRadius: '0.25rem', border: '1px solid var(--border)', backgroundColor: 'var(--surface)' }} />
                       <input type="email" name="email" defaultValue={user.email || ''} placeholder="Email address" style={{ padding: '0.25rem', width: '200px', borderRadius: '0.25rem', border: '1px solid var(--border)', backgroundColor: 'var(--surface)' }} />
                       <select name="role" defaultValue={user.role} style={{ padding: '0.25rem', borderRadius: '0.25rem', border: '1px solid var(--border)', backgroundColor: 'var(--surface)' }}>
                         <option value="USER">USER</option>

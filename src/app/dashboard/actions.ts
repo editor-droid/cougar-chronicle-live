@@ -225,6 +225,7 @@ export async function updateUser(formData: FormData) {
   const userId = formData.get('userId') as string;
   const newRole = formData.get('role') as Role;
   const newEmail = formData.get('email') as string;
+  const newName = formData.get('name') as string;
 
   if (!userId) throw new Error('Missing fields');
 
@@ -232,7 +233,8 @@ export async function updateUser(formData: FormData) {
     where: { id: userId },
     data: { 
       ...(newRole && { role: newRole }),
-      ...(newEmail && { email: newEmail })
+      ...(newEmail && { email: newEmail }),
+      ...(newName && { name: newName })
     }
   });
 
