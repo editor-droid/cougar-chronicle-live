@@ -50,7 +50,7 @@ export async function generateMetadata(
       url: getArticleUrl(post),
       images: post.imageUrl ? [post.imageUrl] : [],
       publishedTime: post.publishedAt?.toISOString() || post.createdAt.toISOString(),
-      authors: [post.author.name || 'The Cougar Chronicle'],
+      authors: [post.customAuthor || post.author.name || 'The Cougar Chronicle'],
     },
     twitter: {
       card: 'summary_large_image',

@@ -42,8 +42,19 @@ export async function POST(req: Request) {
 
     return NextResponse.json(result.object);
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('SEO Generation Error:', error);
-    return NextResponse.json({ error: 'Failed to generate SEO data' }, { status: 500 });
+    
+    // Check if it's a rate limit error from the AI provider
+    if (error?.statusCode === 429 || error?.message?.includes('429') || error?.message?.includes('quota')) {
+      return NextResponse.json({ 
+        error: 'Rate limit exceeded. Please try again later or check your API quota.' 
+      }, { status: 429 });
+    }
+
+    return NextResponse.json({ 
+      error: 'Failed to generate SEO data',
+      details: error?.message || 'Unknown error'
+    }, { status: 500 });
   }
 }

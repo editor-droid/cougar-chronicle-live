@@ -111,7 +111,7 @@ export default async function Home() {
                 }} 
               />
               <div className="font-sans text-sm" style={{ fontWeight: 'bold' }}>
-                By <span style={{ color: 'var(--primary)' }}>{mainStory.author.name}</span>
+                By <span style={{ color: 'var(--primary)' }}>{mainStory.customAuthor || mainStory.author.name}</span>
               </div>
             </div>
           </Link>
@@ -144,7 +144,7 @@ export default async function Home() {
                     {story.title}
                   </h3>
                   <div className="font-sans text-muted" style={{ fontSize: '0.75rem', marginTop: '0.25rem' }}>
-                    By {story.author.name}
+                    By {story.customAuthor || story.author.name}
                   </div>
                 </div>
               </Link>
@@ -176,7 +176,7 @@ export default async function Home() {
                       {post.title}
                     </h3>
                     <div className="font-sans text-xs text-muted" style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      By {post.author.name} {post.printEditionId && <span style={{ fontSize: '0.6rem', textTransform: 'uppercase', fontWeight: 700, backgroundColor: 'var(--surface-hover)', padding: '0.1rem 0.3rem', borderRadius: '0.25rem', border: '1px solid var(--border)', color: 'var(--foreground)' }}>🗞️ Print</span>}
+                      By {post.customAuthor || post.author.name} {post.printEditionId && <span style={{ fontSize: '0.6rem', textTransform: 'uppercase', fontWeight: 700, backgroundColor: 'var(--surface-hover)', padding: '0.1rem 0.3rem', borderRadius: '0.25rem', border: '1px solid var(--border)', color: 'var(--foreground)' }}>🗞️ Print</span>}
                     </div>
                   </Link>
                 ))}
@@ -199,7 +199,7 @@ export default async function Home() {
                       {post.title}
                     </h3>
                     <div className="font-sans text-xs text-muted" style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      By {post.author.name} {post.printEditionId && <span style={{ fontSize: '0.6rem', textTransform: 'uppercase', fontWeight: 700, backgroundColor: 'var(--surface-hover)', padding: '0.1rem 0.3rem', borderRadius: '0.25rem', border: '1px solid var(--border)', color: 'var(--foreground)' }}>🗞️ Print</span>}
+                      By {post.customAuthor || post.author.name} {post.printEditionId && <span style={{ fontSize: '0.6rem', textTransform: 'uppercase', fontWeight: 700, backgroundColor: 'var(--surface-hover)', padding: '0.1rem 0.3rem', borderRadius: '0.25rem', border: '1px solid var(--border)', color: 'var(--foreground)' }}>🗞️ Print</span>}
                     </div>
                   </Link>
                 ))}
@@ -239,7 +239,7 @@ export default async function Home() {
                       </h3>
                     </div>
                     <div className="font-sans text-xs" style={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      By {post.author.name} {post.printEditionId && <span style={{ fontSize: '0.6rem', textTransform: 'uppercase', fontWeight: 700, backgroundColor: 'var(--surface-hover)', padding: '0.1rem 0.3rem', borderRadius: '0.25rem', border: '1px solid var(--border)', color: 'var(--foreground)', letterSpacing: 'normal' }}>🗞️ Print</span>}
+                      By {post.customAuthor || post.author.name} {post.printEditionId && <span style={{ fontSize: '0.6rem', textTransform: 'uppercase', fontWeight: 700, backgroundColor: 'var(--surface-hover)', padding: '0.1rem 0.3rem', borderRadius: '0.25rem', border: '1px solid var(--border)', color: 'var(--foreground)', letterSpacing: 'normal' }}>🗞️ Print</span>}
                     </div>
                   </Link>
                 ))}
@@ -291,7 +291,7 @@ export default async function Home() {
                             <Link href={getArticleUrl(post)} className="font-serif" style={{ fontSize: '1.1rem', fontWeight: 700, display: 'block', lineHeight: 1.3 }}>
                               {post.title}
                             </Link>
-                            <span className="font-sans text-xs text-muted">By {post.author.name}</span>
+                            <span className="font-sans text-xs text-muted">By {post.customAuthor || post.author.name}</span>
                           </li>
                         ))}
                       </ul>

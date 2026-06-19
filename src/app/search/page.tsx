@@ -94,7 +94,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
                 <Link href={getArticleUrl(post)}>{post.title}</Link>
               </h3>
               <div className="text-muted text-sm font-sans" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                <span>By {post.author.name} &bull; {new Date(post.createdAt).toLocaleDateString()}</span>
+                <span>By {post.customAuthor || post.author.name} &bull; {new Date(post.createdAt).toLocaleDateString()}</span>
                 {post.printEditionId && <span style={{ fontSize: '0.6rem', textTransform: 'uppercase', fontWeight: 700, backgroundColor: 'var(--surface-hover)', padding: '0.1rem 0.3rem', borderRadius: '0.25rem', border: '1px solid var(--border)', color: 'var(--foreground)' }}>🗞️ Print</span>}
                 {post.isPremium && <span style={{ fontSize: '0.6rem', textTransform: 'uppercase', fontWeight: 700, backgroundColor: 'var(--primary)', padding: '0.1rem 0.3rem', borderRadius: '0.25rem', border: '1px solid var(--primary)', color: 'white' }}>💎 Premium</span>}
               </div>

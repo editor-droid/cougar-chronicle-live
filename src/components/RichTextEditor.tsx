@@ -22,6 +22,7 @@ import {
   useImperativeHandle,
   useState,
   useRef,
+  useMemo,
 } from "react";
 import {
   Bold,
@@ -1102,35 +1103,37 @@ export const RichTextEditor = forwardRef<
     type: "youtube" | "instagram" | "link";
   }>({ open: false, type: "youtube" });
 
+  const extensions = useMemo(() => [
+    StarterKit.configure({
+      heading: false,
+    }),
+    Heading.configure({ levels: [1, 2, 3] }),
+    Link.configure({
+      openOnClick: false,
+      HTMLAttributes: { target: "_blank", rel: "noopener noreferrer" },
+    }),
+    ResizableImage,
+    GalleryExtension,
+    Placeholder.configure({
+      placeholder: placeholder ?? "Write your post content here...",
+    }),
+    TextAlign.configure({ types: ["heading", "paragraph"] }),
+    Underline,
+    Table.configure({ resizable: true }),
+    TableRow,
+    TableHeader,
+    TableCell,
+    Highlight.configure({ HTMLAttributes: { class: 'editorial-highlight', style: 'background-color: #fef08a; padding: 0.1rem 0.2rem; border-radius: 0.2rem;' } }),
+    Youtube.configure({
+      inline: false,
+      HTMLAttributes: {
+        class: "youtube-embed",
+      },
+    }),
+  ], [placeholder]);
+
   const editor = useEditor({
-    extensions: [
-      StarterKit.configure({
-        heading: false,
-      }),
-      Heading.configure({ levels: [1, 2, 3] }),
-      Link.configure({
-        openOnClick: false,
-        HTMLAttributes: { target: "_blank", rel: "noopener noreferrer" },
-      }),
-      ResizableImage,
-      GalleryExtension,
-      Placeholder.configure({
-        placeholder: placeholder ?? "Write your post content here...",
-      }),
-      TextAlign.configure({ types: ["heading", "paragraph"] }),
-      Underline,
-      Table.configure({ resizable: true }),
-      TableRow,
-      TableHeader,
-      TableCell,
-      Highlight.configure({ HTMLAttributes: { class: 'editorial-highlight', style: 'background-color: #fef08a; padding: 0.1rem 0.2rem; border-radius: 0.2rem;' } }),
-      Youtube.configure({
-        inline: false,
-        HTMLAttributes: {
-          class: "youtube-embed",
-        },
-      }),
-    ],
+    extensions,
     content: value,
     onUpdate: ({ editor: ed }) => {
       onChange(ed.getHTML());
