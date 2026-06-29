@@ -175,10 +175,6 @@ export default async function America250Page({ searchParams }: { searchParams: P
           )}
         </div>
       )}
-
-      <div style={{ marginTop: '4rem', paddingTop: '2rem', borderTop: '1px solid var(--border)', fontSize: '0.9rem' }} className="font-sans text-muted">
-        <p>Have a perspective on America’s 250th? <Link href="/contact" style={{ color: 'var(--primary)' }}>Pitch an op-ed</Link> or reach out to the editors.</p>
-      </div>
     </div>
   );
 }
