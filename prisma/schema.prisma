@@ -59,6 +59,7 @@ model Post {
   keyInsights      String?   @db.Text
   featuredImageAlt String?
   isPremium        Boolean   @default(false)
+  isAmerica250     Boolean   @default(false)
   customAuthor     String?
   printEditionId   String?
   printEditionOrder Int?

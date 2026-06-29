@@ -121,6 +121,7 @@ export default function RootLayout({
             <a href="/category/news" className="nav-link font-sans">News</a>
             <a href="/category/faith" className="nav-link font-sans">Faith</a>
             <a href="/category/opinion" className="nav-link font-sans">Opinion</a>
+            <a href="/america-250" className="nav-link font-sans" style={{ color: 'var(--primary)', fontWeight: 600 }}>America 250</a>
             <a href="/print-edition" className="nav-link font-sans">Print Edition</a>
             <a href="/about" className="nav-link font-sans">About</a>
             <a href="/contact" className="nav-link font-sans">Contact</a>
@@ -148,6 +149,7 @@ export default function RootLayout({
                 <li><a href="/category/news" style={{ color: 'white', opacity: 0.8, textDecoration: 'none' }}>News</a></li>
                 <li><a href="/category/faith" style={{ color: 'white', opacity: 0.8, textDecoration: 'none' }}>Faith</a></li>
                 <li><a href="/category/opinion" style={{ color: 'white', opacity: 0.8, textDecoration: 'none' }}>Opinion</a></li>
+                <li><a href="/america-250" style={{ color: 'white', opacity: 0.8, textDecoration: 'none' }}>America 250</a></li>
                 <li><a href="/print-edition" style={{ color: 'white', opacity: 0.8, textDecoration: 'none' }}>Print Edition</a></li>
               </ul>
             </div>

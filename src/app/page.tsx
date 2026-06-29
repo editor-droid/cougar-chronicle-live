@@ -43,6 +43,14 @@ export default async function Home() {
     take: 4
   });
 
+  // America 250 series posts (big monthly series)
+  const america250Posts = await prisma.post.findMany({
+    where: { isAmerica250: true, state: 'PUBLISHED', publishedAt: { lte: new Date() } },
+    orderBy: { publishedAt: { sort: 'desc', nulls: 'last' } },
+    include: { author: true },
+    take: 4
+  });
+
   // Trending posts ordered by views
   const trendingPosts = await prisma.post.findMany({
     where: { state: 'PUBLISHED', printEditionId: null, publishedAt: { lte: new Date() } },
@@ -243,6 +251,30 @@ export default async function Home() {
                     </div>
                   </Link>
                 ))}
+              </div>
+            </section>
+          )}
+
+          {/* AMERICA 250 SERIES BAND (big monthly op-ed series) */}
+          {america250Posts.length > 0 && (
+            <section className="category-band" style={{ backgroundColor: '#faf9f5', padding: '1.5rem', borderRadius: '0.5rem', border: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem', borderBottom: '3px double var(--primary)', paddingBottom: '0.5rem' }}>
+                <h2 className="font-serif" style={{ fontSize: '1.35rem', margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--primary)', fontWeight: 800 }}>🇺🇸 America 250</h2>
+                <div style={{ flex: 1, height: '1px', backgroundColor: 'var(--border)' }}></div>
+                <Link href="/america-250" className="font-sans text-sm" style={{ fontWeight: 'bold', textTransform: 'uppercase', color: 'var(--accent)' }}>View the series &rarr;</Link>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+                {america250Posts.map(post => (
+                  <Link href={getArticleUrl(post)} key={post.id} className="font-serif" style={{ fontSize: '1.05rem', fontWeight: 700, lineHeight: 1.3, color: 'var(--foreground)' }}>
+                    {post.title}
+                    <div className="font-sans text-xs text-muted" style={{ marginTop: '0.25rem', fontWeight: 400 }}>
+                      By {post.customAuthor || post.author.name}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+              <div className="font-sans text-xs text-muted" style={{ marginTop: '0.75rem' }}>
+                A monthly series of op-eds on the American founding, liberty, and what makes this country exceptional. 9+ writers contributing.
               </div>
             </section>
           )}

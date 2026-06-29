@@ -24,6 +24,7 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
   const [assignedAuthorId, setAssignedAuthorId] = useState(post?.authorId || authorId);
   const [printEditionOrder, setPrintEditionOrder] = useState(post?.printEditionOrder?.toString() || '');
   const [imageCaption, setImageCaption] = useState(post?.imageCaption || '');
+  const [isAmerica250, setIsAmerica250] = useState(post?.isAmerica250 || false);
   const [publishedAt, setPublishedAt] = useState(() => {
     if (post?.publishedAt) {
       const d = new Date(post.publishedAt);
@@ -226,6 +227,7 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
         keyInsights,
         featuredImageAlt,
         customAuthor, isPremium,
+        isAmerica250,
         printEditionOrder,
         imageCaption,
         publishedAt: publishedAt || undefined
@@ -340,7 +342,7 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
                                         await savePost({ 
                       id: post.id, title, slug, category, content, imageUrl, authorId: assignedAuthorId,
                       seoTitle, seoDescription, seoKeywords,
-                      keyInsights, featuredImageAlt, customAuthor, isPremium, publishedAt: publishedAt || undefined
+                      keyInsights, featuredImageAlt, customAuthor, isPremium, isAmerica250, publishedAt: publishedAt || undefined
                     });
                     
                     const fd = new FormData();
@@ -374,7 +376,7 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
                                         await savePost({ 
                       id: post.id, title, slug, category, content, imageUrl, authorId: assignedAuthorId,
                       seoTitle, seoDescription, seoKeywords,
-                      keyInsights, featuredImageAlt, customAuthor, isPremium, publishedAt: publishedAt || undefined
+                      keyInsights, featuredImageAlt, customAuthor, isPremium, isAmerica250, publishedAt: publishedAt || undefined
                     });
                     
                     const fd = new FormData();
@@ -409,7 +411,7 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
                     await savePost({ 
                       id: post.id, title, slug, category, content, imageUrl, authorId: assignedAuthorId,
                       seoTitle, seoDescription, seoKeywords,
-                      keyInsights, featuredImageAlt, customAuthor, isPremium, publishedAt: publishedAt || undefined
+                      keyInsights, featuredImageAlt, customAuthor, isPremium, isAmerica250, publishedAt: publishedAt || undefined
                     });
                     
                     const fd = new FormData();
@@ -522,6 +524,18 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
                 style={{ width: '1.25rem', height: '1.25rem', cursor: 'pointer' }}
               />
               <span className="font-sans text-sm font-bold" style={{ color: 'var(--primary)' }}>Premium Article (Paywall)</span>
+            </label>
+          </div>
+
+          <div style={{ flex: 1, minWidth: '200px', display: 'flex', alignItems: 'flex-end', paddingBottom: '0.75rem' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+              <input 
+                type="checkbox" 
+                checked={isAmerica250} 
+                onChange={(e) => setIsAmerica250(e.target.checked)} 
+                style={{ width: '1.25rem', height: '1.25rem', cursor: 'pointer' }}
+              />
+              <span className="font-sans text-sm font-bold" style={{ color: 'var(--primary)' }}>America 250</span>
             </label>
           </div>
 

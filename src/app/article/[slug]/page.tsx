@@ -188,6 +188,11 @@ export default async function ArticlePage({ params, searchParams }: { params: { 
                     🗞️ Print Edition
                   </span>
                 )}
+                {post.isAmerica250 && (
+                  <Link href="/america-250" style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: 700, backgroundColor: 'var(--primary)', color: 'white', padding: '0.15rem 0.4rem', borderRadius: '0.25rem', textDecoration: 'none' }}>
+                    🇺🇸 America 250
+                  </Link>
+                )}
               </div>
             </div>
             

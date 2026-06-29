@@ -184,6 +184,7 @@ export async function savePost(data: any) {
         customAuthor: data.customAuthor,
         authorId: role === 'WRITER' ? session.user.id : data.authorId, // Ensure WRITERs can't reassign
         isPremium: data.isPremium !== undefined ? data.isPremium : false,
+        isAmerica250: data.isAmerica250 !== undefined ? data.isAmerica250 : false,
         printEditionOrder: data.printEditionOrder ? parseInt(data.printEditionOrder) : null,
         imageCaption: data.imageCaption,
         ...(data.publishedAt !== undefined && { publishedAt: data.publishedAt ? new Date(data.publishedAt) : null })
@@ -206,6 +207,7 @@ export async function savePost(data: any) {
         featuredImageAlt: data.featuredImageAlt,
         customAuthor: data.customAuthor,
         isPremium: data.isPremium !== undefined ? data.isPremium : false,
+        isAmerica250: data.isAmerica250 !== undefined ? data.isAmerica250 : false,
         printEditionOrder: data.printEditionOrder ? parseInt(data.printEditionOrder) : null,
         imageCaption: data.imageCaption,
         ...(data.publishedAt && { publishedAt: new Date(data.publishedAt) })
