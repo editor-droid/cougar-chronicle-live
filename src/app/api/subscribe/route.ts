@@ -9,16 +9,28 @@ const AUDIENCE_ID = process.env.RESEND_AUDIENCE_ID || '993e7864-bb3a-4543-a437-a
 
 export async function POST(req: Request) {
   try {
-    const ip = req.headers.get('x-forwarded-for') || 'unknown';
-    const { success } = rateLimit(ip, 5, 60 * 1000); // 5 requests per minute
+    const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
+    // Note: The main issue was email harvesting (admin address exposed publicly and added to external spam lists).
+    // Honeypot protects against bots. Rate limit is intentionally generous for legitimate subscribers.
+    const { success } = rateLimit(ip, 20, 60 * 1000); // 20 per minute
     if (!success) {
-      return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+      return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
     }
 
-    const { email, name } = await req.json();
+    const { email, name, website } = await req.json(); // website = honeypot
+
+    if (website && website.trim() !== '') {
+      console.log('Bot detected via honeypot on subscribe from', ip);
+      return NextResponse.json({ success: true, message: 'Subscribed successfully' });
+    }
 
     if (!email) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 });
+    }
+
+    // Prevent using our own domain in subscribe to avoid self-spam
+    if (email.toLowerCase().includes('cougarchronicle')) {
+      return NextResponse.json({ error: 'Invalid email' }, { status: 400 });
     }
 
     // Try to save to DB if it's available

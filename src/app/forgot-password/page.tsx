@@ -76,7 +76,7 @@ export default function ForgotPasswordPage({ searchParams }: { searchParams?: { 
           >
             <div>
               <label className="font-sans text-sm" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Email Address</label>
-              <input type="email" name="email" placeholder="editor@thecougarchronicle.com" required />
+              <input type="email" name="email" placeholder="your-email@example.com" required />
             </div>
             
             <button type="submit" className="btn btn-primary" style={{ marginTop: '0.5rem', width: '100%', padding: '0.75rem' }}>

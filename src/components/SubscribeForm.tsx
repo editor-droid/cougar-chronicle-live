@@ -5,6 +5,7 @@ import { useState } from 'react';
 export default function SubscribeForm({ onSuccess }: { onSuccess?: () => void }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [honeypot, setHoneypot] = useState(''); // honeypot
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
 
@@ -18,7 +19,7 @@ export default function SubscribeForm({ onSuccess }: { onSuccess?: () => void })
       const res = await fetch('/api/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, name }),
+        body: JSON.stringify({ email, name, website: honeypot }),
       });
       
       if (res.ok) {
@@ -67,6 +68,15 @@ export default function SubscribeForm({ onSuccess }: { onSuccess?: () => void })
           placeholder="Your email address" 
           required
           style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '0.25rem', border: 'none', outline: 'none', fontFamily: 'var(--font-sans)', fontSize: '1rem', color: '#333' }} 
+        />
+        {/* Honeypot - hidden from real users, bots often fill it */}
+        <input 
+          type="text" 
+          value={honeypot}
+          onChange={(e) => setHoneypot(e.target.value)}
+          style={{ display: 'none' }} 
+          tabIndex={-1} 
+          autoComplete="off"
         />
         <button 
           type="submit" 

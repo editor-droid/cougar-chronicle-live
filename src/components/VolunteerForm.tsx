@@ -11,7 +11,8 @@ export default function VolunteerForm() {
     email: '',
     phone: '',
     message: '',
-    interests: [] as string[]
+    interests: [] as string[],
+    website: '' // honeypot
   });
 
   const interestOptions = ['Writing', 'Editing', 'Copywriting', 'Video Content', 'Graphic Design', 'Social Media'];
@@ -131,6 +132,16 @@ export default function VolunteerForm() {
           style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border)', backgroundColor: 'var(--surface)', color: 'var(--foreground)', resize: 'vertical' }} 
         />
       </div>
+
+      {/* Honeypot field - bots fill this, humans don't see it */}
+      <input 
+        type="text" 
+        value={formData.website}
+        onChange={e => setFormData({...formData, website: e.target.value})}
+        style={{ display: 'none' }} 
+        tabIndex={-1} 
+        autoComplete="off" 
+      />
 
       <button 
         type="submit" 

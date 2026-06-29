@@ -11,6 +11,7 @@ export default function robots(): MetadataRoute.Robots {
         '/premium-article/',
         '/print-edition/',
         '/dashboard/',
+        '/login',
         '/api/'
       ],
     },

@@ -23,7 +23,7 @@ export default function LoginPage() {
         >
           <div>
             <label className="font-sans text-sm" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Email</label>
-            <input type="email" name="email" placeholder="editor@cougarchronicle.com" required />
+            <input type="email" name="email" placeholder="your-email@example.com" required />
           </div>
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>

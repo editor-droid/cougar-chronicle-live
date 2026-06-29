@@ -12,7 +12,7 @@ type Message = {
 };
 
 function InlineContactForm() {
-  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+  const [formData, setFormData] = useState({ name: '', email: '', message: '', website: '' });
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
 
@@ -42,6 +42,8 @@ function InlineContactForm() {
       <input required placeholder="Your Name" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} style={{ padding: '0.5rem', borderRadius: '0.25rem', border: '1px solid #ccc', fontSize: '0.85rem' }} />
       <input required type="email" placeholder="Your Email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} style={{ padding: '0.5rem', borderRadius: '0.25rem', border: '1px solid #ccc', fontSize: '0.85rem' }} />
       <textarea required placeholder="How can we help?" value={formData.message} onChange={e => setFormData({...formData, message: e.target.value})} style={{ padding: '0.5rem', borderRadius: '0.25rem', border: '1px solid #ccc', fontSize: '0.85rem', minHeight: '80px', fontFamily: 'inherit', resize: 'vertical' }} />
+      {/* Honeypot */}
+      <input type="text" value={formData.website} onChange={e => setFormData({...formData, website: e.target.value})} style={{ display: 'none' }} tabIndex={-1} autoComplete="off" />
       <button type="submit" disabled={submitting} style={{ padding: '0.5rem', backgroundColor: 'var(--primary)', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: submitting ? 'not-allowed' : 'pointer', fontSize: '0.85rem', fontWeight: 'bold', marginTop: '0.25rem' }}>
         {submitting ? 'Sending...' : 'Send Message'}
       </button>
@@ -116,8 +118,71 @@ export default function Chatbot() {
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setInput(e.target.value);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      // Trigger form submit manually
+      const form = e.currentTarget.form;
+      if (form) {
+        // Call submit logic directly to avoid type issues
+        if (!input.trim() || isLoading) return;
+        
+        const userMessage: Message = { id: `user-${Date.now()}`, role: 'user', content: input };
+        setMessages(prev => [...prev, userMessage]);
+        setInput('');
+        setIsLoading(true);
+        setError(null);
+
+        // Reuse the fetch logic - simplified call
+        fetchAndStream(userMessage);
+      }
+    }
+  };
+
+  const fetchAndStream = async (userMessage: Message) => {
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: [...messages, userMessage], pathname })
+      });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      
+      setMessages(prev => [...prev, { id: `ai-${Date.now()}`, role: 'assistant', content: '' }]);
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = decoder.decode(value, { stream: true });
+          
+          setMessages(prev => {
+            const newMessages = [...prev];
+            const lastMsgIndex = newMessages.length - 1;
+            const lastMsg = newMessages[lastMsgIndex];
+            if (lastMsg.role === 'assistant') {
+              newMessages[lastMsgIndex] = { ...lastMsg, content: lastMsg.content + chunk };
+            }
+            return newMessages;
+          });
+        }
+      }
+    } catch (err: any) {
+      console.error(err);
+      setError(err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (!isOpen) {
@@ -234,12 +299,26 @@ export default function Chatbot() {
 
       {/* Input Area */}
       <form onSubmit={handleSubmit} style={{ backgroundColor: '#f0f2f5', padding: '0.75rem', display: 'flex', gap: '0.5rem', alignItems: 'center', borderTop: '1px solid rgba(0,0,0,0.05)' }}>
-        <input
+        <textarea
           value={input}
           onChange={handleInputChange}
-          placeholder="Type a message..."
-          style={{ flex: 1, border: 'none', padding: '0.75rem 1.25rem', borderRadius: '2rem', outline: 'none', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}
+          onKeyDown={handleKeyDown}
+          placeholder="Type a message... (Shift+Enter for new line)"
+          style={{ 
+            flex: 1, 
+            border: 'none', 
+            padding: '0.6rem 1rem', 
+            borderRadius: '1rem', 
+            outline: 'none', 
+            boxShadow: '0 1px 3px rgba(0,0,0,0.05)', 
+            resize: 'none',
+            minHeight: '38px',
+            maxHeight: '120px',
+            overflowY: 'auto',
+            lineHeight: '1.3'
+          }}
           className="font-sans text-sm"
+          rows={1}
         />
         <button type="submit" aria-label="Send message" disabled={isLoading || !input?.trim()} style={{ backgroundColor: '#1B2253', color: 'white', border: 'none', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', opacity: (isLoading || !input?.trim()) ? 0.5 : 1, transition: 'opacity 0.2s', flexShrink: 0 }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: 'translateX(-1px) translateY(1px)' }} aria-hidden="true">

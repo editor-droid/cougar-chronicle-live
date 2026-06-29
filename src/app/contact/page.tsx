@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import VolunteerForm from '@/components/VolunteerForm';
+import ContactForm from '@/components/ContactForm';
 
 export const metadata: Metadata = {
   title: 'Contact Us',
@@ -64,23 +65,23 @@ export default function ContactPage() {
     <div className="container animate-fade-in" style={{ marginTop: '2rem' }}>
       
       {/* Contact Section */}
-      <div style={{ marginBottom: '5rem', maxWidth: '800px', margin: '0 auto 5rem' }}>
-        <div style={{ marginBottom: '3rem', borderBottom: '2px solid var(--border)', paddingBottom: '1rem' }}>
-          <h1 className="font-serif" style={{ fontSize: '3.5rem', margin: 0 }}>Contact Us</h1>
+      <div style={{ marginBottom: '2.5rem', maxWidth: '700px', margin: '0 auto' }}>
+        <div style={{ marginBottom: '1.5rem', borderBottom: '2px solid var(--border)', paddingBottom: '0.75rem' }}>
+          <h1 className="font-serif" style={{ fontSize: '3rem', margin: 0 }}>Contact Us</h1>
         </div>
-        <p className="font-sans text-muted" style={{ fontSize: '1.15rem', marginBottom: '2rem', lineHeight: 1.8 }}>
-          We value your feedback, inquiries, and contributions. Reach out to us below, and we’ll get back to you as soon as possible.
+        <p className="font-sans text-muted" style={{ fontSize: '1rem', marginBottom: '1.25rem', lineHeight: 1.6 }}>
+          We value your feedback and contributions. Use the form below (we do not publish our email publicly to avoid spam).
         </p>
-        <a href="mailto:editor@thecougarchronicle.com" className="btn btn-primary font-sans" style={{ padding: '1rem 2rem', fontSize: '1.1rem', fontWeight: 'bold' }}>
-          Email: editor@thecougarchronicle.com
-        </a>
+
+        {/* Contact Form */}
+        <ContactForm />
       </div>
 
       {/* Volunteer Section */}
-      <div style={{ padding: '4rem 0', marginBottom: '5rem', textAlign: 'center' }}>
-        <h2 className="font-serif" style={{ fontSize: '2.5rem', marginBottom: '1.5rem', color: 'var(--primary)' }}>Work with the Cougar Chronicle</h2>
-        <p className="font-sans text-foreground" style={{ fontSize: '1.15rem', marginBottom: '3rem', lineHeight: 1.8, maxWidth: '800px', margin: '0 auto 3rem' }}>
-          The Cougar Chronicle is looking for ambitious students interested in writing, editing, video content, graphic design, or copywriting. Contributing to The Cougar Chronicle has opened doors to internships, job opportunities, and a voice in the political sphere unlike any other campus journalism.
+      <div style={{ padding: '1.5rem 0 2rem', marginBottom: '2.5rem', textAlign: 'center' }}>
+        <h2 className="font-serif" style={{ fontSize: '2rem', marginBottom: '0.75rem', color: 'var(--primary)' }}>Work with the Cougar Chronicle</h2>
+        <p className="font-sans text-foreground" style={{ fontSize: '1rem', marginBottom: '1.25rem', lineHeight: 1.6, maxWidth: '700px', margin: '0 auto' }}>
+          Looking for students interested in writing, editing, video, design, or copywriting. Contributing has opened doors to internships and opportunities unlike any other campus journalism.
         </p>
         
         <VolunteerForm />

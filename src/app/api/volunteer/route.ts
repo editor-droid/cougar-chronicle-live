@@ -6,14 +6,19 @@ const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder');
 
 export async function POST(req: Request) {
   try {
-    const ip = req.headers.get('x-forwarded-for') || 'unknown';
-    const { success } = rateLimit(ip, 5, 60 * 1000); // 5 requests per minute
+    const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
+    const { success } = rateLimit(ip, 3, 5 * 60 * 1000);
     if (!success) {
-      return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+      return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
     }
 
     const body = await req.json();
-    const { name, email, phone, interests, message } = body;
+    const { name, email, phone, interests, message, website } = body; // honeypot
+
+    if (website && website.trim() !== '') {
+      console.log('Bot detected via honeypot on volunteer from', ip);
+      return NextResponse.json({ success: true, message: 'Application submitted successfully!' });
+    }
 
     if (!name || !email) {
       return NextResponse.json({ error: 'Name and Email are required' }, { status: 400 });
