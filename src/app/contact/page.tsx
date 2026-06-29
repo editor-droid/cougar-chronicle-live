@@ -12,7 +12,18 @@ export const metadata: Metadata = {
     'Write for The Cougar Chronicle',
     'Daily Universe alternative',
     'Turning Point USA BYU'
-  ]
+  ],
+  openGraph: {
+    title: 'Contact Us | The Cougar Chronicle',
+    description: 'Get in touch with The Cougar Chronicle or join our team.',
+    images: [{ url: '/default-og.png', width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Contact Us | The Cougar Chronicle',
+    description: 'Get in touch with The Cougar Chronicle or join our team.',
+    images: ['/default-og.png'],
+  },
 };
 
 export default function ContactPage() {

@@ -48,7 +48,9 @@ export async function generateMetadata(
       description: description,
       type: 'article',
       url: getArticleUrl(post),
-      images: post.imageUrl ? [post.imageUrl] : [],
+      images: post.imageUrl 
+        ? [{ url: post.imageUrl, alt: post.title }] 
+        : [{ url: '/images/default-article.jpg', width: 1080, height: 720, alt: 'The Cougar Chronicle' }],
       publishedTime: post.publishedAt?.toISOString() || post.createdAt.toISOString(),
       authors: [post.customAuthor || post.author.name || 'The Cougar Chronicle'],
     },
@@ -56,7 +58,9 @@ export async function generateMetadata(
       card: 'summary_large_image',
       title: `${title} | The Cougar Chronicle`,
       description: description,
-      images: post.imageUrl ? [post.imageUrl] : [],
+      images: post.imageUrl 
+        ? [{ url: post.imageUrl, alt: post.title }] 
+        : [{ url: '/images/default-article.jpg', width: 1080, height: 720, alt: 'The Cougar Chronicle' }],
     }
   };
 }

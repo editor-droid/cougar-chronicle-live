@@ -24,6 +24,17 @@ export async function generateMetadata(
   return {
     title: `${user.name || 'Author'} | The Cougar Chronicle`,
     description: `Read all articles written by ${user.name || 'Author'} on The Cougar Chronicle.`,
+    openGraph: {
+      title: `${user.name || 'Author'} | The Cougar Chronicle`,
+      description: `Read all articles written by ${user.name || 'Author'} on The Cougar Chronicle.`,
+      images: [{ url: '/default-og.png', width: 1200, height: 630 }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${user.name || 'Author'} | The Cougar Chronicle`,
+      description: `Read all articles written by ${user.name || 'Author'} on The Cougar Chronicle.`,
+      images: ['/default-og.png'],
+    },
   };
 }
 

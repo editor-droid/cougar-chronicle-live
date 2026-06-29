@@ -9,7 +9,18 @@ export const metadata: Metadata = {
     'Independent journalism Brigham Young University',
     'Daily Universe alternative',
     'Turning Point USA BYU'
-  ]
+  ],
+  openGraph: {
+    title: 'About Us | The Cougar Chronicle',
+    description: 'Learn about The Cougar Chronicle, our mission, and our editorial board.',
+    images: [{ url: '/default-og.png', width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'About Us | The Cougar Chronicle',
+    description: 'Learn about The Cougar Chronicle, our mission, and our editorial board.',
+    images: ['/default-og.png'],
+  },
 };
 
 export default function AboutPage() {

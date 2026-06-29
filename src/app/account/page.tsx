@@ -8,6 +8,17 @@ import { getArticleUrl } from '@/lib/routes';
 export const metadata = {
   title: 'My Account',
   description: 'Manage your account and view your purchased articles.',
+  openGraph: {
+    title: 'My Account | The Cougar Chronicle',
+    description: 'Manage your account and view your purchased articles.',
+    images: [{ url: '/default-og.png', width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'My Account | The Cougar Chronicle',
+    description: 'Manage your account and view your purchased articles.',
+    images: ['/default-og.png'],
+  },
 };
 
 export default async function AccountPage() {

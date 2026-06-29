@@ -8,7 +8,25 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: 'America 250',
     description: 'A collection of op-eds and commentary from The Cougar Chronicle marking America’s 250th anniversary. Reflections on the founding, liberty, faith, and the American experiment.',
-    keywords: ['America 250', 'American founding', 'US Semiquincentennial', 'BYU opinion', 'conservative commentary', 'liberty', 'Constitution']
+    keywords: ['America 250', 'American founding', 'US Semiquincentennial', 'BYU opinion', 'conservative commentary', 'liberty', 'Constitution'],
+    openGraph: {
+      title: 'America 250 | The Cougar Chronicle',
+      description: 'A collection of op-eds marking America’s 250th anniversary — reflections on the founding, liberty, faith, and what America stands for.',
+      images: [
+        {
+          url: '/images/america-250-flag.jpg',
+          width: 1366,
+          height: 768,
+          alt: 'American flag - America 250',
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: 'America 250 | The Cougar Chronicle',
+      description: 'A collection of op-eds marking America’s 250th anniversary.',
+      images: [{ url: '/images/america-250-flag.jpg', alt: 'American flag - America 250' }],
+    },
   };
 }
 

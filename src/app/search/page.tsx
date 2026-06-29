@@ -13,6 +13,17 @@ export const metadata: Metadata = {
     'Daily Universe alternative',
     'Turning Point USA BYU'
   ],
+  openGraph: {
+    title: 'Search Results | The Cougar Chronicle',
+    description: 'Search for articles in The Cougar Chronicle.',
+    images: [{ url: '/default-og.png', width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Search Results | The Cougar Chronicle',
+    description: 'Search for articles in The Cougar Chronicle.',
+    images: ['/default-og.png'],
+  },
   robots: {
     index: false,
     follow: false,

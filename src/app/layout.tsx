@@ -29,8 +29,8 @@ export const metadata: Metadata = {
     'byu conservatives'
   ],
   openGraph: {
-    title: 'The Cougar Chronicle',
-    description: 'Conservative News & Opinion for the BYU community.',
+    title: 'The Cougar Chronicle | Conservative News & Opinion',
+    description: 'Faith, News, and Opinion for the BYU community. Independent conservative journalism at Brigham Young University.',
     url: '/',
     siteName: 'The Cougar Chronicle',
     images: [
@@ -38,6 +38,7 @@ export const metadata: Metadata = {
         url: '/default-og.png',
         width: 1200,
         height: 630,
+        alt: 'The Cougar Chronicle',
       },
     ],
     locale: 'en_US',
@@ -45,9 +46,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'The Cougar Chronicle',
-    description: 'Conservative News & Opinion for the BYU community.',
-    images: ['/default-og.png'],
+    title: 'The Cougar Chronicle | Conservative News & Opinion',
+    description: 'Faith, News, and Opinion for the BYU community.',
+    images: [{ url: '/default-og.png', alt: 'The Cougar Chronicle' }],
   },
 }
 

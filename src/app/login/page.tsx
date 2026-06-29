@@ -6,6 +6,17 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Staff Login',
   description: 'Staff portal login.',
+  openGraph: {
+    title: 'Staff Login | The Cougar Chronicle',
+    description: 'Staff portal login.',
+    images: [{ url: '/default-og.png', width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Staff Login | The Cougar Chronicle',
+    description: 'Staff portal login.',
+    images: ['/default-og.png'],
+  },
 };
 
 

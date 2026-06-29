@@ -20,7 +20,18 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   return {
     title: categoryName,
     description: `Browse all articles filed under ${categoryName} in The Cougar Chronicle.`,
-    keywords
+    keywords,
+    openGraph: {
+      title: `${categoryName} | The Cougar Chronicle`,
+      description: `Browse all articles filed under ${categoryName} in The Cougar Chronicle.`,
+      images: [{ url: '/default-og.png', width: 1200, height: 630 }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${categoryName} | The Cougar Chronicle`,
+      description: `Browse all articles filed under ${categoryName} in The Cougar Chronicle.`,
+      images: ['/default-og.png'],
+    },
   };
 }
 

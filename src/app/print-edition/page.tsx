@@ -8,6 +8,17 @@ import PrintCheckoutButtons from './PrintCheckoutButtons';
 export const metadata: Metadata = {
   title: 'Print Edition',
   description: 'Where to find physical copies of The Cougar Chronicle on campus.',
+  openGraph: {
+    title: 'Print Edition | The Cougar Chronicle',
+    description: 'Order physical and digital copies of The Cougar Chronicle.',
+    images: [{ url: '/default-og.png', width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Print Edition | The Cougar Chronicle',
+    description: 'Order physical and digital copies of The Cougar Chronicle.',
+    images: ['/default-og.png'],
+  },
 };
 
 export const revalidate = 60; // Revalidate every minute
