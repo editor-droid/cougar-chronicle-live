@@ -51,67 +51,30 @@ export default async function America250Page({ searchParams }: { searchParams: P
 
   return (
     <div className="container animate-fade-in" style={{ marginTop: '2rem' }}>
-      {/* Static American Flag Banner (looks like a flag waving in the wind) */}
+      {/* American Flag Banner */}
       <div 
         style={{ 
           color: 'white', 
-          padding: '3rem 2rem', 
+          padding: '3.5rem 2rem', 
           borderRadius: '0.75rem', 
           marginBottom: '3rem',
           border: '1px solid #3a4a5c',
           position: 'relative',
           overflow: 'hidden',
-          // American flag look with subtle fabric/fold effect to suggest movement
-          background: `
-            repeating-linear-gradient(
-              to bottom,
-              #B22234 0%, #B22234 7.5%,
-              #FFFFFF 7.5%, #FFFFFF 15%,
-              #B22234 15%, #B22234 22.5%,
-              #FFFFFF 22.5%, #FFFFFF 30%,
-              #B22234 30%, #B22234 37.5%,
-              #FFFFFF 37.5%, #FFFFFF 45%,
-              #B22234 45%, #B22234 52.5%,
-              #FFFFFF 52.5%, #FFFFFF 60%,
-              #B22234 60%, #B22234 67.5%,
-              #FFFFFF 67.5%, #FFFFFF 75%,
-              #B22234 75%, #B22234 82.5%,
-              #FFFFFF 82.5%, #FFFFFF 90%,
-              #B22234 90%, #B22234 100%
-            )
-          `
+          backgroundImage: "url('/images/america-250-flag.jpg')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          minHeight: '280px',
+          display: 'flex',
+          alignItems: 'center'
         }}
       >
-        {/* Blue canton */}
+        {/* Dark overlay for text readability over the flag photo */}
         <div style={{
           position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '40%',
-          height: '53%',
-          backgroundColor: '#3C3B6E',
+          inset: 0,
+          background: 'linear-gradient(135deg, rgba(10,18,38,0.82) 0%, rgba(20,32,55,0.72) 100%)',
           zIndex: 1,
-          boxShadow: 'inset 0 0 30px rgba(0,0,0,0.3)'
-        }} />
-
-        {/* Subtle fabric folds / wind texture so it looks like a real flag (static) */}
-        <div style={{
-          position: 'absolute',
-          inset: 0,
-          background: `
-            linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 20%, rgba(0,0,0,0.22) 50%, transparent 85%),
-            linear-gradient(to right, rgba(255,255,255,0.07) 0%, transparent 35%)
-          `,
-          zIndex: 2,
-          pointerEvents: 'none'
-        }} />
-
-        {/* Dark overlay for text readability */}
-        <div style={{
-          position: 'absolute',
-          inset: 0,
-          background: 'linear-gradient(135deg, rgba(15,25,50,0.72) 0%, rgba(25,40,70,0.58) 100%)',
-          zIndex: 3,
           borderRadius: '0.75rem'
         }} />
 
