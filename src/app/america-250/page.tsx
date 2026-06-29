@@ -51,11 +51,41 @@ export default async function America250Page({ searchParams }: { searchParams: P
 
   return (
     <div className="container animate-fade-in" style={{ marginTop: '2rem' }}>
+      <style>{`
+        .a250-banner {
+          min-height: 160px;
+          padding: 1rem 1rem;
+        }
+        .a250-banner h1 {
+          font-size: 2rem;
+        }
+        .a250-banner .a250-emoji {
+          font-size: 1.5rem;
+        }
+        .a250-banner p {
+          font-size: 0.95rem;
+        }
+        @media (min-width: 640px) {
+          .a250-banner {
+            min-height: 260px;
+            padding: 2.5rem 1.5rem;
+          }
+          .a250-banner h1 {
+            font-size: 3rem;
+          }
+          .a250-banner .a250-emoji {
+            font-size: 2.5rem;
+          }
+          .a250-banner p {
+            font-size: 1.1rem;
+          }
+        }
+      `}</style>
       {/* American Flag Banner */}
       <div 
+        className="a250-banner"
         style={{ 
           color: 'white', 
-          padding: '3.5rem 2rem', 
           borderRadius: '0.75rem', 
           marginBottom: '3rem',
           border: '1px solid #3a4a5c',
@@ -64,7 +94,6 @@ export default async function America250Page({ searchParams }: { searchParams: P
           backgroundImage: "url('/images/america-250-flag.jpg')",
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          minHeight: '280px',
           display: 'flex',
           alignItems: 'center'
         }}
@@ -80,12 +109,12 @@ export default async function America250Page({ searchParams }: { searchParams: P
 
         <div style={{ position: 'relative', zIndex: 4 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
-            <span style={{ fontSize: '2.5rem' }}>🇺🇸</span>
-            <h1 className="font-serif" style={{ fontSize: '3rem', margin: 0, color: 'white' }}>
+            <span className="a250-emoji">🇺🇸</span>
+            <h1 className="font-serif" style={{ margin: 0, color: 'white' }}>
               America 250
             </h1>
           </div>
-          <p className="font-sans" style={{ fontSize: '1.1rem', maxWidth: '720px', opacity: 0.95, marginBottom: '0.5rem' }}>
+          <p className="font-sans" style={{ maxWidth: '720px', opacity: 0.95, marginBottom: '0.5rem' }}>
             In 2026, the United States marks its 250th anniversary. This collection gathers op-eds, essays, and commentary 
             from The Cougar Chronicle exploring the American founding, the principles of liberty, the role of faith in 
             a free society, and what it means to “stand for something” in our time.
