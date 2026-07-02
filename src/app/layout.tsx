@@ -11,7 +11,7 @@ import './globals.css'
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXTAUTH_URL || (process.env.NEXTAUTH_URL || 'http://localhost:3000')),
   title: {
-    default: 'The Cougar Chronicle | Conservative News & Opinion',
+    default: 'The Cougar Chronicle | Faith, Reason, and Politics at BYU',
     template: '%s | The Cougar Chronicle',
   },
   description: 'National-grade news platform for the BYU community. Faith, News, and Opinion.',
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     'byu conservatives'
   ],
   openGraph: {
-    title: 'The Cougar Chronicle | Conservative News & Opinion',
+    title: 'The Cougar Chronicle | Faith, Reason, and Politics at BYU',
     description: 'Faith, News, and Opinion for the BYU community. Independent conservative journalism at Brigham Young University.',
     url: '/',
     siteName: 'The Cougar Chronicle',
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'The Cougar Chronicle | Conservative News & Opinion',
+    title: 'The Cougar Chronicle | Faith, Reason, and Politics at BYU',
     description: 'Faith, News, and Opinion for the BYU community.',
     images: [{ url: '/default-og.png', alt: 'The Cougar Chronicle' }],
   },
