@@ -22,7 +22,8 @@ export const metadata: Metadata = {
   },
 };
 
-export const revalidate = 60; // ISR revalidation
+// Force dynamic rendering to prevent stale caching issues on the homepage
+export const dynamic = 'force-dynamic';
 
 export default async function Home() {
   const allPosts = await prisma.post.findMany({
