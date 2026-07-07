@@ -739,16 +739,14 @@ export function SeoAnalysisPanel({
             disabled={isPending}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
             style={{
-              background: isPending
-                ? "var(--surface)"
-                : "var(--primary)",
+              background: "var(--primary)",
               color: "white",
               opacity: isPending ? 0.7 : 1,
             }}
           >
             {isPending ? (
               <>
-                <Loader2 size={12} className="animate-spin" /> Analyzing...
+                <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> Analyzing...
               </>
             ) : (
               <>

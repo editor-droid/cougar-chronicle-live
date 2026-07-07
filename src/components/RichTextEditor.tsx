@@ -56,6 +56,8 @@ import {
   MessageSquareQuote,
   ChevronDown,
   Highlighter,
+  Pencil,
+  Unlink,
 } from "lucide-react";
 
 export interface RichTextEditorHandle {
@@ -122,11 +124,13 @@ function EmbedDialog({
   onClose,
   onInsert,
   type,
+  initialUrl = "",
 }: {
   open: boolean;
   onClose: () => void;
   onInsert: (url: string) => void;
   type: "youtube" | "instagram" | "link";
+  initialUrl?: string;
 }) {
   const [url, setUrl] = useState("");
   const [error, setError] = useState("");
@@ -134,11 +138,11 @@ function EmbedDialog({
 
   useEffect(() => {
     if (open) {
-      setUrl("");
+      setUrl(initialUrl);
       setError("");
       setTimeout(() => inputRef.current?.focus(), 100);
     }
-  }, [open]);
+  }, [open, initialUrl]);
 
   if (!open) return null;
 
@@ -936,25 +940,221 @@ function Toolbar({
   );
 }
 
-// ── Floating Bubble Toolbar ─────────────────────────────────────────────────
-function FloatingBubbleToolbar({
-  editor,
-  onLink,
+function formatUrl(url: string) {
+  const trimmed = url.trim();
+  if (!trimmed) return "";
+  if (
+    trimmed.startsWith("/") ||
+    trimmed.startsWith("#") ||
+    trimmed.startsWith("mailto:") ||
+    trimmed.startsWith("tel:")
+  ) {
+    return trimmed;
+  }
+  if (!/^https?:\/\//i.test(trimmed)) {
+    return `https://${trimmed}`;
+  }
+  return trimmed;
+}
+
+function LinkInput({
+  initialUrl,
+  onSave,
+  onCancel,
 }: {
-  editor: Editor;
-  onLink: () => void;
+  initialUrl: string;
+  onSave: (url: string) => void;
+  onCancel: () => void;
 }) {
+  const [url, setUrl] = useState(initialUrl);
+  const [suggestions, setSuggestions] = useState<{ title: string; url: string }[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      inputRef.current?.focus();
+    }, 50);
+    return () => clearTimeout(timeout);
+  }, []);
+
+  useEffect(() => {
+    if (url.startsWith("/")) {
+      setShowSuggestions(true);
+      fetch(`/api/search-links?q=${encodeURIComponent(url)}`)
+        .then((res) => res.json())
+        .then((data) => {
+          setSuggestions(data);
+          setSelectedIndex(0);
+        })
+        .catch(() => setSuggestions([]));
+    } else {
+      setShowSuggestions(false);
+    }
+  }, [url]);
+
+  const handleSave = (finalUrl: string) => {
+    onSave(formatUrl(finalUrl));
+  };
+
+  return (
+    <div style={{ position: "relative" }}>
+      <div
+        style={{
+          display: "flex",
+          gap: "0.5rem",
+          alignItems: "center",
+          background: "var(--surface)",
+          border: "1px solid var(--border)",
+          borderRadius: "0.5rem",
+          padding: "0.5rem",
+          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+        }}
+      >
+        <input
+          type="text"
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          placeholder="Type URL or / to search pages"
+          style={{
+            padding: "0.25rem 0.5rem",
+            border: "1px solid var(--border)",
+            borderRadius: "0.25rem",
+            background: "var(--background)",
+            color: "var(--foreground)",
+            fontFamily: "var(--font-sans)",
+            fontSize: "0.875rem",
+            outline: "none",
+            minWidth: "220px",
+          }}
+          ref={inputRef}
+          onKeyDown={(e) => {
+            if (e.key === "ArrowDown" && showSuggestions) {
+              e.preventDefault();
+              setSelectedIndex((s) => Math.min(s + 1, suggestions.length - 1));
+            } else if (e.key === "ArrowUp" && showSuggestions) {
+              e.preventDefault();
+              setSelectedIndex((s) => Math.max(s - 1, 0));
+            } else if (e.key === "Enter") {
+              e.preventDefault();
+              if (showSuggestions && suggestions[selectedIndex]) {
+                handleSave(suggestions[selectedIndex].url);
+              } else {
+                handleSave(url);
+              }
+            } else if (e.key === "Escape") {
+              onCancel();
+            }
+          }}
+        />
+        <button
+          onClick={() => {
+            if (showSuggestions && suggestions[selectedIndex] && url.startsWith("/")) {
+              handleSave(suggestions[selectedIndex].url);
+            } else {
+              handleSave(url);
+            }
+          }}
+          className="btn btn-primary"
+          style={{ padding: "0.25rem 0.75rem", fontSize: "0.875rem" }}
+        >
+          Apply
+        </button>
+        <button
+          onClick={onCancel}
+          style={{
+            color: "var(--muted)",
+            cursor: "pointer",
+            background: "transparent",
+            border: "none",
+            padding: "0.25rem",
+          }}
+        >
+          <X size={14} />
+        </button>
+      </div>
+
+      {showSuggestions && suggestions.length > 0 && (
+        <div
+          style={{
+            position: "absolute",
+            top: "100%",
+            left: 0,
+            width: "100%",
+            background: "var(--surface)",
+            border: "1px solid var(--border)",
+            borderRadius: "0.5rem",
+            marginTop: "0.25rem",
+            zIndex: 50,
+            maxHeight: "200px",
+            overflowY: "auto",
+            boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+          }}
+        >
+          {suggestions.map((s, i) => (
+            <div
+              key={s.url}
+              style={{
+                padding: "0.5rem",
+                cursor: "pointer",
+                background: i === selectedIndex ? "var(--surface-hover)" : "transparent",
+                borderBottom: i === suggestions.length - 1 ? "none" : "1px solid var(--border)",
+              }}
+              onClick={() => handleSave(s.url)}
+              onMouseEnter={() => setSelectedIndex(i)}
+            >
+              <div style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--foreground)" }}>{s.title}</div>
+              <div style={{ fontSize: "0.75rem", color: "var(--muted)" }}>{s.url}</div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Floating Bubble Toolbar ─────────────────────────────────────────────────
+function FloatingBubbleToolbar({ editor }: { editor: Editor }) {
+  const [isInsertingLink, setIsInsertingLink] = useState(false);
+  const [url, setUrl] = useState("");
+
+  useEffect(() => {
+    const handleReset = () => {
+      setIsInsertingLink(false);
+      setUrl("");
+    };
+    editor.on("selectionUpdate", handleReset);
+    return () => {
+      editor.off("selectionUpdate", handleReset);
+    };
+  }, [editor]);
+
   return (
     <BubbleMenu
       editor={editor}
-      options={{
-        placement: "top",
-        offset: 8,
+      tippyOptions={{ duration: 100, placement: "top" }}
+      shouldShow={({ editor }) => {
+        if (editor.isActive("image") || editor.isActive("gallery"))
+          return false;
+        if (editor.isActive("link")) return false;
+        return !editor.state.selection.empty;
       }}
-      className="bubble-toolbar"
     >
-      <div
-        className="flex items-center gap-0.5 px-1.5 py-1 rounded-lg shadow-xl"
+      {isInsertingLink ? (
+        <LinkInput 
+          initialUrl={url}
+          onSave={(finalUrl) => {
+            if (finalUrl) {
+              editor.chain().focus().setLink({ href: finalUrl }).run();
+            }
+            setIsInsertingLink(false);
+          }}
+          onCancel={() => setIsInsertingLink(false)}
+        />
+      ) : (
+        <div
+          className="flex items-center gap-0.5 px-1.5 py-1 rounded-lg shadow-xl"
         style={{
           background: "var(--surface)",
           border: "1px solid var(--border)",
@@ -1037,9 +1237,9 @@ function FloatingBubbleToolbar({
 
         {/* Link */}
         <ToolbarButton
-          onClick={onLink}
+          onClick={() => setIsInsertingLink(true)}
           active={editor.isActive("link")}
-          title="Insert Link"
+          title={editor.isActive("link") ? "Edit Link" : "Insert Link"}
           size="small"
         >
           <LinkIcon size={14} />
@@ -1073,6 +1273,92 @@ function FloatingBubbleToolbar({
           <Quote size={14} />
         </ToolbarButton>
       </div>
+      )}
+    </BubbleMenu>
+  );
+}
+
+function LinkBubbleMenu({ editor }: { editor: Editor }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [url, setUrl] = useState("");
+
+  const isActive = editor.isActive("link");
+
+  useEffect(() => {
+    if (isActive) {
+      setUrl(editor.getAttributes("link").href || "");
+    } else {
+      setIsEditing(false);
+    }
+  }, [editor.state.selection, isActive, editor]);
+
+  if (!isActive) return null;
+
+  return (
+    <BubbleMenu
+      editor={editor}
+      tippyOptions={{ duration: 100, placement: "bottom" }}
+      pluginKey="linkBubbleMenu"
+      shouldShow={({ editor }) => editor.isActive("link")}
+    >
+      {isEditing ? (
+        <LinkInput 
+          initialUrl={url}
+          onSave={(finalUrl) => {
+            if (finalUrl) {
+              editor.chain().focus().extendMarkRange("link").setLink({ href: finalUrl }).run();
+            }
+            setIsEditing(false);
+          }}
+          onCancel={() => setIsEditing(false)}
+        />
+      ) : (
+        <div
+          style={{
+            display: "flex",
+            gap: "0.5rem",
+            alignItems: "center",
+            background: "var(--surface)",
+            border: "1px solid var(--border)",
+            borderRadius: "0.5rem",
+            padding: "0.5rem",
+            boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+          }}
+        >
+          <a
+              href={url}
+              target="_blank"
+              rel="noreferrer"
+              style={{
+                color: "var(--primary)",
+                textDecoration: "underline",
+                maxWidth: "250px",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                fontSize: "0.875rem",
+                fontFamily: "var(--font-sans)"
+              }}
+            >
+              {url}
+            </a>
+            <div style={{ width: "1px", height: "1rem", background: "var(--border)", margin: "0 0.25rem" }} />
+            <button
+              onClick={() => setIsEditing(true)}
+              title="Edit Link"
+              style={{ color: "var(--muted)", cursor: "pointer", background: "transparent", border: "none", padding: "0.25rem" }}
+            >
+              <Pencil size={14} />
+            </button>
+            <button
+              onClick={() => editor.chain().focus().unsetLink().run()}
+              title="Remove Link"
+              style={{ color: "var(--muted)", cursor: "pointer", background: "transparent", border: "none", padding: "0.25rem" }}
+            >
+              <Unlink size={14} />
+            </button>
+        </div>
+      )}
     </BubbleMenu>
   );
 }
@@ -1101,6 +1387,7 @@ export const RichTextEditor = forwardRef<
   const [embedDialog, setEmbedDialog] = useState<{
     open: boolean;
     type: "youtube" | "instagram" | "link";
+    initialUrl?: string;
   }>({ open: false, type: "youtube" });
 
   const extensions = useMemo(() => [
@@ -1110,7 +1397,7 @@ export const RichTextEditor = forwardRef<
     Heading.configure({ levels: [1, 2, 3] }),
     Link.configure({
       openOnClick: false,
-      HTMLAttributes: { target: "_blank", rel: "noopener noreferrer" },
+      HTMLAttributes: { target: "_blank", rel: "noopener noreferrer", style: "text-decoration: underline;" },
     }),
     ResizableImage,
     GalleryExtension,
@@ -1135,6 +1422,16 @@ export const RichTextEditor = forwardRef<
   const editor = useEditor({
     extensions,
     content: value,
+    editorProps: {
+      handleClick: (view, pos, event) => {
+        const target = event.target as HTMLElement;
+        if (target.closest('a')) {
+          event.preventDefault();
+          return true;
+        }
+        return false;
+      }
+    },
     onUpdate: ({ editor: ed }) => {
       onChange(ed.getHTML());
     },
@@ -1238,17 +1535,25 @@ export const RichTextEditor = forwardRef<
           }
         >
           {showEditor && (
-            <div className="relative">
+            <div 
+              className="relative"
+              onClickCapture={(e) => {
+                const target = e.target as HTMLElement;
+                if (target.closest('a')) {
+                  e.preventDefault();
+                }
+              }}
+            >
               <EditorContent
                 editor={editor}
                 className="rich-text-editor-content"
               />
               {/* Floating bubble toolbar on text selection */}
               {editor && (
-                <FloatingBubbleToolbar
-                  editor={editor}
-                  onLink={() => setEmbedDialog({ open: true, type: "link" })}
-                />
+                <>
+                  <FloatingBubbleToolbar editor={editor} />
+                  <LinkBubbleMenu editor={editor} />
+                </>
               )}
             </div>
           )}
@@ -1260,6 +1565,7 @@ export const RichTextEditor = forwardRef<
       <EmbedDialog
         open={embedDialog.open}
         type={embedDialog.type}
+        initialUrl={embedDialog.initialUrl}
         onClose={() => setEmbedDialog(prev => ({ ...prev, open: false }))}
         onInsert={handleEmbedInsert}
       />

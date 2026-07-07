@@ -10,7 +10,8 @@ export default function KeyTakeaways({ content }: { content: string }) {
 
   return (
     <div style={{
-      margin: '2rem 0',
+      marginTop: '2rem',
+      marginBottom: '0.5rem',
       backgroundColor: 'var(--surface-hover)',
       border: '1px solid var(--border)',
       borderLeft: '4px solid var(--primary)',

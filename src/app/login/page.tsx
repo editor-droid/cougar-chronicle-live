@@ -1,4 +1,6 @@
 import { signIn } from '@/auth';
+import { AuthError } from 'next-auth';
+import { redirect } from 'next/navigation';
 import Link from 'next/link';
 
 import type { Metadata } from 'next';
@@ -20,15 +22,35 @@ export const metadata: Metadata = {
 };
 
 
-export default function LoginPage() {
+export default async function LoginPage(props: { searchParams: Promise<{ error?: string }> }) {
+  const searchParams = await props.searchParams;
+  const error = searchParams.error;
+
   return (
     <div className="container animate-fade-in" style={{ maxWidth: '400px', marginTop: '1rem' }}>
       <h1 className="font-serif text-center" style={{ marginBottom: '2rem' }}>Sign In</h1>
       <div style={{ backgroundColor: 'var(--surface)', padding: '2rem', borderRadius: '0.5rem', border: '1px solid var(--border)' }}>
+        {error === 'CredentialsSignin' && (
+          <div style={{ backgroundColor: '#fee2e2', color: '#991b1b', padding: '1rem', borderRadius: '0.5rem', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
+            Invalid email or password.
+          </div>
+        )}
         <form
           action={async (formData) => {
             'use server';
-            await signIn('credentials', { ...Object.fromEntries(formData), redirectTo: '/dashboard' });
+            try {
+              await signIn('credentials', { ...Object.fromEntries(formData), redirectTo: '/dashboard' });
+            } catch (err) {
+              if (err instanceof AuthError) {
+                switch (err.type) {
+                  case 'CredentialsSignin':
+                    redirect('/login?error=CredentialsSignin');
+                  default:
+                    redirect('/login?error=Default');
+                }
+              }
+              throw err;
+            }
           }}
           style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
         >

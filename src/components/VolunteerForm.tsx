@@ -31,6 +31,18 @@ export default function VolunteerForm() {
     setStatus('submitting');
     setErrorMessage('');
 
+    if (!formData.email.toLowerCase().endsWith('.edu')) {
+      setStatus('error');
+      setErrorMessage('Please provide a valid .edu school email address.');
+      return;
+    }
+
+    if (formData.interests.length === 0) {
+      setStatus('error');
+      setErrorMessage('Please select at least one Area of Interest.');
+      return;
+    }
+
     try {
       const res = await fetch('/api/volunteer', {
         method: 'POST',
@@ -85,7 +97,7 @@ export default function VolunteerForm() {
 
       <div style={{ marginBottom: '1.5rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
         <div>
-          <label className="font-sans" style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>BYU Email *</label>
+          <label className="font-sans" style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>School Email *</label>
           <input 
             type="email" 
             required 
@@ -95,9 +107,10 @@ export default function VolunteerForm() {
           />
         </div>
         <div>
-          <label className="font-sans" style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Phone Number</label>
+          <label className="font-sans" style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Phone Number *</label>
           <input 
             type="tel" 
+            required
             value={formData.phone}
             onChange={e => setFormData({...formData, phone: e.target.value})}
             style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border)', backgroundColor: 'var(--surface)', color: 'var(--foreground)' }} 
@@ -106,19 +119,38 @@ export default function VolunteerForm() {
       </div>
 
       <div style={{ marginBottom: '1.5rem' }}>
-        <label className="font-sans" style={{ display: 'block', fontWeight: 600, marginBottom: '0.75rem' }}>Areas of Interest</label>
+        <label className="font-sans" style={{ display: 'block', fontWeight: 600, marginBottom: '0.75rem' }}>Areas of Interest *</label>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
-          {interestOptions.map(interest => (
-            <label key={interest} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: 'var(--surface)', padding: '0.5rem 1rem', borderRadius: '2rem', border: '1px solid var(--border)', cursor: 'pointer', userSelect: 'none' }}>
-              <input 
-                type="checkbox" 
-                checked={formData.interests.includes(interest)}
-                onChange={() => handleInterestToggle(interest)}
-                style={{ accentColor: 'var(--primary)' }}
-              />
-              <span className="font-sans text-sm">{interest}</span>
-            </label>
-          ))}
+          {interestOptions.map(interest => {
+            const isSelected = formData.interests.includes(interest);
+            return (
+              <label 
+                key={interest} 
+                style={{ 
+                  display: 'inline-flex', 
+                  alignItems: 'center', 
+                  backgroundColor: isSelected ? 'var(--primary)' : 'var(--surface)', 
+                  color: isSelected ? 'white' : 'var(--foreground)',
+                  padding: '0.5rem 1.25rem', 
+                  borderRadius: '2rem', 
+                  border: `1px solid ${isSelected ? 'var(--primary)' : 'var(--border)'}`, 
+                  cursor: 'pointer', 
+                  userSelect: 'none',
+                  whiteSpace: 'nowrap',
+                  transition: 'all 0.2s ease',
+                  position: 'relative'
+                }}
+              >
+                <input 
+                  type="checkbox" 
+                  checked={isSelected}
+                  onChange={() => handleInterestToggle(interest)}
+                  style={{ position: 'absolute', opacity: 0, cursor: 'pointer', height: 0, width: 0 }}
+                />
+                <span className="font-sans text-sm" style={{ fontWeight: isSelected ? 600 : 500 }}>{interest}</span>
+              </label>
+            );
+          })}
         </div>
       </div>
 

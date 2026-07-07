@@ -67,6 +67,10 @@ export default function Chatbot() {
     }
   }, [messages, isOpen]);
 
+  if (pathname.startsWith('/dashboard') || pathname.startsWith('/admin')) {
+    return null;
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;

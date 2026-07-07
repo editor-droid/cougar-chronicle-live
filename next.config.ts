@@ -56,6 +56,20 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      {
+        source: '/join',
+        destination: '/recruiting',
+        permanent: true,
+      },
+      {
+        source: '/careers',
+        destination: '/recruiting',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
