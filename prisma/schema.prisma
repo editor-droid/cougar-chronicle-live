@@ -152,3 +152,17 @@ model EditorialNote {
   resolved  Boolean  @default(false)
   createdAt DateTime @default(now())
 }
+
+model Donation {
+  id              String   @id @default(cuid())
+  name            String?
+  email           String
+  amount          Float
+  stripeSessionId String?  @unique
+  createdAt       DateTime @default(now())
+}
+
+model SiteSetting {
+  key   String @id
+  value String @db.Text
+}
