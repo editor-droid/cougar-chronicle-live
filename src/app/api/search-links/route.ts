@@ -16,16 +16,16 @@ export async function GET(req: Request) {
   ].filter(p => p.title.toLowerCase().includes(query.toLowerCase()) || p.url.toLowerCase().includes(query.toLowerCase()));
 
   // Search articles
-  const articles = await prisma.article.findMany({
+  const posts = await prisma.post.findMany({
     where: {
-      status: 'PUBLISHED',
+      state: 'PUBLISHED',
       title: { contains: query, mode: 'insensitive' }
     },
     select: { title: true, slug: true },
     take: 5
   });
 
-  const articleLinks = articles.map(a => ({
+  const articleLinks = posts.map(a => ({
     title: a.title,
     url: `/article/${a.slug}`
   }));
