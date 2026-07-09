@@ -39,10 +39,19 @@ export async function POST(req: Request) {
       });
     } 
     else if (type === 'donation') {
-      // Send a thank you email for their donation
+      const amountTotal = session.amount_total ? session.amount_total / 100 : 0;
+      
       if (customerEmail) {
-        // You would add Resend logic here to email the donor
-        console.log(`Donation received from ${customerEmail}`);
+        await prisma.donation.create({
+          data: {
+            email: customerEmail,
+            name: customerName,
+            amount: amountTotal,
+            stripeSessionId: session.id
+          }
+        });
+        
+        console.log(`Donation received from ${customerEmail} for $${amountTotal}`);
       }
     }
     else if (type === 'physical_print') {
