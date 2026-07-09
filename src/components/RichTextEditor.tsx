@@ -1133,6 +1133,7 @@ function FloatingBubbleToolbar({ editor }: { editor: Editor }) {
   return (
     <BubbleMenu
       editor={editor}
+      // @ts-expect-error - Tiptap types missing tippyOptions in this version
       tippyOptions={{ duration: 100, placement: "top" }}
       shouldShow={({ editor }) => {
         if (editor.isActive("image") || editor.isActive("gallery"))
@@ -1297,6 +1298,7 @@ function LinkBubbleMenu({ editor }: { editor: Editor }) {
   return (
     <BubbleMenu
       editor={editor}
+      // @ts-expect-error - Tiptap types missing tippyOptions in this version
       tippyOptions={{ duration: 100, placement: "bottom" }}
       pluginKey="linkBubbleMenu"
       shouldShow={({ editor }) => editor.isActive("link")}
