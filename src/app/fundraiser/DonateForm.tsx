@@ -13,7 +13,7 @@ export default function DonateForm() {
   };
 
   const formStyle: React.CSSProperties = {
-    padding: '3rem',
+    padding: '2rem',
     background: 'rgba(var(--surface-rgb, 255, 255, 255), 0.8)',
     backdropFilter: 'blur(16px)',
     borderRadius: '1rem',
@@ -25,8 +25,8 @@ export default function DonateForm() {
 
   const getBtnStyle = (tier: number) => ({
     flex: '1 1 45%',
-    fontSize: '1.25rem',
-    padding: '1rem',
+    fontSize: '1.15rem',
+    padding: '0.75rem',
     borderRadius: '0.75rem',
     border: amount === tier && !customAmount ? '2px solid var(--accent)' : '1px solid var(--border)',
     backgroundColor: amount === tier && !customAmount ? 'rgba(var(--accent-rgb, 0, 112, 243), 0.1)' : 'var(--background)',
@@ -40,10 +40,10 @@ export default function DonateForm() {
 
   return (
     <div style={formStyle}>
-      <h2 className="font-serif" style={{ fontSize: '2.25rem', marginBottom: '0.5rem', color: 'var(--foreground)', textAlign: 'center' }}>
+      <h2 className="font-serif" style={{ fontSize: '1.75rem', marginBottom: '0.25rem', color: 'var(--foreground)', textAlign: 'center' }}>
         Make a Contribution
       </h2>
-      <p className="font-sans text-muted" style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+      <p className="font-sans text-muted" style={{ textAlign: 'center', marginBottom: '1.5rem', fontSize: '0.95rem' }}>
         Select an amount to securely donate via Stripe.
       </p>
       

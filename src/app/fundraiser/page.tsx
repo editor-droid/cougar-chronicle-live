@@ -13,12 +13,12 @@ export default async function FundraiserPage() {
   const progressPercentage = Math.min(100, (totalRaised / Math.max(goal, 1)) * 100);
 
   return (
-    <div style={{ minHeight: '100vh', paddingBottom: '5rem' }}>
+    <div style={{ paddingBottom: '3rem' }}>
       {/* Hero Section */}
       <div style={{
         position: 'relative',
         background: 'linear-gradient(135deg, rgba(var(--primary-rgb, 0,0,0), 0.05) 0%, rgba(var(--accent-rgb, 0,112,243), 0.1) 100%)',
-        padding: '6rem 2rem 8rem',
+        padding: '3rem 1rem 4rem',
         textAlign: 'center',
         borderBottom: '1px solid var(--border)',
         overflow: 'hidden'
@@ -28,31 +28,31 @@ export default async function FundraiserPage() {
         <div style={{ position: 'absolute', bottom: '-10%', right: '-5%', width: '40%', height: '60%', background: 'radial-gradient(circle, rgba(var(--accent-rgb,0,112,243),0.05) 0%, transparent 70%)', borderRadius: '50%' }} />
         
         <div className="container animate-fade-in" style={{ position: 'relative', zIndex: 1, maxWidth: '800px', margin: '0 auto' }}>
-          <h1 className="font-serif" style={{ fontSize: '4rem', fontWeight: 700, color: 'var(--foreground)', marginBottom: '1.5rem', lineHeight: 1.1 }}>
+          <h1 className="font-serif" style={{ fontSize: '3rem', fontWeight: 700, color: 'var(--foreground)', marginBottom: '1rem', lineHeight: 1.1 }}>
             Fuel the Future of Independent Conservative Journalism
           </h1>
-          <p className="font-sans" style={{ fontSize: '1.25rem', color: 'var(--muted)', marginBottom: '3rem', lineHeight: 1.6 }}>
+          <p className="font-sans" style={{ fontSize: '1.15rem', color: 'var(--muted)', marginBottom: '2rem', lineHeight: 1.6 }}>
             The Cougar Chronicle relies entirely on the generosity of readers like you. We refuse to run ads or accept campus funding, ensuring our reporting remains uncompromising and totally independent.
           </p>
 
           {/* Progress Tracker inside Hero */}
           <div style={{ 
             background: 'var(--surface)', 
-            padding: '2.5rem', 
-            borderRadius: '1rem', 
-            boxShadow: '0 20px 40px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.03)',
+            padding: '1.5rem', 
+            borderRadius: '0.75rem', 
+            boxShadow: '0 10px 25px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.03)',
             border: '1px solid rgba(var(--border-rgb, 0,0,0), 0.05)',
-            transform: 'translateY(2rem)'
+            transform: 'translateY(1rem)'
           }}>
-            <h3 className="font-serif" style={{ fontSize: '1.5rem', marginBottom: '1.5rem', color: 'var(--primary)' }}>August Fundraising Drive</h3>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem', alignItems: 'flex-end' }}>
-              <span className="font-sans" style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--accent)', lineHeight: 1 }}>
-                ${totalRaised.toLocaleString()} <span style={{ fontSize: '1rem', fontWeight: 500, color: 'var(--muted)' }}>raised</span>
+            <h3 className="font-serif" style={{ fontSize: '1.25rem', marginBottom: '1rem', color: 'var(--primary)' }}>August Fundraising Drive</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', alignItems: 'flex-end' }}>
+              <span className="font-sans" style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--accent)', lineHeight: 1 }}>
+                ${totalRaised.toLocaleString()} <span style={{ fontSize: '0.9rem', fontWeight: 500, color: 'var(--muted)' }}>raised</span>
               </span>
-              <span className="font-sans text-muted" style={{ fontSize: '1.1rem', fontWeight: 600 }}>Goal: ${goal.toLocaleString()}</span>
+              <span className="font-sans text-muted" style={{ fontSize: '1rem', fontWeight: 600 }}>Goal: ${goal.toLocaleString()}</span>
             </div>
             
-            <div style={{ width: '100%', height: '1.5rem', backgroundColor: 'var(--background)', borderRadius: '1rem', overflow: 'hidden', border: '1px solid var(--border)', position: 'relative' }}>
+            <div style={{ width: '100%', height: '1.25rem', backgroundColor: 'var(--background)', borderRadius: '1rem', overflow: 'hidden', border: '1px solid var(--border)', position: 'relative' }}>
               <div style={{ 
                 width: `${progressPercentage}%`, 
                 height: '100%', 
@@ -73,44 +73,44 @@ export default async function FundraiserPage() {
       </div>
 
       {/* Main Content Area */}
-      <div className="container" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '4rem', marginTop: '6rem' }}>
+      <div className="container" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '3rem', marginTop: '4rem' }}>
         
         {/* Left Column: Impact Details */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
           <div>
-            <h2 className="font-serif" style={{ fontSize: '2.5rem', marginBottom: '1rem', color: 'var(--foreground)' }}>What Your Donation Means</h2>
-            <p className="font-sans text-muted" style={{ fontSize: '1.15rem', lineHeight: 1.6 }}>
+            <h2 className="font-serif" style={{ fontSize: '2rem', marginBottom: '0.75rem', color: 'var(--foreground)' }}>What Your Donation Means</h2>
+            <p className="font-sans text-muted" style={{ fontSize: '1.1rem', lineHeight: 1.6 }}>
               Every dollar contributed goes directly into the operation and expansion of The Cougar Chronicle. Here is exactly what we use our funding for:
             </p>
           </div>
 
-          <div style={{ display: 'grid', gap: '2.5rem' }}>
-            <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start' }}>
-              <div style={{ background: 'rgba(var(--primary-rgb, 0,0,0), 0.05)', padding: '1rem', borderRadius: '50%' }}>
-                <Target size={28} style={{ color: 'var(--primary)' }} />
+          <div style={{ display: 'grid', gap: '2rem' }}>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+              <div style={{ background: 'rgba(var(--primary-rgb, 0,0,0), 0.05)', padding: '0.75rem', borderRadius: '50%' }}>
+                <Target size={24} style={{ color: 'var(--primary)' }} />
               </div>
               <div>
-                <h3 className="font-serif" style={{ fontSize: '1.5rem', marginBottom: '0.5rem', color: 'var(--foreground)' }}>Uncompromising Truth</h3>
+                <h3 className="font-serif" style={{ fontSize: '1.35rem', marginBottom: '0.25rem', color: 'var(--foreground)' }}>Uncompromising Truth</h3>
                 <p className="font-sans text-muted" style={{ lineHeight: 1.6 }}>Your donation ensures we never have to compromise our values, cave to campus pressure, or shy away from the hard stories affecting the BYU community.</p>
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start' }}>
-              <div style={{ background: 'rgba(var(--accent-rgb, 0,112,243), 0.1)', padding: '1rem', borderRadius: '50%' }}>
-                <Users size={28} style={{ color: 'var(--accent)' }} />
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+              <div style={{ background: 'rgba(var(--accent-rgb, 0,112,243), 0.1)', padding: '0.75rem', borderRadius: '50%' }}>
+                <Users size={24} style={{ color: 'var(--accent)' }} />
               </div>
               <div>
-                <h3 className="font-serif" style={{ fontSize: '1.5rem', marginBottom: '0.5rem', color: 'var(--foreground)' }}>Student Opportunities</h3>
+                <h3 className="font-serif" style={{ fontSize: '1.35rem', marginBottom: '0.25rem', color: 'var(--foreground)' }}>Student Opportunities</h3>
                 <p className="font-sans text-muted" style={{ lineHeight: 1.6 }}>Funds go directly toward providing our talented student writers, editors, and photographers with stipends, professional resources, and real-world journalism experience.</p>
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start' }}>
-              <div style={{ background: 'rgba(var(--primary-rgb, 0,0,0), 0.05)', padding: '1rem', borderRadius: '50%' }}>
-                <Globe size={28} style={{ color: 'var(--primary)' }} />
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+              <div style={{ background: 'rgba(var(--primary-rgb, 0,0,0), 0.05)', padding: '0.75rem', borderRadius: '50%' }}>
+                <Globe size={24} style={{ color: 'var(--primary)' }} />
               </div>
               <div>
-                <h3 className="font-serif" style={{ fontSize: '1.5rem', marginBottom: '0.5rem', color: 'var(--foreground)' }}>Print & Digital Reach</h3>
+                <h3 className="font-serif" style={{ fontSize: '1.35rem', marginBottom: '0.25rem', color: 'var(--foreground)' }}>Print & Digital Reach</h3>
                 <p className="font-sans text-muted" style={{ lineHeight: 1.6 }}>Help us expand our physical footprint across campus and the state of Utah by funding our physical print runs, along with maintaining our digital web infrastructure.</p>
               </div>
             </div>
