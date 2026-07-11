@@ -16,6 +16,7 @@ import {
   videoPageUrl,
 } from '@/lib/videos';
 import VideoHighlights from '@/components/VideoHighlights';
+import VideoWatchPlayer from './VideoWatchPlayer';
 
 export const dynamic = 'force-dynamic';
 
@@ -118,6 +119,16 @@ export default async function VideoWatchPage({ params }: Props) {
     data: { views: { increment: 1 } },
   });
   video = { ...video, views: video.views + 1 };
+
+  // Full playlist order for next/prev (newest first, matches library)
+  const playlist = await prisma.video.findMany({
+    where: { isActive: true },
+    orderBy: [{ sortOrder: 'asc' }, { publishedAt: 'desc' }],
+    select: { id: true, slug: true, title: true },
+  });
+  const idx = playlist.findIndex((v) => v.id === video.id);
+  const prevVideo = idx > 0 ? playlist[idx - 1] : null;
+  const nextVideo = idx >= 0 && idx < playlist.length - 1 ? playlist[idx + 1] : null;
 
   const moreVideos = await prisma.video.findMany({
     where: { isActive: true, id: { not: video.id } },
@@ -242,45 +253,14 @@ export default async function VideoWatchPage({ params }: Props) {
             </div>
           </header>
 
-          {/* Player: portrait = centered phone frame; landscape = full column */}
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: portrait ? 'center' : 'stretch',
-              marginBottom: '1.5rem',
-            }}
-          >
-            <div
-              style={{
-                position: 'relative',
-                width: portrait ? 'min(100%, 420px)' : '100%',
-                aspectRatio: aspect,
-                maxHeight: portrait ? 'min(85vh, 780px)' : undefined,
-                backgroundColor: portrait ? 'transparent' : 'var(--surface-hover)',
-                borderRadius: '0.75rem',
-                overflow: 'hidden',
-                border: '1px solid var(--border)',
-                boxShadow: portrait
-                  ? '0 12px 40px rgba(0,0,0,0.12)'
-                  : '0 4px 20px rgba(0,0,0,0.06)',
-              }}
-            >
-              <iframe
-                src={embedUrl}
-                title={video.title}
-                allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-                loading="eager"
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  width: '100%',
-                  height: '100%',
-                  border: 0,
-                  background: 'transparent',
-                }}
-              />
-            </div>
-          </div>
+          <VideoWatchPlayer
+            title={video.title}
+            embedUrl={embedUrl}
+            portrait={portrait}
+            aspect={aspect}
+            prev={prevVideo ? { slug: prevVideo.slug, title: prevVideo.title } : null}
+            next={nextVideo ? { slug: nextVideo.slug, title: nextVideo.title } : null}
+          />
 
           {video.description && (
             <p
