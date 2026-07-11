@@ -166,3 +166,44 @@ model SiteSetting {
   key   String @id
   value String @db.Text
 }
+
+enum VideoPlatform {
+  STREAM
+  YOUTUBE
+}
+
+/// Curated short videos for home, article sidebar, and /videos.
+/// Stream = Cloudflare Stream (on-site, no social login).
+/// YouTube = paste link (also playable on-site via embed).
+model Video {
+  id            String         @id @default(cuid())
+  title         String
+  /// Public URL segment: /videos/[slug]
+  slug          String         @unique
+  description   String?        @db.Text
+  /// SEO-optimized title (meta / OG); falls back to title
+  seoTitle      String?
+  /// Comma-separated keywords for meta + schema
+  seoKeywords   String?
+  platform      VideoPlatform
+  /// Cloudflare Stream UID or YouTube video id
+  externalId    String
+  /// Original YouTube URL when platform is YOUTUBE
+  sourceUrl     String?
+  embedUrl      String
+  thumbnailUrl  String?
+  /// Canonical watch / content URL for SEO (VideoObject)
+  contentUrl    String?
+  durationSec   Int?
+  isActive      Boolean        @default(true)
+  showOnHome    Boolean        @default(true)
+  showInSidebar Boolean        @default(true)
+  sortOrder     Int            @default(0)
+  publishedAt   DateTime       @default(now())
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([isActive, showOnHome, sortOrder])
+  @@index([isActive, showInSidebar, sortOrder])
+  @@index([publishedAt])
+}

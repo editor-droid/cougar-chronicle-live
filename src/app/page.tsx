@@ -4,6 +4,7 @@ import { getArticleUrl } from '@/lib/routes';
 import Image from 'next/image';
 import SubscribeForm from '@/components/SubscribeForm';
 import PrintCheckoutButtons from '@/app/print-edition/PrintCheckoutButtons';
+import VideoHighlights from '@/components/VideoHighlights';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -75,6 +76,12 @@ export default async function Home() {
     orderBy: { views: 'desc' },
     include: { author: true },
     take: 5
+  });
+
+  const homeVideos = await prisma.video.findMany({
+    where: { isActive: true, showOnHome: true },
+    orderBy: [{ sortOrder: 'asc' }, { publishedAt: 'desc' }],
+    take: 4,
   });
 
   // Active Print Edition
@@ -379,6 +386,24 @@ export default async function Home() {
                 ))}
               </ol>
             </div>
+          )}
+
+          {homeVideos.length > 0 && (
+            <VideoHighlights
+              videos={homeVideos.map((v) => ({
+                id: v.id,
+                slug: v.slug,
+                title: v.title,
+                description: v.description,
+                platform: v.platform,
+                embedUrl: v.embedUrl,
+                thumbnailUrl: v.thumbnailUrl,
+                durationSec: v.durationSec,
+              }))}
+              title="Video highlights"
+              variant="sidebar"
+              linkToWatchPage
+            />
           )}
 
           {/* NEWSLETTER SUBSCRIBE BOX */}

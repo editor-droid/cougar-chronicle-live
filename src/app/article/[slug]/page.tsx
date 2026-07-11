@@ -7,6 +7,7 @@ import { cookies } from 'next/headers';
 import Link from 'next/link';
 import ClientLightbox from './ClientLightbox';
 import KeyTakeaways from '@/components/KeyTakeaways';
+import VideoHighlights from '@/components/VideoHighlights';
 import { injectHeadingIds } from '@/lib/toc';
 import { getArticleUrl } from '@/lib/routes';
 export async function generateMetadata(
@@ -147,6 +148,12 @@ export default async function ArticlePage({ params, searchParams }: { params: { 
     },
     orderBy: { views: 'desc' },
     take: 5
+  });
+
+  const sidebarVideos = await prisma.video.findMany({
+    where: { isActive: true, showInSidebar: true },
+    orderBy: [{ sortOrder: 'asc' }, { publishedAt: 'desc' }],
+    take: 3,
   });
 
   const htmlContent = post.content ? injectHeadingIds(post.content) : '';
@@ -352,6 +359,26 @@ export default async function ArticlePage({ params, searchParams }: { params: { 
             </li>
           ))}
         </ol>
+
+        {sidebarVideos.length > 0 && (
+          <div style={{ marginTop: '2.5rem' }}>
+            <VideoHighlights
+              videos={sidebarVideos.map((v) => ({
+                id: v.id,
+                slug: v.slug,
+                title: v.title,
+                description: v.description,
+                platform: v.platform,
+                embedUrl: v.embedUrl,
+                thumbnailUrl: v.thumbnailUrl,
+                durationSec: v.durationSec,
+              }))}
+              title="Videos"
+              variant="sidebar"
+              linkToWatchPage
+            />
+          </div>
+        )}
 
         <div className="newsletter-box" style={{ marginTop: '3rem', borderRadius: '0.5rem' }}>
           <h2 className="font-serif" style={{ color: 'white', fontSize: '1.25rem', margin: '0 0 0.5rem 0' }}>The Cougar Chronicle</h2>

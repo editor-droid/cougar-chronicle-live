@@ -14,6 +14,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/donate',
     '/print-edition',
     '/america-250',
+    '/videos',
   ].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: new Date(),
@@ -57,5 +58,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     };
   });
 
-  return [...staticRoutes, ...categoryRoutes, ...postRoutes];
+  // 4. Videos (include thumbnail images for richer discovery)
+  const videos = await prisma.video.findMany({
+    where: { isActive: true },
+    select: { slug: true, updatedAt: true, thumbnailUrl: true, title: true },
+  });
+
+  const videoRoutes = videos.map((video) => ({
+    url: `${baseUrl}/videos/${video.slug}`,
+    lastModified: video.updatedAt,
+    changeFrequency: 'weekly' as const,
+    priority: 0.65,
+    ...(video.thumbnailUrl
+      ? {
+          images: [video.thumbnailUrl],
+        }
+      : {}),
+  }));
+
+  return [...staticRoutes, ...categoryRoutes, ...postRoutes, ...videoRoutes];
 }

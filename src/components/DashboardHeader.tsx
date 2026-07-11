@@ -5,7 +5,7 @@ export default async function DashboardHeader({
   currentTab,
   title
 }: { 
-  currentTab: 'posts' | 'users' | 'print-editions' | 'donors' | 'subscribers',
+  currentTab: 'posts' | 'users' | 'print-editions' | 'donors' | 'subscribers' | 'videos',
   title?: string
 }) {
   const session = await auth();
@@ -40,6 +40,12 @@ export default async function DashboardHeader({
               <span className="font-sans" style={{ fontWeight: 600, borderBottom: '2px solid var(--foreground)' }}>Print Editions</span>
             ) : (
               <Link href="/dashboard/print-editions" className="text-muted hover:text-foreground font-sans">Print Editions</Link>
+            )}
+
+            {currentTab === 'videos' ? (
+              <span className="font-sans" style={{ fontWeight: 600, borderBottom: '2px solid var(--foreground)' }}>Videos</span>
+            ) : (
+              <Link href="/dashboard/videos" className="text-muted hover:text-foreground font-sans">Videos</Link>
             )}
             
             {role === 'ADMIN' && (

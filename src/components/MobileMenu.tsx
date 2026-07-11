@@ -64,6 +64,7 @@ export default function MobileMenu() {
                 <Link href="/category/opinion" className="mobile-nav-link font-sans">Opinion</Link>
                 <Link href="/america-250" className="mobile-nav-link font-sans" style={{ color: 'var(--primary)', fontWeight: 600 }}>America 250</Link>
                 <Link href="/print-edition" className="mobile-nav-link font-sans">Print Edition</Link>
+                <Link href="/videos" className="mobile-nav-link font-sans">Videos</Link>
                 <Link href="/about" className="mobile-nav-link font-sans">About</Link>
                 <Link href="/contact" className="mobile-nav-link font-sans">Contact</Link>
                 <Link href="/donate" className="mobile-nav-link font-sans">Donate</Link>
