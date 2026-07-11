@@ -3,6 +3,12 @@ import prisma from '@/lib/prisma';
 import { redirect } from 'next/navigation';
 import DashboardHeader from '@/components/DashboardHeader';
 import VideosManager from './VideosManager';
+import {
+  fetchStreamMinutesByUid,
+  refreshStreamMetaForVideos,
+} from '@/lib/stream-analytics';
+
+export const dynamic = 'force-dynamic';
 
 export default async function DashboardVideosPage() {
   const session = await auth();
@@ -19,7 +25,7 @@ export default async function DashboardVideosPage() {
     redirect('/dashboard');
   }
 
-  const videos = await prisma.video.findMany({
+  let videos = await prisma.video.findMany({
     orderBy: [{ sortOrder: 'asc' }, { publishedAt: 'desc' }],
   });
 
@@ -27,28 +33,49 @@ export default async function DashboardVideosPage() {
     process.env.CLOUDFLARE_ACCOUNT_ID && process.env.CLOUDFLARE_API_TOKEN
   );
 
+  // Backfill duration / dimensions from Stream when missing
+  if (streamConfigured && videos.some((v) => v.platform === 'STREAM')) {
+    await refreshStreamMetaForVideos(videos);
+    videos = await prisma.video.findMany({
+      orderBy: [{ sortOrder: 'asc' }, { publishedAt: 'desc' }],
+    });
+  }
+
+  const analytics = streamConfigured
+    ? await fetchStreamMinutesByUid()
+    : { byUid: {}, error: null as string | null };
+
   return (
-    <div className="container animate-fade-in" style={{ marginTop: '2rem' }}>
+    <div className="container animate-fade-in" style={{ marginTop: '1rem' }}>
       <DashboardHeader currentTab="videos" />
       <VideosManager
         streamConfigured={streamConfigured}
-        initialVideos={videos.map((v) => ({
-          id: v.id,
-          title: v.title,
-          slug: v.slug,
-          description: v.description,
-          seoTitle: v.seoTitle,
-          seoKeywords: v.seoKeywords,
-          platform: v.platform,
-          thumbnailUrl: v.thumbnailUrl,
-          isActive: v.isActive,
-          showOnHome: v.showOnHome,
-          showInSidebar: v.showInSidebar,
-          publishedAt: v.publishedAt.toISOString(),
-          embedUrl: v.embedUrl,
-          sourceUrl: v.sourceUrl,
-          durationSec: v.durationSec,
-        }))}
+        analyticsError={analytics.error}
+        initialVideos={videos.map((v) => {
+          const streamStats =
+            v.platform === 'STREAM' ? analytics.byUid[v.externalId] : undefined;
+          return {
+            id: v.id,
+            title: v.title,
+            slug: v.slug,
+            description: v.description,
+            seoTitle: v.seoTitle,
+            seoKeywords: v.seoKeywords,
+            platform: v.platform,
+            externalId: v.externalId,
+            thumbnailUrl: v.thumbnailUrl,
+            isActive: v.isActive,
+            showOnHome: v.showOnHome,
+            showInSidebar: v.showInSidebar,
+            publishedAt: v.publishedAt.toISOString(),
+            embedUrl: v.embedUrl,
+            sourceUrl: v.sourceUrl,
+            durationSec: v.durationSec,
+            views: v.views,
+            minutes7d: streamStats?.minutes7d ?? null,
+            minutes30d: streamStats?.minutes30d ?? null,
+          };
+        })}
       />
     </div>
   );

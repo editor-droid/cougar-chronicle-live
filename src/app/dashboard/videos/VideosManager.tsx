@@ -15,6 +15,7 @@ export type AdminVideo = {
   seoTitle: string | null;
   seoKeywords: string | null;
   platform: 'STREAM' | 'YOUTUBE';
+  externalId?: string;
   thumbnailUrl: string | null;
   isActive: boolean;
   showOnHome: boolean;
@@ -23,6 +24,11 @@ export type AdminVideo = {
   embedUrl: string;
   sourceUrl: string | null;
   durationSec: number | null;
+  views: number;
+  /** Stream delivery minutes (last 7 days) */
+  minutes7d: number | null;
+  /** Stream delivery minutes (last 30 days) */
+  minutes30d: number | null;
 };
 
 /** Soft cap — Cloudflare TUS supports large files; 4GB covers high-res phone clips. */
@@ -37,12 +43,23 @@ function formatDurationInput(sec: number | null | undefined): string {
 
 type UploadPhase = 'idle' | 'preparing' | 'uploading' | 'ready' | 'error';
 
+function formatMinutes(m: number | null | undefined): string {
+  if (m == null) return '—';
+  if (m < 1 && m > 0) return '<1m';
+  if (m < 60) return `${Math.round(m)}m`;
+  const h = Math.floor(m / 60);
+  const mins = Math.round(m % 60);
+  return mins ? `${h}h ${mins}m` : `${h}h`;
+}
+
 export default function VideosManager({
   initialVideos,
   streamConfigured,
+  analyticsError,
 }: {
   initialVideos: AdminVideo[];
   streamConfigured: boolean;
+  analyticsError?: string | null;
 }) {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -736,6 +753,19 @@ export default function VideosManager({
         <h2>Library</h2>
       </div>
 
+      {analyticsError && (
+        <p className={styles.error} style={{ marginBottom: '1rem' }}>
+          Stream watch-time analytics: {analyticsError}
+        </p>
+      )}
+
+      {!analyticsError && streamConfigured && (
+        <p className={styles.hint} style={{ marginTop: 0 }}>
+          <strong>Page views</strong> = opens of our watch page. <strong>Watch time</strong> = minutes
+          Stream delivered (last 7 / 30 days). Duration = length of the file.
+        </p>
+      )}
+
       <div className={styles.grid}>
         {initialVideos.length === 0 && (
           <div className={styles.empty}>
@@ -773,6 +803,32 @@ export default function VideosManager({
 
               <div className={styles.cardBody}>
                 <h3 className={styles.cardTitle}>{v.title}</h3>
+                <div className={styles.statsRow}>
+                  <div className={styles.stat}>
+                    <span className={styles.statLabel}>Duration</span>
+                    <span className={styles.statValue}>
+                      {v.durationSec != null && v.durationSec > 0
+                        ? formatDurationInput(v.durationSec)
+                        : '—'}
+                    </span>
+                  </div>
+                  <div className={styles.stat}>
+                    <span className={styles.statLabel}>Page views</span>
+                    <span className={styles.statValue}>{v.views.toLocaleString()}</span>
+                  </div>
+                  <div className={styles.stat}>
+                    <span className={styles.statLabel}>Watch 7d</span>
+                    <span className={styles.statValue}>
+                      {v.platform === 'STREAM' ? formatMinutes(v.minutes7d) : 'n/a'}
+                    </span>
+                  </div>
+                  <div className={styles.stat}>
+                    <span className={styles.statLabel}>Watch 30d</span>
+                    <span className={styles.statValue}>
+                      {v.platform === 'STREAM' ? formatMinutes(v.minutes30d) : 'n/a'}
+                    </span>
+                  </div>
+                </div>
                 <div className={styles.cardMeta}>
                   <a
                     href={`/videos/${v.slug}`}
@@ -784,9 +840,6 @@ export default function VideosManager({
                   >
                     /videos/{v.slug}
                   </a>
-                  {v.durationSec != null && (
-                    <span className={styles.metaChip}>{formatDurationInput(v.durationSec)}</span>
-                  )}
                   <span className={`${styles.metaChip} ${v.showOnHome ? styles.metaOn : styles.metaOff}`}>
                     Home {v.showOnHome ? '✓' : '—'}
                   </span>
