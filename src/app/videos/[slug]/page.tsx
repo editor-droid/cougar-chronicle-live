@@ -43,12 +43,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     : undefined;
 
   return {
-    title: `${pageTitle} | Videos | The Cougar Chronicle`,
+    // Root layout template: "%s | The Cougar Chronicle"
+    title: `${pageTitle} | Videos`,
     description,
     keywords,
     alternates: { canonical: url },
     openGraph: {
-      title: pageTitle,
+      title: `${pageTitle} | Videos | The Cougar Chronicle`,
       description,
       url,
       type: 'video.other',
@@ -67,7 +68,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
     twitter: {
       card: 'summary_large_image',
-      title: pageTitle,
+      title: `${pageTitle} | Videos | The Cougar Chronicle`,
       description,
       images: thumb ? [thumb] : ['/default-og.png'],
     },

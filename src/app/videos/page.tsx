@@ -12,7 +12,8 @@ import Link from 'next/link';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Videos | The Cougar Chronicle',
+  // Root layout template adds "| The Cougar Chronicle" — don't include it here
+  title: 'Videos',
   description:
     'Interviews, campus moments, and short features from The Cougar Chronicle newsroom.',
   openGraph: {
