@@ -86,14 +86,14 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ [k
   }
 
   return (
-    <div className="container animate-fade-in" style={{ marginTop: '2rem' }}>
+    <div className="container animate-fade-in" style={{ marginTop: '1rem' }}>
       <DashboardHeader currentTab="posts" />
 
       {isEditorOrAdmin && needsReviewPosts.length > 0 && (
         <div style={{ marginBottom: '3rem' }}>
           <h2 className="font-serif" style={{ fontSize: '1.5rem', marginBottom: '1rem', color: 'var(--accent)' }}>Needs Review Queue</h2>
-          <div style={{ backgroundColor: 'var(--surface)', borderRadius: '0.5rem', border: '2px solid var(--accent)', overflow: 'hidden' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          <div className="dashboard-table-scroll" style={{ backgroundColor: 'var(--surface)', borderRadius: '0.5rem', border: '2px solid var(--accent)' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: 520 }}>
               <thead style={{ backgroundColor: 'var(--surface-hover)', borderBottom: '1px solid var(--border)' }}>
                 <tr>
                   <th style={{ padding: '1rem' }} className="font-sans text-sm text-muted">TITLE</th>
@@ -125,8 +125,8 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ [k
 
       <div>
         <h2 className="font-serif" style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>{isEditorOrAdmin ? 'All Drafts & Approvals' : 'Your Drafts'}</h2>
-        <div style={{ backgroundColor: 'var(--surface)', borderRadius: '0.5rem', border: '1px solid var(--border)', overflow: 'hidden' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+        <div className="dashboard-table-scroll" style={{ backgroundColor: 'var(--surface)', borderRadius: '0.5rem', border: '1px solid var(--border)' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: 520 }}>
             <thead style={{ backgroundColor: 'var(--surface-hover)', borderBottom: '1px solid var(--border)' }}>
               <tr>
                 <th style={{ padding: '1rem' }} className="font-sans text-sm text-muted">TITLE</th>
@@ -211,8 +211,8 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ [k
             {query && <Link href={`/dashboard?sort=${sortCol}&order=${sortOrder}`} className="btn btn-secondary text-sm" style={{ padding: '0.5rem 1.5rem' }}>Clear</Link>}
           </form>
 
-          <div style={{ backgroundColor: 'var(--surface)', borderRadius: '0.5rem', border: '1px solid var(--border)', overflow: 'hidden' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          <div className="dashboard-table-scroll" style={{ backgroundColor: 'var(--surface)', borderRadius: '0.5rem', border: '1px solid var(--border)' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: 640 }}>
               <thead style={{ backgroundColor: 'var(--surface-hover)', borderBottom: '1px solid var(--border)' }}>
                 <tr>
                   <th style={{ padding: '1rem' }} className="font-sans text-sm text-muted">

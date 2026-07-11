@@ -1,83 +1,60 @@
 import { auth, signOut } from '@/auth';
 import Link from 'next/link';
+import DashboardNav from '@/components/DashboardNav';
 
-export default async function DashboardHeader({ 
+export default async function DashboardHeader({
   currentTab,
-  title
-}: { 
-  currentTab: 'posts' | 'users' | 'print-editions' | 'donors' | 'subscribers' | 'videos',
-  title?: string
+  title,
+}: {
+  currentTab: 'posts' | 'users' | 'print-editions' | 'donors' | 'subscribers' | 'videos';
+  title?: string;
 }) {
   const session = await auth();
   if (!session?.user) return null;
-  
+
   const role = session.user.role;
   const isEditorOrAdmin = role === 'EDITOR' || role === 'ADMIN';
 
   return (
-    <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: '2rem', flexWrap: 'wrap' }}>
-        <h1 className="font-serif" style={{ fontSize: '2.5rem' }}>
+    <header className="dash-header">
+      <div className="dash-header-top">
+        <h1 className="dash-header-title">
           {title || (isEditorOrAdmin ? 'Editorial Dashboard' : 'Writer Dashboard')}
         </h1>
-        {isEditorOrAdmin && (
-          <nav style={{ display: 'flex', gap: '1rem' }}>
-            {currentTab === 'posts' ? (
-              <span className="font-sans" style={{ fontWeight: 600, borderBottom: '2px solid var(--foreground)' }}>Posts</span>
-            ) : (
-              <Link href="/dashboard" className="text-muted hover:text-foreground font-sans">Posts</Link>
-            )}
-            
-            {role === 'ADMIN' && (
-              currentTab === 'users' ? (
-                <span className="font-sans" style={{ fontWeight: 600, borderBottom: '2px solid var(--foreground)' }}>Users</span>
-              ) : (
-                <Link href="/dashboard/users" className="text-muted hover:text-foreground font-sans">Users</Link>
-              )
-            )}
-            
-            {currentTab === 'print-editions' ? (
-              <span className="font-sans" style={{ fontWeight: 600, borderBottom: '2px solid var(--foreground)' }}>Print Editions</span>
-            ) : (
-              <Link href="/dashboard/print-editions" className="text-muted hover:text-foreground font-sans">Print Editions</Link>
-            )}
+        <div className="dash-header-actions">
+          <Link
+            href="/dashboard/editor/new"
+            className="btn btn-primary font-sans"
+            style={{ padding: '0.5rem 1rem' }}
+          >
+            New Draft
+          </Link>
+          <form
+            action={async () => {
+              'use server';
+              await signOut({ redirectTo: '/login' });
+            }}
+          >
+            <button
+              type="submit"
+              className="btn btn-secondary font-sans"
+              style={{ padding: '0.5rem 1rem' }}
+            >
+              Logout
+            </button>
+          </form>
+        </div>
+      </div>
 
-            {currentTab === 'videos' ? (
-              <span className="font-sans" style={{ fontWeight: 600, borderBottom: '2px solid var(--foreground)' }}>Videos</span>
-            ) : (
-              <Link href="/dashboard/videos" className="text-muted hover:text-foreground font-sans">Videos</Link>
-            )}
-            
-            {role === 'ADMIN' && (
-              <>
-                {currentTab === 'donors' ? (
-                  <span className="font-sans" style={{ fontWeight: 600, borderBottom: '2px solid var(--foreground)' }}>Donors</span>
-                ) : (
-                  <Link href="/dashboard/donors" className="text-muted hover:text-foreground font-sans">Donors</Link>
-                )}
-                
-                {currentTab === 'subscribers' ? (
-                  <span className="font-sans" style={{ fontWeight: 600, borderBottom: '2px solid var(--foreground)' }}>Subscribers</span>
-                ) : (
-                  <Link href="/dashboard/subscribers" className="text-muted hover:text-foreground font-sans">Subscribers</Link>
-                )}
-              </>
-            )}
-          </nav>
-        )}
-      </div>
-      <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-        <span className="text-muted font-sans text-sm" style={{ alignSelf: 'center' }}>
-          Logged in as {session.user.name || session.user.email} ({role})
-        </span>
-        <Link href="/dashboard/editor/new" className="btn btn-primary font-sans" style={{ padding: '0.5rem 1rem' }}>New Draft</Link>
-        <form action={async () => {
-          'use server';
-          await signOut({ redirectTo: '/login' });
-        }}>
-          <button type="submit" className="btn btn-secondary font-sans" style={{ padding: '0.5rem 1rem' }}>Logout</button>
-        </form>
-      </div>
+      <DashboardNav
+        currentTab={currentTab}
+        role={role}
+        isEditorOrAdmin={isEditorOrAdmin}
+      />
+
+      <span className="dash-user">
+        {session.user.name || session.user.email} · {role}
+      </span>
     </header>
   );
 }

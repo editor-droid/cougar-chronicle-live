@@ -7,6 +7,46 @@
   position: relative;
 }
 
+@media (max-width: 900px) {
+  .container {
+    flex-direction: column;
+    margin-right: 0;
+    padding-right: 0;
+    gap: 1rem;
+  }
+  .sidebarWrapper {
+    width: 100% !important;
+    margin-left: 0 !important;
+    opacity: 1 !important;
+  }
+  .sidebar {
+    width: 100% !important;
+    position: relative !important;
+    top: 0 !important;
+    height: auto !important;
+    max-height: none;
+  }
+  .header {
+    position: sticky;
+    top: 0.25rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+  }
+  .headerLeft, .headerRight {
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .headerButton {
+    min-height: 40px;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8rem;
+  }
+  .titleInput {
+    font-size: 1.65rem !important;
+  }
+}
+
 .leftColumn {
   flex: 1;
   max-width: 900px;

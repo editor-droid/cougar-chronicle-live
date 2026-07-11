@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Plus, Upload, Link2, X, Loader2, Sparkles } from 'lucide-react';
+import * as tus from 'tus-js-client';
 import styles from './VideosAdmin.module.css';
 
 export type AdminVideo = {
@@ -24,7 +25,8 @@ export type AdminVideo = {
   durationSec: number | null;
 };
 
-const MAX_FILE_MB = 200;
+/** Soft cap — Cloudflare TUS supports large files; 4GB covers high-res phone clips. */
+const MAX_FILE_BYTES = 4 * 1024 * 1024 * 1024;
 
 function formatDurationInput(sec: number | null | undefined): string {
   if (sec == null || sec <= 0) return '';
@@ -44,7 +46,7 @@ export default function VideosManager({
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [composerOpen, setComposerOpen] = useState(false);
-  const [mode, setMode] = useState<'youtube' | 'stream'>('youtube');
+  const [mode, setMode] = useState<'youtube' | 'stream'>('stream');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [seoKeywords, setSeoKeywords] = useState('');
@@ -56,6 +58,7 @@ export default function VideosManager({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [status, setStatus] = useState('');
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [error, setError] = useState('');
 
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -94,9 +97,32 @@ export default function VideosManager({
     setShowOnHome(true);
     setShowInSidebar(true);
     setStatus('');
+    setUploadProgress(null);
     setError('');
     if (fileRef.current) fileRef.current.value = '';
   };
+
+  const uploadViaTus = (fileToUpload: File, uploadURL: string) =>
+    new Promise<void>((resolve, reject) => {
+      const upload = new tus.Upload(fileToUpload, {
+        uploadUrl: uploadURL,
+        retryDelays: [0, 1000, 3000, 5000, 10000],
+        chunkSize: 50 * 1024 * 1024,
+        metadata: {
+          filename: fileToUpload.name,
+          filetype: fileToUpload.type || 'video/mp4',
+        },
+        onError: (err) => reject(err),
+        onProgress: (bytesUploaded, bytesTotal) => {
+          if (bytesTotal > 0) {
+            setUploadProgress(Math.round((bytesUploaded / bytesTotal) * 100));
+            setStatus(`Uploading… ${Math.round((bytesUploaded / bytesTotal) * 100)}%`);
+          }
+        },
+        onSuccess: () => resolve(),
+      });
+      upload.start();
+    });
 
   const runAiSeo = async (opts?: {
     forEdit?: boolean;
@@ -194,27 +220,34 @@ export default function VideosManager({
         if (!res.ok) throw new Error(data.error || 'Failed to save');
       } else {
         if (!file) throw new Error('Choose a video file');
-        if (file.size > MAX_FILE_MB * 1024 * 1024) {
-          throw new Error(`File must be under ${MAX_FILE_MB} MB`);
+        if (file.size > MAX_FILE_BYTES) {
+          throw new Error(
+            'File is larger than 4 GB. Export at 1080p or trim the clip — phone 4K masters are often huge.'
+          );
         }
         if (!streamConfigured) {
           throw new Error('Stream is not configured (CLOUDFLARE_API_TOKEN)');
         }
 
         setStatus('Preparing upload…');
+        setUploadProgress(0);
+        // Resumable TUS — required for >200MB and better on mobile networks
         const setupRes = await fetch('/api/videos/stream-upload', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ maxDurationSeconds: 180, name: title.trim() }),
+          body: JSON.stringify({
+            protocol: 'tus',
+            uploadLength: file.size,
+            maxDurationSeconds: 1800,
+            name: title.trim(),
+          }),
         });
         const setup = await setupRes.json();
         if (!setupRes.ok) throw new Error(setup.error || 'Upload unavailable');
 
         setStatus('Uploading…');
-        const formData = new FormData();
-        formData.append('file', file);
-        const uploadRes = await fetch(setup.uploadURL, { method: 'POST', body: formData });
-        if (!uploadRes.ok) throw new Error('Upload failed');
+        await uploadViaTus(file, setup.uploadURL);
+        setUploadProgress(100);
 
         setStatus('Publishing…');
         const res = await fetch('/api/videos', {
@@ -385,15 +418,6 @@ export default function VideosManager({
           <div className={styles.modeTabs}>
             <button
               type="button"
-              className={`${styles.modeTab} ${mode === 'youtube' ? styles.modeTabActive : ''}`}
-              onClick={() => setMode('youtube')}
-            >
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                <Link2 size={14} /> YouTube
-              </span>
-            </button>
-            <button
-              type="button"
               className={`${styles.modeTab} ${mode === 'stream' ? styles.modeTabActive : ''}`}
               onClick={() => setMode('stream')}
             >
@@ -401,9 +425,46 @@ export default function VideosManager({
                 <Upload size={14} /> Upload
               </span>
             </button>
+            <button
+              type="button"
+              className={`${styles.modeTab} ${mode === 'youtube' ? styles.modeTabActive : ''}`}
+              onClick={() => setMode('youtube')}
+            >
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <Link2 size={14} /> YouTube
+              </span>
+            </button>
           </div>
 
-          {mode === 'youtube' ? (
+          {mode === 'stream' ? (
+            <>
+              <input
+                ref={fileRef}
+                type="file"
+                accept="video/*"
+                style={{ display: 'none' }}
+                onChange={(e) => setFile(e.target.files?.[0] || null)}
+              />
+              <button type="button" className={styles.fileDrop} onClick={() => fileRef.current?.click()}>
+                <strong>{file ? file.name : 'Tap to choose video from phone'}</strong>
+                <span>
+                  {file
+                    ? `${(file.size / (1024 * 1024)).toFixed(1)} MB · resumable upload`
+                    : 'Phone camera files OK · up to 4 GB · resumable on cellular'}
+                </span>
+              </button>
+              {uploadProgress != null && isSubmitting && (
+                <div className={styles.progressTrack} aria-valuenow={uploadProgress} aria-valuemin={0} aria-valuemax={100}>
+                  <div className={styles.progressBar} style={{ width: `${uploadProgress}%` }} />
+                </div>
+              )}
+              {!streamConfigured && (
+                <p className={styles.error} style={{ marginTop: '-0.35rem' }}>
+                  Add CLOUDFLARE_API_TOKEN for uploads.
+                </p>
+              )}
+            </>
+          ) : (
             <input
               className={styles.fieldInput}
               type="url"
@@ -413,30 +474,6 @@ export default function VideosManager({
               placeholder="Paste YouTube or Shorts link"
               autoComplete="off"
             />
-          ) : (
-            <>
-              <input
-                ref={fileRef}
-                type="file"
-                accept="video/*"
-                capture="environment"
-                style={{ display: 'none' }}
-                onChange={(e) => setFile(e.target.files?.[0] || null)}
-              />
-              <button type="button" className={styles.fileDrop} onClick={() => fileRef.current?.click()}>
-                <strong>{file ? file.name : 'Tap to choose or record video'}</strong>
-                <span>
-                  {file
-                    ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
-                    : `MP4 · max ${MAX_FILE_MB} MB`}
-                </span>
-              </button>
-              {!streamConfigured && (
-                <p className={styles.error} style={{ marginTop: '-0.35rem' }}>
-                  Add CLOUDFLARE_API_TOKEN for uploads. YouTube works now.
-                </p>
-              )}
-            </>
           )}
 
           <div className={styles.seoRow}>

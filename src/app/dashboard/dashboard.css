@@ -1,0 +1,276 @@
+/* ── Admin shell: mobile-first ─────────────────────────────────────────── */
+
+.dashboard-shell {
+  min-height: 60vh;
+  padding-bottom: calc(2rem + env(safe-area-inset-bottom, 0px));
+}
+
+.dashboard-shell > .container {
+  width: 100%;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  box-sizing: border-box;
+}
+
+@media (min-width: 768px) {
+  .dashboard-shell > .container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+/* Touch-friendly controls */
+.dashboard-shell .btn,
+.dashboard-shell button.btn,
+.dashboard-shell a.btn {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.dashboard-shell input[type='text'],
+.dashboard-shell input[type='email'],
+.dashboard-shell input[type='url'],
+.dashboard-shell input[type='search'],
+.dashboard-shell input[type='number'],
+.dashboard-shell input[type='password'],
+.dashboard-shell select,
+.dashboard-shell textarea {
+  font-size: 16px; /* prevents iOS zoom on focus */
+  min-height: 44px;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Horizontal scroll for wide admin tables */
+.dashboard-shell table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.dashboard-shell div[style*='overflow'],
+.dashboard-table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+
+@media (max-width: 768px) {
+  .dashboard-shell h1.font-serif,
+  .dashboard-shell h1 {
+    font-size: 1.5rem !important;
+    line-height: 1.25;
+  }
+
+  .dashboard-shell h2.font-serif,
+  .dashboard-shell h2 {
+    font-size: 1.2rem !important;
+  }
+
+  .dashboard-shell th,
+  .dashboard-shell td {
+    padding: 0.65rem 0.55rem !important;
+    font-size: 0.8rem;
+  }
+
+  .dashboard-shell th {
+    white-space: nowrap;
+  }
+
+  .dashboard-shell td.font-serif,
+  .dashboard-shell td .font-serif {
+    white-space: normal;
+    max-width: 12rem;
+  }
+
+  /* Stack action button rows */
+  .dashboard-shell td[style*='display: flex'],
+  .dashboard-shell td[style*='display:flex'] {
+    flex-wrap: wrap !important;
+    gap: 0.4rem !important;
+  }
+
+  .dashboard-shell form[style*='display: flex'],
+  .dashboard-shell form[style*='display:flex'] {
+    flex-direction: column;
+    align-items: stretch !important;
+  }
+
+  .dashboard-shell form[style*='display: flex'] input,
+  .dashboard-shell form[style*='display:flex'] input {
+    min-width: 0 !important;
+    width: 100%;
+  }
+}
+
+/* ── Sticky mobile dashboard nav ───────────────────────────────────────── */
+
+.dash-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.dash-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.dash-header-title {
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.2;
+  color: var(--foreground);
+  min-width: 0;
+  flex: 1;
+}
+
+@media (min-width: 768px) {
+  .dash-header-title {
+    font-size: 2.25rem;
+  }
+}
+
+.dash-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.dash-nav-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.dash-menu-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  align-self: flex-start;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--surface);
+  color: var(--foreground);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  font-weight: 600;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.dash-menu-toggle-label {
+  display: inline;
+}
+
+@media (min-width: 900px) {
+  .dash-menu-toggle {
+    display: none;
+  }
+}
+
+.dash-user {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  color: var(--muted);
+  width: 100%;
+  order: 3;
+}
+
+@media (min-width: 640px) {
+  .dash-user {
+    width: auto;
+    order: 0;
+    font-size: 0.8rem;
+  }
+}
+
+.dash-nav {
+  display: none;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+}
+
+.dash-nav.open {
+  display: flex;
+}
+
+@media (min-width: 900px) {
+  .dash-nav {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem 0.75rem;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+  }
+}
+
+.dash-nav a,
+.dash-nav span.dash-nav-active {
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--muted);
+  padding: 0.75rem 0.85rem;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  border-radius: 0.5rem;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.dash-nav a:hover {
+  color: var(--foreground);
+  background: var(--surface-hover);
+}
+
+.dash-nav span.dash-nav-active {
+  color: var(--foreground);
+  border-bottom: 2px solid var(--foreground);
+  border-radius: 0;
+  background: transparent;
+}
+
+@media (max-width: 899px) {
+  .dash-nav span.dash-nav-active {
+    background: rgba(27, 34, 83, 0.08);
+    color: var(--primary);
+    border-bottom: none;
+    border-radius: 0.5rem;
+  }
+}
+
+.dash-header-actions .btn {
+  white-space: nowrap;
+}
