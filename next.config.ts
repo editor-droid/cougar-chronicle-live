@@ -49,8 +49,10 @@ const nextConfig: NextConfig = {
             value: '1; mode=block',
           },
           {
+            // fullscreen=* so Cloudflare Stream / YouTube iframes can use the Fullscreen API
+            // (default is self-only — PiP works, native fullscreen does not)
             key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=()',
+            value: 'camera=(), microphone=(), geolocation=(), fullscreen=*',
           },
         ],
       },

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Maximize2 } from 'lucide-react';
 import { useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -20,7 +20,8 @@ type Props = {
 };
 
 /**
- * Watch player with portrait-friendly sizing and next/prev (reels-style) nav.
+ * Watch player with portrait-friendly sizing, fullscreen-capable Stream iframe,
+ * and next/prev (reels-style) nav.
  */
 export default function VideoWatchPlayer({
   title,
@@ -59,30 +60,21 @@ export default function VideoWatchPlayer({
 
   return (
     <div
+      className="video-watch-player"
       style={{
         display: 'flex',
         flexDirection: 'column',
         alignItems: portrait ? 'center' : 'stretch',
         gap: '1rem',
         marginBottom: '1.25rem',
+        width: '100%',
       }}
     >
       <div
+        className={portrait ? 'vw-frame vw-portrait' : 'vw-frame vw-landscape'}
         style={{
           position: 'relative',
-          // Portrait: short phone frame so full clip fits without dominating the page
-          ...(portrait
-            ? {
-                height: 'min(38vh, 340px)',
-                width: 'auto',
-                aspectRatio: aspect,
-                maxWidth: 'min(100%, 220px)',
-              }
-            : {
-                width: '100%',
-                aspectRatio: aspect,
-                maxHeight: 'min(70vh, 640px)',
-              }),
+          aspectRatio: aspect,
           backgroundColor: portrait ? 'transparent' : 'var(--surface-hover)',
           borderRadius: '0.75rem',
           overflow: 'hidden',
@@ -96,8 +88,11 @@ export default function VideoWatchPlayer({
         <iframe
           src={embedUrl}
           title={title}
-          allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+          // Fullscreen requires allow + allowFullScreen AND site Permissions-Policy fullscreen=*
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+          allowFullScreen
           loading="eager"
+          referrerPolicy="strict-origin-when-cross-origin"
           style={{
             position: 'absolute',
             inset: 0,
@@ -109,17 +104,32 @@ export default function VideoWatchPlayer({
         />
       </div>
 
-      {/* Next / Prev — Instagram-ish, not a full-screen TikTok app */}
+      <p
+        className="font-sans text-xs text-muted"
+        style={{
+          margin: 0,
+          textAlign: 'center',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '0.35rem',
+          lineHeight: 1.4,
+          padding: '0 0.5rem',
+        }}
+      >
+        <Maximize2 size={12} aria-hidden />
+        Full screen is on the player controls (usually bottom-right). Picture-in-picture is separate.
+      </p>
+
       {(prev || next) && (
         <div
           style={{
             display: 'flex',
             alignItems: 'stretch',
-            justifyContent: portrait ? 'center' : 'space-between',
+            justifyContent: 'space-between',
             gap: '0.65rem',
             flexWrap: 'wrap',
             width: '100%',
-            maxWidth: portrait ? '420px' : '100%',
           }}
         >
           {prev ? (
@@ -127,7 +137,7 @@ export default function VideoWatchPlayer({
               href={`/videos/${prev.slug}`}
               className="font-sans"
               style={{
-                flex: portrait ? '1 1 140px' : '1 1 0',
+                flex: '1 1 140px',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.5rem',
@@ -143,22 +153,24 @@ export default function VideoWatchPlayer({
               }}
             >
               <ChevronLeft size={20} style={{ flexShrink: 0 }} />
-              <span
-                style={{
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  minWidth: 0,
-                }}
-              >
-                <span style={{ display: 'block', fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--muted)', fontWeight: 700 }}>
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>
+                <span
+                  style={{
+                    display: 'block',
+                    fontSize: '0.65rem',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.06em',
+                    color: 'var(--muted)',
+                    fontWeight: 700,
+                  }}
+                >
                   Previous
                 </span>
                 {prev.title}
               </span>
             </Link>
           ) : (
-            <div style={{ flex: 1 }} />
+            <div style={{ flex: 1, minWidth: 0 }} />
           )}
 
           {next ? (
@@ -166,7 +178,7 @@ export default function VideoWatchPlayer({
               href={`/videos/${next.slug}`}
               className="font-sans"
               style={{
-                flex: portrait ? '1 1 140px' : '1 1 0',
+                flex: '1 1 140px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'flex-end',
@@ -191,7 +203,16 @@ export default function VideoWatchPlayer({
                   textAlign: 'right',
                 }}
               >
-                <span style={{ display: 'block', fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.06em', opacity: 0.85, fontWeight: 700 }}>
+                <span
+                  style={{
+                    display: 'block',
+                    fontSize: '0.65rem',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.06em',
+                    opacity: 0.85,
+                    fontWeight: 700,
+                  }}
+                >
                   Next
                 </span>
                 {next.title}
@@ -199,19 +220,59 @@ export default function VideoWatchPlayer({
               <ChevronRight size={20} style={{ flexShrink: 0 }} />
             </Link>
           ) : (
-            <div style={{ flex: 1 }} />
+            <div style={{ flex: 1, minWidth: 0 }} />
           )}
         </div>
       )}
 
       {(prev || next) && (
         <p
-          className="font-sans text-xs text-muted"
+          className="font-sans text-xs text-muted vw-kb-hint"
           style={{ margin: 0, textAlign: 'center', opacity: 0.85 }}
         >
           Tip: use ↑↓ or J/K to skip videos
         </p>
       )}
+
+      <style>{`
+        .vw-frame {
+          position: relative;
+        }
+        .vw-portrait {
+          width: min(100%, 280px);
+          max-height: min(52vh, 420px);
+        }
+        .vw-landscape {
+          width: 100%;
+          max-height: min(70vh, 640px);
+        }
+        @media (max-width: 640px) {
+          .vw-portrait {
+            /* Mobile: larger — use most of the screen width so it feels native */
+            width: min(92vw, 340px);
+            max-height: min(62vh, 520px);
+          }
+          .vw-landscape {
+            max-height: min(56vh, 480px);
+          }
+          .vw-kb-hint {
+            display: none;
+          }
+        }
+        @media (min-width: 641px) and (max-width: 900px) {
+          .vw-portrait {
+            width: min(100%, 260px);
+            max-height: min(48vh, 400px);
+          }
+        }
+        @media (min-width: 901px) {
+          .vw-portrait {
+            /* Desktop: compact so full page is visible */
+            width: min(100%, 220px);
+            max-height: min(40vh, 360px);
+          }
+        }
+      `}</style>
     </div>
   );
 }
