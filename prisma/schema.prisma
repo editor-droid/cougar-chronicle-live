@@ -195,6 +195,11 @@ model Video {
   /// Canonical watch / content URL for SEO (VideoObject)
   contentUrl    String?
   durationSec   Int?
+  /// Source pixel size when known (Stream input / YouTube) — drives player aspect
+  width         Int?
+  height        Int?
+  /// Page views on /videos/[slug]
+  views         Int            @default(0)
   isActive      Boolean        @default(true)
   showOnHome    Boolean        @default(true)
   showInSidebar Boolean        @default(true)

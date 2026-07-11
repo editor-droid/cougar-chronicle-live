@@ -50,11 +50,13 @@ export async function fetchYoutubeOEmbed(videoId: string): Promise<{
   }
 }
 
-/** Cloudflare Stream video details (duration, ready-to-stream, thumbnail). */
+/** Cloudflare Stream video details (duration, dimensions, ready-to-stream, thumbnail). */
 export async function fetchStreamDetails(uid: string): Promise<{
   durationSec?: number;
   thumbnailUrl?: string;
   readyToStream?: boolean;
+  width?: number;
+  height?: number;
 } | null> {
   const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
   const apiToken = process.env.CLOUDFLARE_API_TOKEN;
@@ -75,14 +77,41 @@ export async function fetchStreamDetails(uid: string): Promise<{
       typeof result.duration === 'number' && result.duration > 0
         ? Math.round(result.duration)
         : undefined;
+    const width =
+      typeof result.input?.width === 'number'
+        ? result.input.width
+        : typeof result.meta?.width === 'number'
+          ? result.meta.width
+          : undefined;
+    const height =
+      typeof result.input?.height === 'number'
+        ? result.input.height
+        : typeof result.meta?.height === 'number'
+          ? result.meta.height
+          : undefined;
     return {
       durationSec: duration,
       thumbnailUrl: result.thumbnail || streamThumbnailUrl(uid),
       readyToStream: Boolean(result.readyToStream),
+      width,
+      height,
     };
   } catch {
     return null;
   }
+}
+
+/** Portrait if taller than wide; default landscape when unknown. */
+export function isPortraitVideo(width?: number | null, height?: number | null): boolean {
+  if (!width || !height || width <= 0 || height <= 0) return false;
+  return height > width;
+}
+
+export function videoAspectRatioCss(width?: number | null, height?: number | null): string {
+  if (width && height && width > 0 && height > 0) {
+    return `${width} / ${height}`;
+  }
+  return '16 / 9';
 }
 
 export function youtubeEmbedUrl(videoId: string): string {
@@ -115,9 +144,28 @@ export function streamCustomerHost(): string {
   return `${host}.cloudflarestream.com`;
 }
 
-export function streamEmbedUrl(uid: string): string {
+export function streamEmbedUrl(
+  uid: string,
+  opts?: {
+    /** CSS color; "transparent" hides black letterbox bars for vertical clips */
+    letterboxColor?: string;
+    primaryColor?: string;
+    autoplay?: boolean;
+    muted?: boolean;
+    preload?: 'auto' | 'metadata' | 'none';
+  }
+): string {
   // Preferred: https://customer-xxx.cloudflarestream.com/{uid}/iframe
-  return `https://${streamCustomerHost()}/${uid}/iframe`;
+  const params = new URLSearchParams();
+  // Transparent letterbox = no black sidebars for vertical video outside fullscreen
+  params.set('letterboxColor', opts?.letterboxColor ?? 'transparent');
+  if (opts?.primaryColor) {
+    params.set('primaryColor', opts.primaryColor);
+  }
+  if (opts?.autoplay) params.set('autoplay', 'true');
+  if (opts?.muted) params.set('muted', 'true');
+  if (opts?.preload) params.set('preload', opts.preload);
+  return `https://${streamCustomerHost()}/${uid}/iframe?${params.toString()}`;
 }
 
 export function streamThumbnailUrl(uid: string): string {
@@ -129,13 +177,16 @@ export function streamContentUrl(uid: string): string {
 }
 
 /** Prefer fresh customer-domain embed for Stream rows (fixes legacy videodelivery.net URLs). */
-export function resolveStreamEmbedUrl(video: {
-  platform: string;
-  externalId: string;
-  embedUrl: string;
-}): string {
+export function resolveStreamEmbedUrl(
+  video: {
+    platform: string;
+    externalId: string;
+    embedUrl: string;
+  },
+  opts?: Parameters<typeof streamEmbedUrl>[1]
+): string {
   if (video.platform === 'STREAM' && video.externalId) {
-    return streamEmbedUrl(video.externalId);
+    return streamEmbedUrl(video.externalId, opts);
   }
   return video.embedUrl;
 }

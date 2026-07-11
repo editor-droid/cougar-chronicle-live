@@ -175,6 +175,8 @@ export async function POST(request: Request) {
       if (durationSec == null && streamMeta?.durationSec) {
         durationSec = streamMeta.durationSec;
       }
+      const width = streamMeta?.width ?? null;
+      const height = streamMeta?.height ?? null;
 
       if (!skipAi && (!description || !seoKeywords || !seoTitle)) {
         try {
@@ -217,6 +219,8 @@ export async function POST(request: Request) {
           thumbnailUrl: streamMeta?.thumbnailUrl || streamThumbnailUrl(uid),
           contentUrl: streamContentUrl(uid),
           durationSec,
+          width,
+          height,
           showOnHome,
           showInSidebar,
           isActive,
