@@ -82,7 +82,7 @@ export default async function Home() {
   const homeVideos = await prisma.video.findMany({
     where: { isActive: true, showOnHome: true },
     orderBy: [{ sortOrder: 'asc' }, { publishedAt: 'desc' }],
-    take: 4,
+    take: 4, // homepage Videos band
   });
 
   // Active Print Edition
@@ -189,7 +189,7 @@ export default async function Home() {
 
 
 
-      {/* 2. DENSE COLUMN LAYOUT (National Review style main content + right widgets) */}
+            {/* 2. DENSE COLUMN LAYOUT (National Review style main content + right widgets) */}
       <div className="home-grid">
         
         {/* Left main feed */}
@@ -278,6 +278,33 @@ export default async function Home() {
                   </Link>
                 ))}
               </div>
+            </section>
+          )}
+
+          {/* VIDEOS BAND — after Opinion */}
+          {homeVideos.length > 0 && (
+            <section className="category-band">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem', borderBottom: '3px double var(--primary)', paddingBottom: '0.5rem' }}>
+                <h2 className="font-serif" style={{ fontSize: '1.5rem', margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--primary)', fontWeight: 800 }}>Videos</h2>
+                <div style={{ flex: 1, height: '1px', backgroundColor: 'var(--border)' }}></div>
+                <Link href="/videos" className="font-sans text-sm" style={{ fontWeight: 'bold', textTransform: 'uppercase', color: 'var(--accent)' }}>View All &rarr;</Link>
+              </div>
+              <VideoHighlights
+                videos={homeVideos.map((v) => ({
+                  id: v.id,
+                  slug: v.slug,
+                  title: v.title,
+                  description: v.description,
+                  platform: v.platform,
+                  embedUrl: resolveStreamEmbedUrl(v),
+                  thumbnailUrl: resolveStreamThumbnailUrl(v),
+                  durationSec: v.durationSec,
+                }))}
+                title=""
+                variant="home"
+                showSeeAll={false}
+                linkToWatchPage
+              />
             </section>
           )}
 
@@ -387,24 +414,6 @@ export default async function Home() {
                 ))}
               </ol>
             </div>
-          )}
-
-          {homeVideos.length > 0 && (
-            <VideoHighlights
-              videos={homeVideos.map((v) => ({
-                id: v.id,
-                slug: v.slug,
-                title: v.title,
-                description: v.description,
-                platform: v.platform,
-                embedUrl: resolveStreamEmbedUrl(v),
-                thumbnailUrl: resolveStreamThumbnailUrl(v),
-                durationSec: v.durationSec,
-              }))}
-              title="Video highlights"
-              variant="sidebar"
-              linkToWatchPage
-            />
           )}
 
           {/* NEWSLETTER SUBSCRIBE BOX */}

@@ -65,7 +65,7 @@ export default function VideoHighlights({
         <div
           style={{
             position: 'relative',
-            width: isSidebar ? 96 : '100%',
+            width: isSidebar ? 112 : '100%',
             flexShrink: 0,
             aspectRatio: '16/9',
             backgroundColor: 'var(--surface-hover)',
@@ -79,7 +79,7 @@ export default function VideoHighlights({
               src={v.thumbnailUrl}
               alt=""
               fill
-              sizes={isSidebar ? '96px' : '(max-width: 768px) 50vw, 220px'}
+              sizes={isSidebar ? '112px' : '(max-width: 768px) 50vw, 220px'}
               style={{ objectFit: 'cover' }}
               unoptimized
             />
@@ -144,16 +144,26 @@ export default function VideoHighlights({
           <span
             className="font-serif"
             style={{
-              fontSize: isSidebar ? '0.95rem' : '1.05rem',
+              // Match Most Popular (1rem) / category headlines (~1.15rem)
+              fontSize: isSidebar ? '1.05rem' : isPage ? '1.15rem' : '1.1rem',
               fontWeight: 700,
               lineHeight: 1.3,
               display: 'block',
+              color: 'var(--foreground)',
             }}
           >
             {v.title}
           </span>
           {!isSidebar && v.description && (
-            <span className="font-sans text-xs text-muted" style={{ display: 'block', marginTop: '0.25rem' }}>
+            <span
+              className="font-sans text-muted"
+              style={{
+                display: 'block',
+                marginTop: '0.35rem',
+                fontSize: '0.85rem',
+                lineHeight: 1.4,
+              }}
+            >
               {v.description}
             </span>
           )}
@@ -165,7 +175,7 @@ export default function VideoHighlights({
   const cardStyle: CSSProperties = {
     display: 'flex',
     flexDirection: isSidebar ? 'row' : 'column',
-    gap: isSidebar ? '0.75rem' : '0.5rem',
+    gap: isSidebar ? '0.85rem' : '0.65rem',
     textAlign: 'left',
     background: 'none',
     border: 'none',
@@ -234,8 +244,8 @@ export default function VideoHighlights({
             ? '1fr'
             : isPage
               ? 'repeat(auto-fill, minmax(260px, 1fr))'
-              : 'repeat(auto-fill, minmax(160px, 1fr))',
-          gap: isSidebar ? '0.85rem' : '1rem',
+              : 'repeat(auto-fill, minmax(200px, 1fr))',
+          gap: isSidebar ? '1rem' : '1.25rem',
         }}
       >
         {videos.map((v) => {
