@@ -324,10 +324,9 @@ export default function VideoHighlights({
             </div>
             <div style={{ position: 'relative', aspectRatio: '16/9', background: '#000' }}>
               <iframe
-                src={`${active.embedUrl}${active.embedUrl.includes('?') ? '&' : '?'}autoplay=1`}
+                src={`${active.embedUrl}${active.embedUrl.includes('?') ? '&' : '?'}autoplay=true`}
                 title={active.title}
-                allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
-                allowFullScreen
+                allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                 style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }}
               />
             </div>

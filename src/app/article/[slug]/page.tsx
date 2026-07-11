@@ -10,6 +10,7 @@ import KeyTakeaways from '@/components/KeyTakeaways';
 import VideoHighlights from '@/components/VideoHighlights';
 import { injectHeadingIds } from '@/lib/toc';
 import { getArticleUrl } from '@/lib/routes';
+import { resolveStreamEmbedUrl, resolveStreamThumbnailUrl } from '@/lib/videos';
 export async function generateMetadata(
   { params }: { params: { slug: string } },
   parent: ResolvingMetadata
@@ -369,8 +370,8 @@ export default async function ArticlePage({ params, searchParams }: { params: { 
                 title: v.title,
                 description: v.description,
                 platform: v.platform,
-                embedUrl: v.embedUrl,
-                thumbnailUrl: v.thumbnailUrl,
+                embedUrl: resolveStreamEmbedUrl(v),
+                thumbnailUrl: resolveStreamThumbnailUrl(v),
                 durationSec: v.durationSec,
               }))}
               title="Videos"

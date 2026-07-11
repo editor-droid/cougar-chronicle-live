@@ -259,6 +259,92 @@
   transition: width 0.2s ease;
 }
 
+.uploadStatusRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  margin: 0 0 1.15rem;
+  padding: 0.85rem 1rem;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.85rem;
+}
+
+.uploadStatusText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.uploadStatusText strong {
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  color: var(--foreground);
+}
+
+.uploadStatusText span {
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  color: #6b7280;
+  line-height: 1.35;
+}
+
+/* Circular progress: --p is 0–100 */
+.progressRing {
+  --p: 0;
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: conic-gradient(var(--primary) calc(var(--p) * 1%), #e5e7eb 0);
+  position: relative;
+}
+
+.progressRing::before {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border-radius: 50%;
+  background: #f8fafc;
+}
+
+.progressRingPct,
+.progressRingCheck,
+.progressRing :global(svg),
+.progressRing .spin {
+  position: relative;
+  z-index: 1;
+}
+
+.progressRingPct {
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.progressRingCheck {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #16a34a;
+}
+
+.spin {
+  animation: dashSpin 0.9s linear infinite;
+  color: var(--primary);
+}
+
+@keyframes dashSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .descInput {
   width: 100%;
   min-height: 72px;

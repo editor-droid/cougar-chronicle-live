@@ -97,16 +97,58 @@ export function youtubeThumbnailUrl(videoId: string): string {
   return `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
 }
 
+/**
+ * Account-specific Stream host (e.g. customer-xxxxx.cloudflarestream.com).
+ * Mixing iframe.videodelivery.net with customer delivery domains causes CORS
+ * failures in the Stream player. Set via env after first upload in CF dashboard.
+ */
+export function streamCustomerHost(): string {
+  const raw =
+    process.env.NEXT_PUBLIC_CLOUDFLARE_STREAM_CUSTOMER_SUBDOMAIN ||
+    process.env.CLOUDFLARE_STREAM_CUSTOMER_SUBDOMAIN ||
+    // Known account host from live Stream delivery (public CDN hostname)
+    'customer-rid446xgvtipvf0g';
+  const host = raw
+    .replace(/^https?:\/\//, '')
+    .replace(/\.cloudflarestream\.com.*$/i, '')
+    .replace(/\/$/, '');
+  return `${host}.cloudflarestream.com`;
+}
+
 export function streamEmbedUrl(uid: string): string {
-  return `https://iframe.videodelivery.net/${uid}`;
+  // Preferred: https://customer-xxx.cloudflarestream.com/{uid}/iframe
+  return `https://${streamCustomerHost()}/${uid}/iframe`;
 }
 
 export function streamThumbnailUrl(uid: string): string {
-  return `https://videodelivery.net/${uid}/thumbnails/thumbnail.jpg`;
+  return `https://${streamCustomerHost()}/${uid}/thumbnails/thumbnail.jpg`;
 }
 
 export function streamContentUrl(uid: string): string {
-  return `https://videodelivery.net/${uid}/manifest/video.m3u8`;
+  return `https://${streamCustomerHost()}/${uid}/manifest/video.m3u8`;
+}
+
+/** Prefer fresh customer-domain embed for Stream rows (fixes legacy videodelivery.net URLs). */
+export function resolveStreamEmbedUrl(video: {
+  platform: string;
+  externalId: string;
+  embedUrl: string;
+}): string {
+  if (video.platform === 'STREAM' && video.externalId) {
+    return streamEmbedUrl(video.externalId);
+  }
+  return video.embedUrl;
+}
+
+export function resolveStreamThumbnailUrl(video: {
+  platform: string;
+  externalId: string;
+  thumbnailUrl: string | null;
+}): string | null {
+  if (video.platform === 'STREAM' && video.externalId) {
+    return streamThumbnailUrl(video.externalId);
+  }
+  return video.thumbnailUrl;
 }
 
 /** ISO 8601 duration, e.g. PT1M30S */

@@ -35,6 +35,8 @@ function formatDurationInput(sec: number | null | undefined): string {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
+type UploadPhase = 'idle' | 'preparing' | 'uploading' | 'ready' | 'error';
+
 export default function VideosManager({
   initialVideos,
   streamConfigured,
@@ -44,6 +46,9 @@ export default function VideosManager({
 }) {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
+  const tusUploadRef = useRef<tus.Upload | null>(null);
+  const uploadPromiseRef = useRef<Promise<{ uid: string }> | null>(null);
+  const uploadGenerationRef = useRef(0);
 
   const [composerOpen, setComposerOpen] = useState(false);
   const [mode, setMode] = useState<'youtube' | 'stream'>('stream');
@@ -58,7 +63,9 @@ export default function VideosManager({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [status, setStatus] = useState('');
-  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadPhase, setUploadPhase] = useState<UploadPhase>('idle');
+  const [streamUid, setStreamUid] = useState<string | null>(null);
   const [error, setError] = useState('');
 
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -87,7 +94,19 @@ export default function VideosManager({
     };
   }, [preview, closePreview]);
 
-  const resetComposer = () => {
+  const abortActiveUpload = useCallback(() => {
+    uploadGenerationRef.current += 1;
+    try {
+      tusUploadRef.current?.abort(true);
+    } catch {
+      /* ignore */
+    }
+    tusUploadRef.current = null;
+    uploadPromiseRef.current = null;
+  }, []);
+
+  const resetComposer = useCallback(() => {
+    abortActiveUpload();
     setTitle('');
     setDescription('');
     setSeoKeywords('');
@@ -97,32 +116,112 @@ export default function VideosManager({
     setShowOnHome(true);
     setShowInSidebar(true);
     setStatus('');
-    setUploadProgress(null);
+    setUploadProgress(0);
+    setUploadPhase('idle');
+    setStreamUid(null);
     setError('');
     if (fileRef.current) fileRef.current.value = '';
-  };
+  }, [abortActiveUpload]);
 
-  const uploadViaTus = (fileToUpload: File, uploadURL: string) =>
-    new Promise<void>((resolve, reject) => {
-      const upload = new tus.Upload(fileToUpload, {
-        uploadUrl: uploadURL,
-        retryDelays: [0, 1000, 3000, 5000, 10000],
-        chunkSize: 50 * 1024 * 1024,
-        metadata: {
-          filename: fileToUpload.name,
-          filetype: fileToUpload.type || 'video/mp4',
-        },
-        onError: (err) => reject(err),
-        onProgress: (bytesUploaded, bytesTotal) => {
-          if (bytesTotal > 0) {
-            setUploadProgress(Math.round((bytesUploaded / bytesTotal) * 100));
-            setStatus(`Uploading… ${Math.round((bytesUploaded / bytesTotal) * 100)}%`);
-          }
-        },
-        onSuccess: () => resolve(),
+  /** Start Stream upload as soon as a file is chosen — staff can fill the form while it transfers. */
+  const startBackgroundUpload = useCallback(
+    (selected: File) => {
+      if (!streamConfigured) {
+        setUploadPhase('error');
+        setError('Stream is not configured (CLOUDFLARE_API_TOKEN)');
+        return;
+      }
+      if (selected.size > MAX_FILE_BYTES) {
+        setUploadPhase('error');
+        setError(
+          'File is larger than 4 GB. Export at 1080p or trim the clip — phone 4K masters are often huge.'
+        );
+        return;
+      }
+
+      abortActiveUpload();
+      const generation = uploadGenerationRef.current;
+      setStreamUid(null);
+      setUploadProgress(0);
+      setUploadPhase('preparing');
+      setError('');
+      setStatus('Preparing upload…');
+
+      const run = (async (): Promise<{ uid: string }> => {
+        const setupRes = await fetch('/api/videos/stream-upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            protocol: 'tus',
+            uploadLength: selected.size,
+            maxDurationSeconds: 1800,
+            name: selected.name || 'upload',
+          }),
+        });
+        const setup = await setupRes.json();
+        if (!setupRes.ok) throw new Error(setup.error || 'Upload unavailable');
+        if (generation !== uploadGenerationRef.current) {
+          throw new Error('Upload cancelled');
+        }
+
+        setUploadPhase('uploading');
+        setStatus('Uploading… 0%');
+
+        await new Promise<void>((resolve, reject) => {
+          const upload = new tus.Upload(selected, {
+            uploadUrl: setup.uploadURL,
+            retryDelays: [0, 1000, 3000, 5000, 10000],
+            chunkSize: 50 * 1024 * 1024,
+            metadata: {
+              filename: selected.name,
+              filetype: selected.type || 'video/mp4',
+            },
+            onError: (err) => reject(err),
+            onProgress: (bytesUploaded, bytesTotal) => {
+              if (generation !== uploadGenerationRef.current) return;
+              if (bytesTotal > 0) {
+                const pct = Math.round((bytesUploaded / bytesTotal) * 100);
+                setUploadProgress(pct);
+                setStatus(`Uploading… ${pct}%`);
+              }
+            },
+            onSuccess: () => resolve(),
+          });
+          tusUploadRef.current = upload;
+          upload.start();
+        });
+
+        if (generation !== uploadGenerationRef.current) {
+          throw new Error('Upload cancelled');
+        }
+
+        setUploadProgress(100);
+        setUploadPhase('ready');
+        setStreamUid(setup.uid);
+        setStatus('Upload complete — fill title & hit Publish');
+        return { uid: setup.uid as string };
+      })();
+
+      uploadPromiseRef.current = run;
+      run.catch((err) => {
+        if (generation !== uploadGenerationRef.current) return;
+        if ((err as Error).message === 'Upload cancelled') return;
+        setUploadPhase('error');
+        setError((err as Error).message || 'Upload failed');
+        setStatus('');
+        uploadPromiseRef.current = null;
       });
-      upload.start();
-    });
+    },
+    [abortActiveUpload, streamConfigured]
+  );
+
+  const onFilePicked = (selected: File | null) => {
+    if (!selected) return;
+    setFile(selected);
+    // Prefer filename as draft title if empty
+    setTitle((t) => t.trim() || selected.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' '));
+    startBackgroundUpload(selected);
+  };
 
   const runAiSeo = async (opts?: {
     forEdit?: boolean;
@@ -219,35 +318,23 @@ export default function VideosManager({
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Failed to save');
       } else {
-        if (!file) throw new Error('Choose a video file');
-        if (file.size > MAX_FILE_BYTES) {
-          throw new Error(
-            'File is larger than 4 GB. Export at 1080p or trim the clip — phone 4K masters are often huge.'
-          );
-        }
+        if (!file) throw new Error('Choose a video file first');
         if (!streamConfigured) {
           throw new Error('Stream is not configured (CLOUDFLARE_API_TOKEN)');
         }
 
-        setStatus('Preparing upload…');
-        setUploadProgress(0);
-        // Resumable TUS — required for >200MB and better on mobile networks
-        const setupRes = await fetch('/api/videos/stream-upload', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            protocol: 'tus',
-            uploadLength: file.size,
-            maxDurationSeconds: 1800,
-            name: title.trim(),
-          }),
-        });
-        const setup = await setupRes.json();
-        if (!setupRes.ok) throw new Error(setup.error || 'Upload unavailable');
-
-        setStatus('Uploading…');
-        await uploadViaTus(file, setup.uploadURL);
-        setUploadProgress(100);
+        // Upload already started on file pick — wait if still in progress
+        let uid = streamUid;
+        if (uploadPhase === 'error' || (!uid && !uploadPromiseRef.current)) {
+          setStatus('Starting upload…');
+          startBackgroundUpload(file);
+        }
+        if (!uid && uploadPromiseRef.current) {
+          setStatus('Waiting for upload to finish…');
+          const result = await uploadPromiseRef.current;
+          uid = result.uid;
+        }
+        if (!uid) throw new Error('Upload did not finish. Pick the file again.');
 
         setStatus('Publishing…');
         const res = await fetch('/api/videos', {
@@ -259,7 +346,7 @@ export default function VideosManager({
             description: finalDescription || null,
             seoKeywords: finalKeywords || null,
             seoTitle: finalSeoTitle || null,
-            externalId: setup.uid,
+            externalId: uid,
             durationSec: durationInput || null,
             showOnHome,
             showInSidebar,
@@ -279,6 +366,13 @@ export default function VideosManager({
       setIsSubmitting(false);
     }
   };
+
+  const uploadBusy =
+    mode === 'stream' && (uploadPhase === 'preparing' || uploadPhase === 'uploading');
+  const canPublishStream =
+    mode === 'youtube' ||
+    uploadPhase === 'ready' ||
+    (mode === 'stream' && !!file && uploadPhase !== 'error');
 
   const startEdit = (v: AdminVideo) => {
     setEditingId(v.id);
@@ -375,13 +469,15 @@ export default function VideosManager({
                 type="button"
                 className={`${styles.headerButton} ${styles.btnPublish}`}
                 onClick={publish}
-                disabled={isSubmitting || isAiLoading}
+                disabled={isSubmitting || isAiLoading || (mode === 'stream' && !file && !streamUid)}
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
+                    <Loader2 size={16} className={styles.spin} />
                     <span className={styles.hideOnNarrow}>{status || 'Working…'}</span>
                   </>
+                ) : uploadBusy ? (
+                  'Publish when ready'
                 ) : (
                   'Publish'
                 )}
@@ -402,17 +498,8 @@ export default function VideosManager({
       {composerOpen && (
         <section className={styles.composer}>
           <p className={styles.hint}>
-            Title + link or file → Publish. AI writes description & keywords if you skip them.
+            Pick the video first — it uploads in the background while you add a title. Publish when ready.
           </p>
-
-          <input
-            className={styles.titleInput}
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Video title…"
-            autoFocus
-            autoComplete="off"
-          />
 
           <p className={styles.sectionLabel}>Source</p>
           <div className={styles.modeTabs}>
@@ -428,7 +515,12 @@ export default function VideosManager({
             <button
               type="button"
               className={`${styles.modeTab} ${mode === 'youtube' ? styles.modeTabActive : ''}`}
-              onClick={() => setMode('youtube')}
+              onClick={() => {
+                abortActiveUpload();
+                setMode('youtube');
+                setUploadPhase('idle');
+                setFile(null);
+              }}
             >
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                 <Link2 size={14} /> YouTube
@@ -443,21 +535,78 @@ export default function VideosManager({
                 type="file"
                 accept="video/*"
                 style={{ display: 'none' }}
-                onChange={(e) => setFile(e.target.files?.[0] || null)}
+                onChange={(e) => onFilePicked(e.target.files?.[0] || null)}
               />
-              <button type="button" className={styles.fileDrop} onClick={() => fileRef.current?.click()}>
-                <strong>{file ? file.name : 'Tap to choose video from phone'}</strong>
+              <button
+                type="button"
+                className={styles.fileDrop}
+                onClick={() => fileRef.current?.click()}
+                disabled={uploadBusy && !file}
+              >
+                <strong>
+                  {file ? file.name : 'Tap to choose video from phone'}
+                </strong>
                 <span>
                   {file
-                    ? `${(file.size / (1024 * 1024)).toFixed(1)} MB · resumable upload`
-                    : 'Phone camera files OK · up to 4 GB · resumable on cellular'}
+                    ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
+                    : 'Upload starts immediately · fill title while it transfers'}
                 </span>
               </button>
-              {uploadProgress != null && isSubmitting && (
-                <div className={styles.progressTrack} aria-valuenow={uploadProgress} aria-valuemin={0} aria-valuemax={100}>
-                  <div className={styles.progressBar} style={{ width: `${uploadProgress}%` }} />
+
+              {(uploadPhase === 'preparing' ||
+                uploadPhase === 'uploading' ||
+                uploadPhase === 'ready') && (
+                <div className={styles.uploadStatusRow}>
+                  <div
+                    className={styles.progressRing}
+                    style={
+                      {
+                        ['--p' as string]:
+                          uploadPhase === 'ready' ? 100 : uploadPhase === 'preparing' ? 8 : uploadProgress,
+                      } as React.CSSProperties
+                    }
+                    aria-hidden
+                  >
+                    {uploadPhase === 'ready' ? (
+                      <span className={styles.progressRingCheck}>✓</span>
+                    ) : uploadPhase === 'preparing' ? (
+                      <Loader2 size={18} className={styles.spin} />
+                    ) : (
+                      <span className={styles.progressRingPct}>{uploadProgress}%</span>
+                    )}
+                  </div>
+                  <div className={styles.uploadStatusText}>
+                    <strong>
+                      {uploadPhase === 'preparing' && 'Starting upload…'}
+                      {uploadPhase === 'uploading' && 'Uploading in background'}
+                      {uploadPhase === 'ready' && 'Ready to publish'}
+                    </strong>
+                    <span>
+                      {uploadPhase === 'uploading' &&
+                        'Keep this page open. Add title & description below.'}
+                      {uploadPhase === 'ready' && 'Video is on Stream — hit Publish when you like the title.'}
+                      {uploadPhase === 'preparing' && 'Talking to Cloudflare…'}
+                    </span>
+                    {uploadPhase === 'uploading' && (
+                      <div className={styles.progressTrack} style={{ marginTop: '0.5rem', marginBottom: 0 }}>
+                        <div className={styles.progressBar} style={{ width: `${uploadProgress}%` }} />
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
+
+              {uploadPhase === 'error' && file && (
+                <button
+                  type="button"
+                  className={styles.aiButton}
+                  style={{ marginBottom: '1rem' }}
+                  onClick={() => startBackgroundUpload(file)}
+                >
+                  Retry upload
+                </button>
+              )}
+
               {!streamConfigured && (
                 <p className={styles.error} style={{ marginTop: '-0.35rem' }}>
                   Add CLOUDFLARE_API_TOKEN for uploads.
@@ -475,6 +624,14 @@ export default function VideosManager({
               autoComplete="off"
             />
           )}
+
+          <input
+            className={styles.titleInput}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Video title…"
+            autoComplete="off"
+          />
 
           <div className={styles.seoRow}>
             <div className={styles.seoLabelRow}>
@@ -551,10 +708,26 @@ export default function VideosManager({
               type="button"
               className={`${styles.headerButton} ${styles.btnPublish} ${styles.publishWide}`}
               onClick={publish}
-              disabled={isSubmitting || isAiLoading}
+              disabled={
+                isSubmitting ||
+                isAiLoading ||
+                (mode === 'stream' && !file) ||
+                (mode === 'stream' && uploadPhase === 'error')
+              }
             >
-              {isSubmitting ? status || 'Publishing…' : 'Publish video'}
+              {isSubmitting
+                ? status || 'Publishing…'
+                : uploadBusy
+                  ? `Uploading ${uploadProgress}% — tap to finish when done`
+                  : uploadPhase === 'ready'
+                    ? 'Publish video'
+                    : 'Publish video'}
             </button>
+            {uploadBusy && (
+              <p className={styles.status} style={{ width: '100%', margin: 0 }}>
+                You can tap Publish now — it will wait until the upload finishes.
+              </p>
+            )}
           </div>
         </section>
       )}

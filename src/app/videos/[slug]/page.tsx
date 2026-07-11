@@ -7,6 +7,9 @@ import {
   buildVideoBreadcrumbJsonLd,
   buildVideoObjectJsonLd,
   formatDurationLabel,
+  resolveStreamEmbedUrl,
+  resolveStreamThumbnailUrl,
+  streamContentUrl,
   videoPageUrl,
 } from '@/lib/videos';
 import VideoHighlights from '@/components/VideoHighlights';
@@ -30,8 +33,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     `${video.title} — video from The Cougar Chronicle.`;
   const pageTitle = video.seoTitle || video.title;
   const url = videoPageUrl(video.slug);
-  const ogImages = video.thumbnailUrl
-    ? [{ url: video.thumbnailUrl, width: 1280, height: 720, alt: video.title }]
+  const thumb = resolveStreamThumbnailUrl(video);
+  const embed = resolveStreamEmbedUrl(video);
+  const ogImages = thumb
+    ? [{ url: thumb, width: 1280, height: 720, alt: video.title }]
     : [{ url: '/default-og.png', width: 1200, height: 630 }];
   const keywords = video.seoKeywords
     ? video.seoKeywords.split(',').map((k) => k.trim()).filter(Boolean)
@@ -49,10 +54,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: 'video.other',
       siteName: 'The Cougar Chronicle',
       images: ogImages,
-      videos: video.embedUrl
+      videos: embed
         ? [
             {
-              url: video.embedUrl,
+              url: embed,
               type: 'text/html',
               width: 1280,
               height: 720,
@@ -64,7 +69,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       card: 'summary_large_image',
       title: pageTitle,
       description,
-      images: video.thumbnailUrl ? [video.thumbnailUrl] : ['/default-og.png'],
+      images: thumb ? [thumb] : ['/default-og.png'],
     },
   };
 }
@@ -84,7 +89,16 @@ export default async function VideoWatchPage({ params }: Props) {
   });
 
   const pageUrl = videoPageUrl(video.slug);
-  const jsonLd = buildVideoObjectJsonLd(video, pageUrl);
+  const embedUrl = resolveStreamEmbedUrl(video);
+  const thumbnailUrl = resolveStreamThumbnailUrl(video);
+  const contentUrl =
+    video.platform === 'STREAM' && video.externalId
+      ? streamContentUrl(video.externalId)
+      : video.contentUrl;
+  const jsonLd = buildVideoObjectJsonLd(
+    { ...video, embedUrl, thumbnailUrl, contentUrl },
+    pageUrl
+  );
   const breadcrumbLd = buildVideoBreadcrumbJsonLd(video);
   const durationLabel = formatDurationLabel(video.durationSec);
 
@@ -168,10 +182,9 @@ export default async function VideoWatchPage({ params }: Props) {
           }}
         >
           <iframe
-            src={video.embedUrl}
+            src={embedUrl}
             title={video.title}
-            allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen"
-            allowFullScreen
+            allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen"
             loading="eager"
             style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }}
           />
@@ -186,9 +199,9 @@ export default async function VideoWatchPage({ params }: Props) {
           </p>
         )}
 
-        {video.thumbnailUrl && (
+        {thumbnailUrl && (
           <div style={{ display: 'none' }} aria-hidden>
-            <Image src={video.thumbnailUrl} alt={video.title} width={1280} height={720} unoptimized />
+            <Image src={thumbnailUrl} alt={video.title} width={1280} height={720} unoptimized />
           </div>
         )}
       </article>
@@ -202,8 +215,8 @@ export default async function VideoWatchPage({ params }: Props) {
               title: v.title,
               description: v.description,
               platform: v.platform,
-              embedUrl: v.embedUrl,
-              thumbnailUrl: v.thumbnailUrl,
+              embedUrl: resolveStreamEmbedUrl(v),
+              thumbnailUrl: resolveStreamThumbnailUrl(v),
               durationSec: v.durationSec,
             }))}
             title="More videos"

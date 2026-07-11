@@ -5,6 +5,7 @@ import Image from 'next/image';
 import SubscribeForm from '@/components/SubscribeForm';
 import PrintCheckoutButtons from '@/app/print-edition/PrintCheckoutButtons';
 import VideoHighlights from '@/components/VideoHighlights';
+import { resolveStreamEmbedUrl, resolveStreamThumbnailUrl } from '@/lib/videos';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -396,8 +397,8 @@ export default async function Home() {
                 title: v.title,
                 description: v.description,
                 platform: v.platform,
-                embedUrl: v.embedUrl,
-                thumbnailUrl: v.thumbnailUrl,
+                embedUrl: resolveStreamEmbedUrl(v),
+                thumbnailUrl: resolveStreamThumbnailUrl(v),
                 durationSec: v.durationSec,
               }))}
               title="Video highlights"

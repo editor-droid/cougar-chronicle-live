@@ -1,7 +1,12 @@
 import prisma from '@/lib/prisma';
 import type { Metadata } from 'next';
 import VideoHighlights from '@/components/VideoHighlights';
-import { buildVideoObjectJsonLd } from '@/lib/videos';
+import {
+  buildVideoObjectJsonLd,
+  resolveStreamEmbedUrl,
+  resolveStreamThumbnailUrl,
+  streamContentUrl,
+} from '@/lib/videos';
 import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
@@ -45,7 +50,18 @@ export default async function VideosPage() {
         '@type': 'ListItem',
         position: i + 1,
         url: `https://thecougarchronicle.com/videos/${v.slug}`,
-        item: buildVideoObjectJsonLd(v, `https://thecougarchronicle.com/videos/${v.slug}`),
+        item: buildVideoObjectJsonLd(
+          {
+            ...v,
+            embedUrl: resolveStreamEmbedUrl(v),
+            thumbnailUrl: resolveStreamThumbnailUrl(v),
+            contentUrl:
+              v.platform === 'STREAM' && v.externalId
+                ? streamContentUrl(v.externalId)
+                : v.contentUrl,
+          },
+          `https://thecougarchronicle.com/videos/${v.slug}`
+        ),
       })),
     },
   };
@@ -105,8 +121,8 @@ export default async function VideosPage() {
             title: v.title,
             description: v.description,
             platform: v.platform,
-            embedUrl: v.embedUrl,
-            thumbnailUrl: v.thumbnailUrl,
+            embedUrl: resolveStreamEmbedUrl(v),
+            thumbnailUrl: resolveStreamThumbnailUrl(v),
             durationSec: v.durationSec,
           }))}
           title=""
