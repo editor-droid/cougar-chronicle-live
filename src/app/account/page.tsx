@@ -53,8 +53,11 @@ export default async function AccountPage() {
 
   return (
     <div className="container animate-fade-in" style={{ marginTop: '2rem', maxWidth: '800px', marginBottom: '6rem' }}>
-      <header style={{ marginBottom: '2.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1 className="font-serif" style={{ fontSize: '2.5rem' }}>My Account</h1>
+      <header style={{ marginBottom: '2.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+        <div>
+          <h1 className="font-serif" style={{ fontSize: '2.5rem', marginBottom: '0.25rem' }}>My Account</h1>
+          <p className="font-sans text-muted text-sm">Signed in as {email}</p>
+        </div>
         
         {/* Simple Sign Out Button */}
         <form action="/api/auth/signout" method="POST">

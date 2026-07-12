@@ -5,15 +5,11 @@ import { toast } from 'sonner';
 
 export default function PushManager() {
   useEffect(() => {
-    // Only prompt on first visit if we've never asked before
+    // Only prompt if permission is default (meaning they haven't explicitly allowed or blocked it yet)
+    // and if we haven't prompted them in this session/local storage
     const hasPrompted = localStorage.getItem('push_prompted');
     
-    // Check if we are running as a PWA (standalone)
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches 
-      || (window.navigator as any).standalone 
-      || document.referrer.includes('android-app://');
-
-    if (isStandalone && !hasPrompted && 'Notification' in window && 'serviceWorker' in navigator) {
+    if (!hasPrompted && 'Notification' in window && 'serviceWorker' in navigator && Notification.permission === 'default') {
       setTimeout(() => {
         toast('Enable Notifications', {
           description: 'Get alerted when we publish new articles or videos.',
