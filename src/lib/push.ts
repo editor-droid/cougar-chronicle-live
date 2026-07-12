@@ -1,12 +1,6 @@
 import webpush from 'web-push';
 import prisma from './prisma';
 
-webpush.setVapidDetails(
-  'mailto:contact@thecougarchronicle.com',
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY as string,
-  process.env.VAPID_PRIVATE_KEY as string
-);
-
 export async function sendPushNotification(title: string, message: string, url: string) {
   if (!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
     console.warn('VAPID keys are missing. Push notifications disabled.');
@@ -14,6 +8,11 @@ export async function sendPushNotification(title: string, message: string, url: 
   }
 
   try {
+    webpush.setVapidDetails(
+      'mailto:contact@thecougarchronicle.com',
+      process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+      process.env.VAPID_PRIVATE_KEY
+    );
     const subscriptions = await prisma.pushSubscription.findMany();
     
     const payload = JSON.stringify({ title, message, url });
