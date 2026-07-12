@@ -21,51 +21,54 @@ enum PostState {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  password      String?
-  image         String?
-  role          Role      @default(USER)
-  stripeId      String?   @unique
-  isSubscribed  Boolean   @default(false)
-  giftLinks     Int       @default(0)
-  posts         Post[]
-  accounts      Account[]
-  sessions      Session[]
-  editorialNotes EditorialNote[]
+  id                String             @id @default(cuid())
+  name              String?
+  email             String?            @unique
+  emailVerified     DateTime?
+  password          String?
+  image             String?
+  role              Role               @default(USER)
+  stripeId          String?            @unique
+  isSubscribed      Boolean            @default(false)
+  giftLinks         Int                @default(0)
+  posts             Post[]
+  accounts          Account[]
+  sessions          Session[]
+  editorialNotes    EditorialNote[]
+  favorites         Favorite[]
+  pushSubscriptions PushSubscription[]
 }
 
 model Post {
-  id          String    @id @default(cuid())
-  title       String
-  slug        String    @unique
-  content     String?   @db.Text
-  category    String
-  state       PostState @default(DRAFT)
-  imageUrl    String?
-  authorId    String
-  author      User      @relation(fields: [authorId], references: [id])
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  publishedAt DateTime?
-  views       Int       @default(0)
+  id             String          @id @default(cuid())
+  title          String
+  slug           String          @unique
+  content        String?         @db.Text
+  category       String
+  state          PostState       @default(DRAFT)
+  imageUrl       String?
+  authorId       String
+  author         User            @relation(fields: [authorId], references: [id])
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  publishedAt    DateTime?
+  views          Int             @default(0)
   editorialNotes EditorialNote[]
-  
-  seoTitle         String?
-  seoDescription   String?
-  seoKeywords      String?
-  keyInsights      String?   @db.Text
-  featuredImageAlt String?
-  isPremium        Boolean   @default(false)
-  isAmerica250     Boolean   @default(false)
-  customAuthor     String?
-  printEditionId   String?
+
+  seoTitle          String?
+  seoDescription    String?
+  seoKeywords       String?
+  keyInsights       String?        @db.Text
+  featuredImageAlt  String?
+  isPremium         Boolean        @default(false)
+  isAmerica250      Boolean        @default(false)
+  customAuthor      String?
+  printEditionId    String?
   printEditionOrder Int?
-  imageCaption     String?
-  printEdition     PrintEdition? @relation(fields: [printEditionId], references: [id])
-  articleTokens    ArticleToken[]
+  imageCaption      String?
+  printEdition      PrintEdition?  @relation(fields: [printEditionId], references: [id])
+  articleTokens     ArticleToken[]
+  favorites         Favorite[]
 }
 
 model ArticleToken {
@@ -78,18 +81,18 @@ model ArticleToken {
 }
 
 model Account {
-  id                 String  @id @default(cuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String?  @db.Text
-  access_token       String?  @db.Text
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String?  @db.Text
-  session_state      String?
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -114,10 +117,10 @@ model VerificationToken {
 
 model PrintEdition {
   id            String   @id @default(cuid())
-  title         String   
+  title         String
   pdfUrl        String   @db.Text
   coverImageUrl String?  @db.Text
-  isActive      Boolean  @default(true) 
+  isActive      Boolean  @default(true)
   createdAt     DateTime @default(now())
   posts         Post[]
 }
@@ -162,6 +165,29 @@ model Donation {
   createdAt       DateTime @default(now())
 }
 
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userId    String?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
 model SiteSetting {
   key   String @id
   value String @db.Text
@@ -176,11 +202,11 @@ enum VideoPlatform {
 /// Stream = Cloudflare Stream (on-site, no social login).
 /// YouTube = paste link (also playable on-site via embed).
 model Video {
-  id            String         @id @default(cuid())
+  id            String        @id @default(cuid())
   title         String
   /// Public URL segment: /videos/[slug]
-  slug          String         @unique
-  description   String?        @db.Text
+  slug          String        @unique
+  description   String?       @db.Text
   /// SEO-optimized title (meta / OG); falls back to title
   seoTitle      String?
   /// Comma-separated keywords for meta + schema
@@ -199,14 +225,14 @@ model Video {
   width         Int?
   height        Int?
   /// Page views on /videos/[slug]
-  views         Int            @default(0)
-  isActive      Boolean        @default(true)
-  showOnHome    Boolean        @default(true)
-  showInSidebar Boolean        @default(true)
-  sortOrder     Int            @default(0)
-  publishedAt   DateTime       @default(now())
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  views         Int           @default(0)
+  isActive      Boolean       @default(true)
+  showOnHome    Boolean       @default(true)
+  showInSidebar Boolean       @default(true)
+  sortOrder     Int           @default(0)
+  publishedAt   DateTime      @default(now())
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 
   @@index([isActive, showOnHome, sortOrder])
   @@index([isActive, showInSidebar, sortOrder])

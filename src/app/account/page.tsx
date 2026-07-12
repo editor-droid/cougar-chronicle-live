@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import Link from 'next/link';
 import { toggleNewsletter } from './actions';
 import { getArticleUrl } from '@/lib/routes';
+import PushSettings from '@/components/PushSettings';
 
 export const metadata = {
   title: 'My Account',
@@ -43,6 +44,13 @@ export default async function AccountPage() {
     orderBy: { createdAt: 'desc' }
   });
 
+  // 3. Get favorites
+  const favorites = await prisma.favorite.findMany({
+    where: { userId: session.user.id },
+    include: { post: true },
+    orderBy: { createdAt: 'desc' }
+  });
+
   return (
     <div className="container animate-fade-in" style={{ marginTop: '2rem', maxWidth: '800px', marginBottom: '6rem' }}>
       <header style={{ marginBottom: '2.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -55,6 +63,17 @@ export default async function AccountPage() {
       </header>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
+
+        {/* DEVICE PREFERENCES SECTION */}
+        <section>
+          <h2 className="font-serif" style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Device Preferences</h2>
+          <div style={{ backgroundColor: 'var(--surface)', padding: '1.5rem', borderRadius: '0.5rem', border: '1px solid var(--border)' }}>
+            <div style={{ marginBottom: '1rem' }}>
+              <h3 className="font-sans font-bold" style={{ fontSize: '1.1rem', marginBottom: '0.25rem' }}>Push Notifications</h3>
+            </div>
+            <PushSettings />
+          </div>
+        </section>
         
         {/* EMAIL PREFERENCES SECTION */}
         <section>
@@ -108,6 +127,38 @@ export default async function AccountPage() {
                       <p className="font-sans text-sm text-muted">Purchased on {new Date(t.createdAt).toLocaleDateString()}</p>
                     </div>
                     <Link href={`/api/verify-token?token=${t.token}`} className="btn btn-secondary font-sans text-sm">
+                      Read Article &rarr;
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </section>
+
+        {/* FAVORITES SECTION */}
+        <section>
+          <h2 className="font-serif" style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>My Favorites</h2>
+          
+          {favorites.length === 0 ? (
+            <div style={{ backgroundColor: 'var(--surface)', padding: '2rem', borderRadius: '0.5rem', border: '1px solid var(--border)', textAlign: 'center' }}>
+              <p className="font-sans text-muted" style={{ marginBottom: '1rem' }}>You haven't favorited any articles yet.</p>
+              <Link href="/category/news" className="btn btn-primary font-sans text-sm">Browse Articles</Link>
+            </div>
+          ) : (
+            <div style={{ backgroundColor: 'var(--surface)', borderRadius: '0.5rem', border: '1px solid var(--border)', overflow: 'hidden' }}>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                {favorites.map((f) => (
+                  <li key={f.id} style={{ padding: '1.5rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                    <div>
+                      <Link href={getArticleUrl(f.post)} style={{ textDecoration: 'none' }}>
+                        <h3 className="font-serif hover:text-primary transition-colors" style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>
+                          {f.post.title}
+                        </h3>
+                      </Link>
+                      <p className="font-sans text-sm text-muted">Favorited on {new Date(f.createdAt).toLocaleDateString()}</p>
+                    </div>
+                    <Link href={getArticleUrl(f.post)} className="btn btn-secondary font-sans text-sm">
                       Read Article &rarr;
                     </Link>
                   </li>

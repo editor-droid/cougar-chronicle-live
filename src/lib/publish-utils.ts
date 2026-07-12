@@ -1,6 +1,7 @@
 import prisma from '@/lib/prisma';
 import { Resend } from 'resend';
 import { getArticleUrl } from '@/lib/routes';
+import { sendPushNotification } from './push';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_fallback_key_so_build_does_not_crash');
 
@@ -111,6 +112,12 @@ export async function broadcastPostPublication(post: any) {
       } else {
         console.log('No subscribers opted into this category.');
       }
+
+      await sendPushNotification(
+        `New Post: ${post.title}`,
+        excerpt,
+        getArticleUrl(post)
+      );
     }
   } catch (broadcastError) {
     console.error('Failed to trigger broadcast:', broadcastError);

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import prisma from '@/lib/prisma';
 import { generateVideoSeo } from '@/lib/video-seo';
+import { sendPushNotification } from '@/lib/push';
 import {
   fetchStreamDetails,
   fetchYoutubeOEmbed,
@@ -156,6 +157,16 @@ export async function POST(request: Request) {
         },
       });
 
+      try {
+        await sendPushNotification(
+          `New Video: ${video.title}`,
+          video.description || 'Watch our latest video.',
+          `/videos/${video.slug}`
+        );
+      } catch (e) {
+        console.error('Failed to send push notification', e);
+      }
+
       return NextResponse.json({ video }, { status: 201 });
     }
 
@@ -226,6 +237,16 @@ export async function POST(request: Request) {
           isActive,
         },
       });
+
+      try {
+        await sendPushNotification(
+          `New Video: ${video.title}`,
+          video.description || 'Watch our latest video.',
+          `/videos/${video.slug}`
+        );
+      } catch (e) {
+        console.error('Failed to send push notification', e);
+      }
 
       return NextResponse.json({ video }, { status: 201 });
     }

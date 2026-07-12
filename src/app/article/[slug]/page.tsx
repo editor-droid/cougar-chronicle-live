@@ -11,8 +11,9 @@ import VideoHighlights from '@/components/VideoHighlights';
 import { injectHeadingIds } from '@/lib/toc';
 import { getArticleUrl } from '@/lib/routes';
 import { resolveStreamEmbedUrl, resolveStreamThumbnailUrl } from '@/lib/videos';
+import FavoriteButton from '@/components/FavoriteButton';
 export async function generateMetadata(
-  { params }: { params: { slug: string } },
+  { params }: { params: Promise<{ slug: string }> },
   parent: ResolvingMetadata
 ): Promise<Metadata> {
   const { slug } = await params;
@@ -67,7 +68,7 @@ export async function generateMetadata(
   };
 }
 
-export default async function ArticlePage({ params, searchParams }: { params: { slug: string }, searchParams: { token?: string } }) {
+export default async function ArticlePage({ params, searchParams }: { params: Promise<{ slug: string }>, searchParams: Promise<{ token?: string }> }) {
   const { slug } = await params;
   const { token } = await searchParams;
   
@@ -90,11 +91,19 @@ export default async function ArticlePage({ params, searchParams }: { params: { 
     data: { views: { increment: 1 } }
   });
 
+  const session = await auth();
+  let initialFavorited = false;
+  if (session?.user?.id) {
+    const fav = await prisma.favorite.findUnique({
+      where: { userId_postId: { userId: session.user.id, postId: post.id } }
+    });
+    if (fav) initialFavorited = true;
+  }
+
   // Check access for premium articles
   let hasAccess = !post.isPremium;
   
   if (post.isPremium) {
-    const session = await auth();
     // 1. Check if user is logged in and subscribed
     if (session?.user?.id) {
       const user = await prisma.user.findUnique({ where: { id: session.user.id } });
@@ -219,6 +228,7 @@ export default async function ArticlePage({ params, searchParams }: { params: { 
                   {post.customAuthor || post.author.name || 'Staff'}
                 </Link>
               </span>
+              <FavoriteButton postId={post.id} initialFavorited={initialFavorited} />
               <span>•</span>
               <span>{new Date(post.publishedAt || post.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
               <span>•</span>

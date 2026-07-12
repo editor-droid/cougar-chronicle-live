@@ -2,7 +2,7 @@ import { permanentRedirect, notFound } from 'next/navigation';
 import prisma from '@/lib/prisma';
 import { getArticleUrl } from '@/lib/routes';
 
-export default async function LegacyArticleRedirect({ params }: { params: { slug: string } }) {
+export default async function LegacyArticleRedirect({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   
   // Look up if this slug belongs to a post

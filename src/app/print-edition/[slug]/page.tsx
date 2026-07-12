@@ -10,7 +10,7 @@ import KeyTakeaways from '@/components/KeyTakeaways';
 import { injectHeadingIds } from '@/lib/toc';
 import { getArticleUrl } from '@/lib/routes';
 export async function generateMetadata(
-  { params }: { params: { slug: string } },
+  { params }: { params: Promise<{ slug: string }> },
   parent: ResolvingMetadata
 ): Promise<Metadata> {
   const { slug } = await params;
@@ -65,7 +65,7 @@ export async function generateMetadata(
   };
 }
 
-export default async function ArticlePage({ params, searchParams }: { params: { slug: string }, searchParams: { token?: string } }) {
+export default async function ArticlePage({ params, searchParams }: { params: Promise<{ slug: string }>, searchParams: Promise<{ token?: string }> }) {
   const { slug } = await params;
   const { token } = await searchParams;
   

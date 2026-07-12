@@ -4,7 +4,7 @@ import { getArticleUrl } from '@/lib/routes';
 import Image from 'next/image';
 import type { Metadata } from 'next';
 
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const categoryName = slug.charAt(0).toUpperCase() + slug.slice(1);
   

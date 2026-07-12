@@ -6,7 +6,7 @@ import { getArticleUrl } from '@/lib/routes';
 import type { Metadata, ResolvingMetadata } from 'next';
 
 export async function generateMetadata(
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
   parent: ResolvingMetadata
 ): Promise<Metadata> {
   const { id } = await params;
@@ -38,7 +38,7 @@ export async function generateMetadata(
   };
 }
 
-export default async function AuthorPage({ params }: { params: { id: string } }) {
+export default async function AuthorPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   
   const author = await prisma.user.findUnique({
