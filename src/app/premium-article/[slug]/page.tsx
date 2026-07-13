@@ -8,6 +8,8 @@ import Link from 'next/link';
 import ClientLightbox from './ClientLightbox';
 import KeyTakeaways from '@/components/KeyTakeaways';
 import ShareButton from '@/components/ShareButton';
+import RelatedStories from '@/components/RelatedStories';
+import { getRelatedPosts } from '@/lib/related';
 import { injectHeadingIds } from '@/lib/toc';
 import { getArticleUrl } from '@/lib/routes';
 export async function generateMetadata(
@@ -134,6 +136,8 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
     orderBy: { views: 'desc' },
     take: 5
   });
+
+  const relatedPosts = await getRelatedPosts(post, 3);
 
   const htmlContent = post.content ? injectHeadingIds(post.content) : '';
 
@@ -266,6 +270,8 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
             </>
           )}
         </article>
+
+        <RelatedStories posts={relatedPosts} />
 
         {/* Next and Previous Navigation */}
         <div style={{ marginTop: '4rem', paddingTop: '2rem', borderTop: '1px solid var(--border)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '2rem' }}>
