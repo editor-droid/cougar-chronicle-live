@@ -15,6 +15,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  // Required for env(safe-area-inset-*) and edge-to-edge status bar in iOS PWAs
+  viewportFit: 'cover',
 };
 
 export const metadata: Metadata = {
@@ -76,7 +78,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    // Navy on <html> paints instantly in the PWA (before CSS/JS) so launch isn't a white flash
+    <html lang="en" style={{ backgroundColor: '#1B2253' }}>
       <body>
         <Suspense fallback={null}>
           <Tracking />
@@ -99,7 +102,7 @@ export default function RootLayout({
             })
           }}
         />
-        <div style={{ backgroundColor: 'var(--primary)', color: 'white', padding: '0.25rem 0', fontSize: '0.875rem', paddingTop: 'calc(0.25rem + env(safe-area-inset-top))' }}>
+        <div className="top-social-bar">
           <div className="container" style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', alignItems: 'center' }}>
             <span className="font-sans font-bold">Follow Us:</span>
             <a href="https://twitter.com/TheCougChron" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center' }} aria-label="Twitter / X">
@@ -156,7 +159,7 @@ export default function RootLayout({
         <Chatbot />
         <PushManager />
 
-        <footer className="site-footer" style={{ backgroundColor: 'var(--primary)', color: 'white', marginTop: '0', paddingTop: '4rem', paddingBottom: '2rem', borderTop: 'none' }}>
+        <footer className="site-footer" style={{ backgroundColor: 'var(--primary)', color: 'white', marginTop: '0', paddingTop: '4rem', paddingBottom: 'calc(2rem + env(safe-area-inset-bottom, 0px))', borderTop: 'none' }}>
           <div className="container" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '2rem', textAlign: 'left', marginBottom: '2rem' }}>
             <div>
               <h3 className="font-serif" style={{ color: 'white', marginBottom: '1rem', fontSize: '1.5rem' }}>The Cougar Chronicle</h3>

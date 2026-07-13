@@ -28,6 +28,11 @@ html, body {
   width: 100%;
 }
 
+/* Instant navy paint for PWA launch / status-bar / overscroll (matches --primary) */
+html {
+  background-color: #1B2253;
+}
+
 body {
   background-color: var(--background);
   color: var(--foreground);
@@ -35,6 +40,7 @@ body {
   line-height: 1.6;
   transition: background-color 0.3s ease, color 0.3s ease;
   overflow-wrap: break-word;
+  min-height: 100dvh;
 }
 
 /* Typography Classes */
@@ -50,6 +56,19 @@ body {
 html, body {
   overscroll-behavior-y: none; /* Prevents pull-to-refresh/bounce */
   -webkit-tap-highlight-color: transparent; /* Removes blue tap highlight on iOS/Android */
+}
+
+/* Top social bar: extend navy under iOS status bar / Dynamic Island (needs viewport-fit=cover) */
+.top-social-bar {
+  background-color: var(--primary);
+  color: white;
+  font-size: 0.875rem;
+  padding: 0.25rem 0;
+  padding-top: calc(0.25rem + env(safe-area-inset-top, 0px));
+  /* Keep bar flush to the physical top of the webview */
+  margin: 0;
+  position: relative;
+  z-index: 50;
 }
 
 /* Disable text selection on UI components */
@@ -198,7 +217,7 @@ input:focus, textarea:focus {
 .site-footer {
   margin-top: 4rem;
   padding-top: 2rem;
-  padding-bottom: 2rem;
+  padding-bottom: calc(2rem + env(safe-area-inset-bottom, 0px));
   border-top: 1px solid var(--border);
   text-align: center;
   color: var(--muted);
