@@ -85,36 +85,43 @@ export async function broadcastPostPublication(post: any) {
     console.log(`\n=========================================\n[BROADCAST NOTIFICATION] Triggering Batched Email\nCategory: ${post.category}\nSubject: New Post: ${post.title}\n=========================================\n`);
 
     if (!isMock) {
-      const whereClause: any = { isActive: true };
-      if (post.category === 'news') whereClause.wantsNews = true;
-      else if (post.category === 'faith') whereClause.wantsFaith = true;
-      else if (post.category === 'opinion') whereClause.wantsOpinion = true;
+      // America 250 / special series → all active subs.
+      // Otherwise filter by category preference (news / faith / opinion).
+      const whereClause: { isActive: boolean; wantsNews?: boolean; wantsFaith?: boolean; wantsOpinion?: boolean } = {
+        isActive: true,
+      };
+      if (!post.isAmerica250) {
+        if (post.category === 'news') whereClause.wantsNews = true;
+        else if (post.category === 'faith') whereClause.wantsFaith = true;
+        else if (post.category === 'opinion') whereClause.wantsOpinion = true;
+      }
 
       const subscribers = await prisma.subscriber.findMany({
         where: whereClause,
-        select: { email: true }
+        select: { email: true },
       });
-      const emails = subscribers.map(s => s.email);
+      const emails = subscribers.map((s) => s.email);
 
       if (emails.length > 0) {
+        const subjectPrefix = post.isAmerica250 ? 'America 250' : 'New Post';
         const CHUNK_SIZE = 100;
         for (let i = 0; i < emails.length; i += CHUNK_SIZE) {
           const chunk = emails.slice(i, i + CHUNK_SIZE);
-          const payloads = chunk.map(email => ({
+          const payloads = chunk.map((email) => ({
             from: 'The Cougar Chronicle <newsletter@updates.thecougarchronicle.com>',
             to: email,
-            subject: `New Post: ${post.title}`,
-            html: broadcastHtml
+            subject: `${subjectPrefix}: ${post.title}`,
+            html: broadcastHtml,
           }));
           await resend.batch.send(payloads);
         }
         console.log(`Successfully sent to ${emails.length} subscribers.`);
       } else {
-        console.log('No subscribers opted into this category.');
+        console.log('No subscribers matched this post audience.');
       }
 
       await sendPushNotification(
-        `New Post: ${post.title}`,
+        post.isAmerica250 ? `America 250: ${post.title}` : `New Post: ${post.title}`,
         excerpt,
         getArticleUrl(post)
       );

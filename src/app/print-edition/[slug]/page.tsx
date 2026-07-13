@@ -7,6 +7,7 @@ import { cookies } from 'next/headers';
 import Link from 'next/link';
 import ClientLightbox from './ClientLightbox';
 import KeyTakeaways from '@/components/KeyTakeaways';
+import ShareButton from '@/components/ShareButton';
 import { injectHeadingIds } from '@/lib/toc';
 import { getArticleUrl } from '@/lib/routes';
 export async function generateMetadata(
@@ -194,6 +195,7 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
                   {post.customAuthor || post.author.name || 'Staff'}
                 </Link>
               </span>
+              <ShareButton title={post.title} text={`${post.title} — The Cougar Chronicle`} />
               <span>•</span>
               <span>{new Date(post.publishedAt || post.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
               <span>•</span>

@@ -138,9 +138,9 @@ export async function updatePostState(formData: FormData) {
           });
         }
       }
-    } else if (newState === 'PUBLISHED' && post.state === 'APPROVED') {
-      // If the post is being published live manually, ensure publishedAt is set to now
-      // (Unless it was already scheduled and published via cron)
+    } else if (newState === 'PUBLISHED' && post.state !== 'PUBLISHED') {
+      // Fire for ANY first publish (DRAFT/IN_REVIEW/APPROVED → PUBLISHED).
+      // Previously only APPROVED→PUBLISHED emailed, so editor "Publish" from draft skipped everyone.
       await broadcastPostPublication({ ...post, author: post.author });
     }
   } catch (error) {

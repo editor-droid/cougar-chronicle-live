@@ -1,9 +1,8 @@
 import Script from 'next/script';
 
 /**
- * PWA launch splash: navy + logo/name on cold open in standalone only.
- * Uses beforeInteractive scripts so it enables with the first frame — the old
- * client useEffect version only mounted after hydration and felt jarring.
+ * PWA-only: navy shell class + optional branded splash on cold open.
+ * Never activates in normal desktop/mobile browser tabs.
  */
 export default function PWASplashScreen() {
   return (
@@ -16,7 +15,9 @@ export default function PWASplashScreen() {
       window.matchMedia('(display-mode: fullscreen)').matches ||
       !!(window.navigator).standalone ||
       document.referrer.indexOf('android-app://') === 0;
-    if (standalone && !sessionStorage.getItem('pwa_splash_seen')) {
+    if (!standalone) return;
+    document.documentElement.classList.add('pwa-standalone');
+    if (!sessionStorage.getItem('pwa_splash_seen')) {
       document.documentElement.classList.add('pwa-splash-active');
     }
   } catch (e) {}

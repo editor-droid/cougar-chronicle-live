@@ -12,6 +12,7 @@ import { injectHeadingIds } from '@/lib/toc';
 import { getArticleUrl } from '@/lib/routes';
 import { resolveStreamEmbedUrl, resolveStreamThumbnailUrl } from '@/lib/videos';
 import FavoriteButton from '@/components/FavoriteButton';
+import ShareButton from '@/components/ShareButton';
 export async function generateMetadata(
   { params }: { params: Promise<{ slug: string }> },
   parent: ResolvingMetadata
@@ -228,7 +229,13 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
                   {post.customAuthor || post.author.name || 'Staff'}
                 </Link>
               </span>
-              <FavoriteButton postId={post.id} initialFavorited={initialFavorited} />
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.65rem' }}>
+                <FavoriteButton postId={post.id} initialFavorited={initialFavorited} />
+                <ShareButton
+                  title={post.title}
+                  text={`${post.title} — The Cougar Chronicle`}
+                />
+              </span>
               <span>•</span>
               <span>{new Date(post.publishedAt || post.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
               <span>•</span>

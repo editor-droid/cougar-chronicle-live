@@ -80,16 +80,9 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    // Inline navy on html+body is the earliest paint we control (before CSS/JS)
-    <html lang="en" style={{ backgroundColor: '#1B2253' }}>
-      <head>
-        <style
-          dangerouslySetInnerHTML={{
-            __html: 'html,body{background-color:#1B2253!important}',
-          }}
-        />
-      </head>
-      <body style={{ backgroundColor: '#1B2253' }}>
+    // Default parchment for desktop. PWA sets .pwa-standalone + navy via early script/CSS only.
+    <html lang="en" style={{ backgroundColor: '#FDFBF7' }}>
+      <body style={{ backgroundColor: '#FDFBF7' }}>
         <PWASplashScreen />
         <Suspense fallback={null}>
           <Tracking />

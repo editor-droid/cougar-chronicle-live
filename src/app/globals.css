@@ -28,15 +28,10 @@ html, body {
   width: 100%;
 }
 
-/*
- * Shell is always brand navy — never parchment/white.
- * iOS PWAs briefly show the document background before content paints;
- * a light body color is what reads as that "very brief white" flash.
- * Parchment lives only on .site-shell (header + main).
- */
+/* Desktop / normal browser: parchment everywhere (no navy "app shell") */
 html,
 body {
-  background-color: #1B2253;
+  background-color: var(--background);
 }
 
 body {
@@ -45,10 +40,23 @@ body {
   line-height: 1.6;
   overflow-wrap: break-word;
   min-height: 100dvh;
-  /* No background-color transition — animating into parchment looks like a white flash */
 }
 
-/* Reading surface (logo, nav, articles) — parchment on top of navy shell */
+/* Installed PWA only: navy document shell (status bar / overscroll — not desktop) */
+@media (display-mode: standalone), (display-mode: fullscreen) {
+  html,
+  body {
+    background-color: #1B2253;
+  }
+}
+
+/* iOS home-screen PWAs use navigator.standalone (class set by early script) */
+html.pwa-standalone,
+html.pwa-standalone body {
+  background-color: #1B2253 !important;
+}
+
+/* Reading surface — always parchment */
 .site-shell {
   background-color: var(--background);
   color: var(--foreground);
