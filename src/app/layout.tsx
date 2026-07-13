@@ -7,6 +7,7 @@ import SearchBar from '@/components/SearchBar';
 import MobileMenu from '@/components/MobileMenu';
 import Tracking from '@/components/Tracking';
 import PushManager from '@/components/PushManager';
+import PWASplashScreen from '@/components/PWASplashScreen';
 import './globals.css'
 
 export const viewport: Viewport = {
@@ -81,6 +82,7 @@ export default function RootLayout({
     // Navy on <html> paints instantly in the PWA (before CSS/JS) so launch isn't a white flash
     <html lang="en" style={{ backgroundColor: '#1B2253' }}>
       <body>
+        <PWASplashScreen />
         <Suspense fallback={null}>
           <Tracking />
         </Suspense>
