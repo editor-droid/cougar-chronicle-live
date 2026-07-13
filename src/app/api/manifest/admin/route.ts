@@ -9,7 +9,7 @@ export async function GET() {
     scope: "/dashboard",
     display: "standalone",
     background_color: "#ffffff",
-    theme_color: "#000000",
+    theme_color: "#1B2253",
     icons: [
       {
         src: "/icon-192x192.png",

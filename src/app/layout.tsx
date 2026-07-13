@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Suspense } from 'react'
 
 import Chatbot from '@/components/Chatbot';
@@ -8,6 +8,14 @@ import MobileMenu from '@/components/MobileMenu';
 import Tracking from '@/components/Tracking';
 import PushManager from '@/components/PushManager';
 import './globals.css'
+
+export const viewport: Viewport = {
+  themeColor: '#1B2253',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXTAUTH_URL || (process.env.NEXTAUTH_URL || 'http://localhost:3000')),
@@ -51,6 +59,14 @@ export const metadata: Metadata = {
     title: 'The Cougar Chronicle | Faith, Reason, and Politics at BYU',
     description: 'Faith, News, and Opinion for the BYU community.',
     images: [{ url: '/default-og.png', alt: 'The Cougar Chronicle' }],
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Chronicle',
+  },
+  formatDetection: {
+    telephone: false,
   },
 }
 

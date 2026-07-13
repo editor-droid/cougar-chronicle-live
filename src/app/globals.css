@@ -46,6 +46,24 @@ body {
   font-family: var(--font-sans);
 }
 
+/* PWA Native App Feel */
+html, body {
+  overscroll-behavior-y: none; /* Prevents pull-to-refresh/bounce */
+  -webkit-tap-highlight-color: transparent; /* Removes blue tap highlight on iOS/Android */
+}
+
+/* Disable text selection on UI components */
+header, footer, nav, button, .btn, .widget-title, .newsletter-box, .mobile-menu-overlay {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Ensure content remains selectable */
+.article-content, p, h1, h2, h3, h4, h5, h6, input, textarea {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
 /* Layout Utilities */
 .container {
   max-width: 1200px;
