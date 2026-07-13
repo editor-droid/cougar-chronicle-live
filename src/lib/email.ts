@@ -14,6 +14,45 @@ export function isValidEmail(email: unknown): email is string {
   return true;
 }
 
+/**
+ * Append a small, stable UTM set. Only use on share + newsletter links — not site nav.
+ *
+ * Share channels: native | copy | twitter | facebook | email
+ * Newsletter: source=newsletter, medium=email
+ *
+ * Note: iMessage is not a separate web API. When the user picks Messages in the
+ * OS share sheet, that uses the "native" URL (same as AirDrop / Notes / etc.).
+ */
+export function withUtm(
+  href: string,
+  params: { source: string; medium: string; campaign?: string }
+): string {
+  try {
+    // Support absolute and relative URLs
+    const base =
+      href.startsWith('http://') || href.startsWith('https://')
+        ? href
+        : `https://thecougarchronicle.com${href.startsWith('/') ? '' : '/'}${href}`;
+    const u = new URL(base);
+    // Drop prior utm_* so we don't stack tags if someone re-shares a tracked link
+    ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'].forEach((k) =>
+      u.searchParams.delete(k)
+    );
+    u.searchParams.set('utm_source', params.source);
+    u.searchParams.set('utm_medium', params.medium);
+    if (params.campaign) u.searchParams.set('utm_campaign', params.campaign);
+
+    // If input was relative, return path + query (+ hash) only for same-origin helpers;
+    // callers that need absolute (emails, share) pass absolute or we return full URL.
+    if (href.startsWith('http://') || href.startsWith('https://')) {
+      return u.toString();
+    }
+    return `${u.pathname}${u.search}${u.hash}`;
+  } catch {
+    return href;
+  }
+}
+
 /** Shared footer for all list emails: why you're receiving + unsubscribe + preferences. */
 export function newsletterEmailFooter(origin: string, recipientEmail: string): string {
   const unsub = `${origin}/unsubscribe?email=${encodeURIComponent(recipientEmail)}`;

@@ -2,7 +2,7 @@ import prisma from '@/lib/prisma';
 import { Resend } from 'resend';
 import { getArticleUrl } from '@/lib/routes';
 import { sendPushNotification } from './push';
-import { isValidEmail, newsletterEmailFooter } from './email';
+import { isValidEmail, newsletterEmailFooter, withUtm } from './email';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_fallback_key_so_build_does_not_crash');
 
@@ -120,6 +120,12 @@ export async function broadcastPostPublication(
 
       if (emails.length > 0) {
         const subjectPrefix = post.isAmerica250 ? 'America 250' : 'New Post';
+        const articlePath = getArticleUrl(post);
+        const articleHref = withUtm(`${origin}${articlePath}`, {
+          source: 'newsletter',
+          medium: 'email',
+          campaign: post.isAmerica250 ? 'america-250' : 'new-post',
+        });
         await sendBatchedBroadcast(emails, `${subjectPrefix}: ${post.title}`, (email) => {
           return `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #1A1A1A;">
@@ -132,12 +138,12 @@ export async function broadcastPostPublication(
             : ''
         }
         <h2 style="font-family: Georgia, serif; font-size: 24px; color: #1A1A1A; line-height: 1.3;">
-          <a href="${origin}${getArticleUrl(post)}" style="color: #1A1A1A; text-decoration: none;">${post.title}</a>
+          <a href="${articleHref}" style="color: #1A1A1A; text-decoration: none;">${post.title}</a>
         </h2>
         <p style="color: #6B7280; font-size: 14px; font-weight: bold; text-transform: uppercase;">By ${post.author?.name || post.customAuthor || 'Staff'}</p>
         <p style="font-size: 16px; line-height: 1.6; color: #444;">${excerpt}</p>
         <div style="margin-top: 25px;">
-          <a href="${origin}${getArticleUrl(post)}" style="display: inline-block; background-color: #1B2253; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 4px; font-weight: bold;">Read Full Article</a>
+          <a href="${articleHref}" style="display: inline-block; background-color: #1B2253; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 4px; font-weight: bold;">Read Full Article</a>
         </div>
         ${pastPostsHtml}
         ${newsletterEmailFooter(origin, email)}
@@ -184,6 +190,11 @@ export async function broadcastVideoPublication(video: {
       const emails = subscribers.map((s) => s.email.trim()).filter(isValidEmail);
 
       if (emails.length > 0) {
+        const videoHref = withUtm(`${origin}${url}`, {
+          source: 'newsletter',
+          medium: 'email',
+          campaign: 'new-video',
+        });
         await sendBatchedBroadcast(emails, `New Video: ${video.title}`, (email) => {
           return `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #1A1A1A;">
@@ -192,11 +203,11 @@ export async function broadcastVideoPublication(video: {
         </div>
         <p style="color: #6B7280; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em;">New Video</p>
         <h2 style="font-family: Georgia, serif; font-size: 24px; color: #1A1A1A; line-height: 1.3;">
-          <a href="${origin}${url}" style="color: #1A1A1A; text-decoration: none;">${video.title}</a>
+          <a href="${videoHref}" style="color: #1A1A1A; text-decoration: none;">${video.title}</a>
         </h2>
         <p style="font-size: 16px; line-height: 1.6; color: #444;">${excerpt}</p>
         <div style="margin-top: 25px;">
-          <a href="${origin}${url}" style="display: inline-block; background-color: #1B2253; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 4px; font-weight: bold;">Watch Video</a>
+          <a href="${videoHref}" style="display: inline-block; background-color: #1B2253; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 4px; font-weight: bold;">Watch Video</a>
         </div>
         ${newsletterEmailFooter(origin, email)}
       </div>`;

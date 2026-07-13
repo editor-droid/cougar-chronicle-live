@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Share2, Check, Link2, Mail, X as XIcon } from 'lucide-react';
 import { toast } from 'sonner';
+import { withUtm } from '@/lib/email';
 
 type ShareButtonProps = {
   title: string;
@@ -10,9 +11,12 @@ type ShareButtonProps = {
   text?: string;
 };
 
+type ShareChannel = 'native' | 'copy' | 'twitter' | 'facebook' | 'email';
+
 /**
- * Mobile / PWA: native share sheet (Safari/iOS/Android).
- * Desktop: dropdown with Copy link, X, Facebook, Email.
+ * Mobile / PWA: native share sheet (includes iMessage when user picks Messages).
+ * Desktop: dropdown — Copy, X, Facebook, Email.
+ * UTMs only on these outbound share links (not site browsing).
  */
 export default function ShareButton({ title, url, text }: ShareButtonProps) {
   const [copied, setCopied] = useState(false);
@@ -30,8 +34,19 @@ export default function ShareButton({ title, url, text }: ShareButtonProps) {
     return () => document.removeEventListener('mousedown', onDoc);
   }, [menuOpen]);
 
-  const getShareUrl = () =>
-    url || (typeof window !== 'undefined' ? window.location.href : '');
+  /** Clean page URL (no existing UTMs), then tag for the share channel. */
+  const trackedUrl = (channel: ShareChannel) => {
+    const raw =
+      url ||
+      (typeof window !== 'undefined'
+        ? `${window.location.origin}${window.location.pathname}`
+        : '');
+    return withUtm(raw, {
+      source: 'share',
+      medium: channel,
+      campaign: 'article',
+    });
+  };
 
   const copyLink = async (shareUrl: string) => {
     try {
@@ -45,21 +60,20 @@ export default function ShareButton({ title, url, text }: ShareButtonProps) {
   };
 
   const share = async () => {
-    const shareUrl = getShareUrl();
+    // Native sheet URL is tagged "native" — covers iMessage, AirDrop, Notes, etc.
+    // We cannot tag "iMessage" alone; the OS does not tell us which app they pick.
+    const shareUrl = trackedUrl('native');
     const shareData: ShareData = {
       title,
       text: text || title,
       url: shareUrl,
     };
 
-    // Prefer native sheet when the browser actually supports it (phone Safari/PWA)
     const canNativeShare =
       typeof navigator !== 'undefined' &&
       typeof navigator.share === 'function' &&
-      // Desktop Chrome often has share only in limited cases; still try if canShare ok
       (typeof navigator.canShare !== 'function' || navigator.canShare(shareData));
 
-    // Touch / coarse pointer ≈ mobile-ish; use native share there first
     const prefersNative =
       typeof window !== 'undefined' &&
       (window.matchMedia('(pointer: coarse)').matches ||
@@ -72,16 +86,18 @@ export default function ShareButton({ title, url, text }: ShareButtonProps) {
         return;
       } catch (err: unknown) {
         if (err instanceof DOMException && err.name === 'AbortError') return;
-        // fall through to menu / copy
       }
     }
 
-    // Desktop (and native share failures): open share menu
     setMenuOpen((o) => !o);
   };
 
-  const shareUrl = typeof window !== 'undefined' ? getShareUrl() : '';
-  const encodedUrl = encodeURIComponent(shareUrl);
+  const twitterUrl = trackedUrl('twitter');
+  const facebookUrl = trackedUrl('facebook');
+  const emailUrl = trackedUrl('email');
+  const encodedTwitter = encodeURIComponent(twitterUrl);
+  const encodedFacebook = encodeURIComponent(facebookUrl);
+  const encodedEmail = encodeURIComponent(emailUrl);
   const encodedTitle = encodeURIComponent(title);
 
   return (
@@ -133,7 +149,7 @@ export default function ShareButton({ title, url, text }: ShareButtonProps) {
             icon={<Link2 size={15} />}
             label={copied ? 'Copied!' : 'Copy link'}
             onClick={async () => {
-              await copyLink(getShareUrl());
+              await copyLink(trackedUrl('copy'));
               setMenuOpen(false);
             }}
           />
@@ -142,7 +158,7 @@ export default function ShareButton({ title, url, text }: ShareButtonProps) {
             label="Share on X"
             onClick={() => {
               window.open(
-                `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`,
+                `https://twitter.com/intent/tweet?url=${encodedTwitter}&text=${encodedTitle}`,
                 '_blank',
                 'noopener,noreferrer'
               );
@@ -158,7 +174,7 @@ export default function ShareButton({ title, url, text }: ShareButtonProps) {
             label="Facebook"
             onClick={() => {
               window.open(
-                `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+                `https://www.facebook.com/sharer/sharer.php?u=${encodedFacebook}`,
                 '_blank',
                 'noopener,noreferrer'
               );
@@ -169,7 +185,7 @@ export default function ShareButton({ title, url, text }: ShareButtonProps) {
             icon={<Mail size={15} />}
             label="Email"
             onClick={() => {
-              window.location.href = `mailto:?subject=${encodedTitle}&body=${encodedUrl}`;
+              window.location.href = `mailto:?subject=${encodedTitle}&body=${encodedEmail}`;
               setMenuOpen(false);
             }}
           />
