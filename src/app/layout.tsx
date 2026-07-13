@@ -79,9 +79,16 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    // Navy on <html> paints instantly in the PWA (before CSS/JS) so launch isn't a white flash
+    // Inline navy on html+body is the earliest paint we control (before CSS/JS)
     <html lang="en" style={{ backgroundColor: '#1B2253' }}>
-      <body>
+      <head>
+        <style
+          dangerouslySetInnerHTML={{
+            __html: 'html,body{background-color:#1B2253!important}',
+          }}
+        />
+      </head>
+      <body style={{ backgroundColor: '#1B2253' }}>
         <PWASplashScreen />
         <Suspense fallback={null}>
           <Tracking />
@@ -121,42 +128,44 @@ export default function RootLayout({
             </a>
           </div>
         </div>
-        <header className="site-header container">
-          <div className="header-top">
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <div className="brand" style={{ fontFamily: "'Cormorant Garamond', serif", color: 'var(--primary)', lineHeight: 1 }}>
-                <a href="/" style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                  <span style={{ fontSize: '22.3px', fontWeight: 400 }}>The</span>
-                  <span style={{ fontSize: '40px', fontWeight: 400 }}>Cougar Chronicle</span>
-                </a>
+        <div className="site-shell">
+          <header className="site-header container">
+            <div className="header-top">
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <div className="brand" style={{ fontFamily: "'Cormorant Garamond', serif", color: 'var(--primary)', lineHeight: 1 }}>
+                  <a href="/" style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+                    <span style={{ fontSize: '22.3px', fontWeight: 400 }}>The</span>
+                    <span style={{ fontSize: '40px', fontWeight: 400 }}>Cougar Chronicle</span>
+                  </a>
+                </div>
+                <span className="font-serif text-muted" style={{ fontSize: '0.95rem', fontStyle: 'italic', letterSpacing: '0.05em', marginTop: '0.5rem' }}>
+                  Faith, Reason, and Politics at BYU
+                </span>
               </div>
-              <span className="font-serif text-muted" style={{ fontSize: '0.95rem', fontStyle: 'italic', letterSpacing: '0.05em', marginTop: '0.5rem' }}>
-                Faith, Reason, and Politics at BYU
-              </span>
+              <div className="header-actions" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <SearchBar />
+                <SubscribeModal />
+              </div>
+              <MobileMenu />
             </div>
-            <div className="header-actions" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <SearchBar />
-              <SubscribeModal />
-            </div>
-            <MobileMenu />
-          </div>
-          
-          <nav className="main-nav" style={{ marginTop: '1.5rem', borderTop: '1px solid var(--border)', paddingTop: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <a href="/category/news" className="nav-link font-sans">News</a>
-            <a href="/category/faith" className="nav-link font-sans">Faith</a>
-            <a href="/category/opinion" className="nav-link font-sans">Opinion</a>
-            <a href="/america-250" className="nav-link font-sans" style={{ color: 'var(--primary)', fontWeight: 600 }}>America 250</a>
-            <a href="/print-edition" className="nav-link font-sans">Print Edition</a>
-            <a href="/videos" className="nav-link font-sans">Videos</a>
-            <a href="/about" className="nav-link font-sans">About</a>
-            <a href="/contact" className="nav-link font-sans">Contact</a>
-            <a href="/donate" className="nav-link font-sans">Donate</a>
-          </nav>
-        </header>
+            
+            <nav className="main-nav" style={{ marginTop: '1.5rem', borderTop: '1px solid var(--border)', paddingTop: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <a href="/category/news" className="nav-link font-sans">News</a>
+              <a href="/category/faith" className="nav-link font-sans">Faith</a>
+              <a href="/category/opinion" className="nav-link font-sans">Opinion</a>
+              <a href="/america-250" className="nav-link font-sans" style={{ color: 'var(--primary)', fontWeight: 600 }}>America 250</a>
+              <a href="/print-edition" className="nav-link font-sans">Print Edition</a>
+              <a href="/videos" className="nav-link font-sans">Videos</a>
+              <a href="/about" className="nav-link font-sans">About</a>
+              <a href="/contact" className="nav-link font-sans">Contact</a>
+              <a href="/donate" className="nav-link font-sans">Donate</a>
+            </nav>
+          </header>
 
-        <main className="container animate-fade-in" style={{ paddingBottom: '4rem' }}>
-          {children}
-        </main>
+          <main className="container animate-fade-in" style={{ paddingBottom: '4rem' }}>
+            {children}
+          </main>
+        </div>
 
         <Chatbot />
         <PushManager />

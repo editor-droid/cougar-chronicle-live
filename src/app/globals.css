@@ -28,19 +28,32 @@ html, body {
   width: 100%;
 }
 
-/* Instant navy paint for PWA launch / status-bar / overscroll (matches --primary) */
-html {
+/*
+ * Shell is always brand navy — never parchment/white.
+ * iOS PWAs briefly show the document background before content paints;
+ * a light body color is what reads as that "very brief white" flash.
+ * Parchment lives only on .site-shell (header + main).
+ */
+html,
+body {
   background-color: #1B2253;
 }
 
 body {
-  background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
   line-height: 1.6;
-  transition: background-color 0.3s ease, color 0.3s ease;
   overflow-wrap: break-word;
   min-height: 100dvh;
+  /* No background-color transition — animating into parchment looks like a white flash */
+}
+
+/* Reading surface (logo, nav, articles) — parchment on top of navy shell */
+.site-shell {
+  background-color: var(--background);
+  color: var(--foreground);
+  width: 100%;
+  flex: 1 0 auto;
 }
 
 /* Typography Classes */
