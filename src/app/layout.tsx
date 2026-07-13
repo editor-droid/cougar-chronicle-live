@@ -7,6 +7,7 @@ import SearchBar from '@/components/SearchBar';
 import MobileMenu from '@/components/MobileMenu';
 import Tracking from '@/components/Tracking';
 import PushManager from '@/components/PushManager';
+import PWASplashScreen from '@/components/PWASplashScreen';
 import './globals.css'
 
 export const viewport: Viewport = {
@@ -155,6 +156,7 @@ export default function RootLayout({
 
         <Chatbot />
         <PushManager />
+        <PWASplashScreen />
 
         <footer className="site-footer" style={{ backgroundColor: 'var(--primary)', color: 'white', marginTop: '0', paddingTop: '4rem', paddingBottom: '2rem', borderTop: 'none' }}>
           <div className="container" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '2rem', textAlign: 'left', marginBottom: '2rem' }}>
