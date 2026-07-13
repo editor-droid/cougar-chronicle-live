@@ -168,11 +168,14 @@ export default function RootLayout({
           position="top-center"
           richColors
           closeButton
-          offset="calc(1rem + env(safe-area-inset-top, 0px))"
+          // Clear of iOS status bar / Dynamic Island + a little extra breathing room
+          offset={{ top: 'calc(env(safe-area-inset-top, 0px) + 4.5rem)' }}
+          mobileOffset={{ top: 'calc(env(safe-area-inset-top, 0px) + 4.5rem)' }}
           toastOptions={{
             style: {
               fontFamily: 'var(--font-sans, system-ui, sans-serif)',
             },
+            className: 'cc-toast',
           }}
         />
 

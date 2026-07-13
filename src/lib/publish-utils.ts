@@ -2,14 +2,18 @@ import prisma from '@/lib/prisma';
 import { Resend } from 'resend';
 import { getArticleUrl } from '@/lib/routes';
 import { sendPushNotification } from './push';
+import { isValidEmail } from './email';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_fallback_key_so_build_does_not_crash');
 
-export async function broadcastPostPublication(post: any) {
+export async function broadcastPostPublication(
+  post: any,
+  options?: { skipAuthorEmail?: boolean }
+) {
   const isMock = !process.env.RESEND_API_KEY || process.env.RESEND_API_KEY.includes('fallback');
 
-  // 1. Email the author
-  if (post.author?.email) {
+  // 1. Email the author (skipped on manual re-sends)
+  if (post.author?.email && !options?.skipAuthorEmail) {
     const subject = `Your post is now live: ${post.title}`;
     const html = `<p>Congratulations! Your post "<strong>${post.title}</strong>" has been published.</p><p><a href="https://thecougarchronicle.com${getArticleUrl(post)}">View it live here</a></p>`;
     
@@ -100,7 +104,7 @@ export async function broadcastPostPublication(post: any) {
         where: whereClause,
         select: { email: true },
       });
-      const emails = subscribers.map((s) => s.email);
+      const emails = subscribers.map((s) => s.email.trim()).filter(isValidEmail);
 
       if (emails.length > 0) {
         const subjectPrefix = post.isAmerica250 ? 'America 250' : 'New Post';

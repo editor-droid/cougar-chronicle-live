@@ -3,6 +3,7 @@ import { Resend } from 'resend';
 import { getArticleUrl } from '@/lib/routes';
 import prisma from '@/lib/prisma';
 import { rateLimit } from '@/lib/rate-limit';
+import { isValidEmail } from '@/lib/email';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder');
 const AUDIENCE_ID = process.env.RESEND_AUDIENCE_ID || '993e7864-bb3a-4543-a437-a7848b030657';
@@ -26,6 +27,10 @@ export async function POST(req: Request) {
 
     if (!email) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 });
+    }
+
+    if (!isValidEmail(email)) {
+      return NextResponse.json({ error: 'Please enter a valid email address' }, { status: 400 });
     }
 
     // Prevent using our own domain in subscribe to avoid self-spam
