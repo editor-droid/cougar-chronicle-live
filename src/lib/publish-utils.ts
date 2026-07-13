@@ -1,7 +1,7 @@
 import prisma from '@/lib/prisma';
 import { Resend } from 'resend';
 import { getArticleUrl } from '@/lib/routes';
-import { sendPushNotification } from './push';
+import { sendPushNotification, topicsForPost } from './push';
 import { isValidEmail, newsletterEmailFooter, withUtm } from './email';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_fallback_key_so_build_does_not_crash');
@@ -100,13 +100,15 @@ export async function broadcastPostPublication(
     console.log(`\n[BROADCAST] Article category=${post.category} title=${post.title}\n`);
 
     if (!isMock) {
-      const whereClause: {
-        isActive: boolean;
-        wantsNews?: boolean;
-        wantsFaith?: boolean;
-        wantsOpinion?: boolean;
-      } = { isActive: true };
-      if (!post.isAmerica250) {
+      // Instant email: only wantsInstant (or wantsBreaking when post is breaking).
+      // Weekly digesters wait for the digest cron.
+      const whereClause: any = {
+        isActive: true,
+        OR: post.isBreaking
+          ? [{ wantsInstant: true }, { wantsBreaking: true }]
+          : [{ wantsInstant: true }],
+      };
+      if (!post.isAmerica250 && !post.isBreaking) {
         if (post.category === 'news') whereClause.wantsNews = true;
         else if (post.category === 'faith') whereClause.wantsFaith = true;
         else if (post.category === 'opinion') whereClause.wantsOpinion = true;
@@ -119,12 +121,20 @@ export async function broadcastPostPublication(
       const emails = subscribers.map((s) => s.email.trim()).filter(isValidEmail);
 
       if (emails.length > 0) {
-        const subjectPrefix = post.isAmerica250 ? 'America 250' : 'New Post';
+        const subjectPrefix = post.isBreaking
+          ? 'BREAKING'
+          : post.isAmerica250
+            ? 'America 250'
+            : 'New Post';
         const articlePath = getArticleUrl(post);
         const articleHref = withUtm(`${origin}${articlePath}`, {
           source: 'newsletter',
           medium: 'email',
-          campaign: post.isAmerica250 ? 'america-250' : 'new-post',
+          campaign: post.isBreaking
+            ? 'breaking'
+            : post.isAmerica250
+              ? 'america-250'
+              : 'new-post',
         });
         await sendBatchedBroadcast(emails, `${subjectPrefix}: ${post.title}`, (email) => {
           return `
@@ -133,9 +143,11 @@ export async function broadcastPostPublication(
           <h1 style="color: #1B2253; font-family: Georgia, serif; font-size: 32px; letter-spacing: -0.05em; text-transform: uppercase;">The Cougar Chronicle</h1>
         </div>
         ${
-          post.isAmerica250
-            ? `<p style="color: #6B7280; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em;">America 250</p>`
-            : ''
+          post.isBreaking
+            ? `<p style="color: #b91c1c; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em;">Breaking</p>`
+            : post.isAmerica250
+              ? `<p style="color: #6B7280; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em;">America 250</p>`
+              : ''
         }
         <h2 style="font-family: Georgia, serif; font-size: 24px; color: #1A1A1A; line-height: 1.3;">
           <a href="${articleHref}" style="color: #1A1A1A; text-decoration: none;">${post.title}</a>
@@ -149,16 +161,19 @@ export async function broadcastPostPublication(
         ${newsletterEmailFooter(origin, email)}
       </div>`;
         });
-        console.log(`Successfully sent to ${emails.length} subscribers.`);
+        console.log(`Instant email sent to ${emails.length} subscribers.`);
       } else {
-        console.log('No subscribers matched this post audience.');
+        console.log('No instant-email subscribers for this post (digest-only list waits for weekly cron).');
       }
 
-      await sendPushNotification(
-        post.isAmerica250 ? `America 250: ${post.title}` : `New Post: ${post.title}`,
-        excerpt,
-        getArticleUrl(post)
-      );
+      const pushTitle = post.isBreaking
+        ? `BREAKING: ${post.title}`
+        : post.isAmerica250
+          ? `America 250: ${post.title}`
+          : `New Post: ${post.title}`;
+      await sendPushNotification(pushTitle, excerpt, getArticleUrl(post), {
+        topics: topicsForPost(post),
+      });
     }
   } catch (broadcastError) {
     console.error('Failed to trigger broadcast:', broadcastError);
@@ -184,7 +199,7 @@ export async function broadcastVideoPublication(video: {
   if (!isMock) {
     try {
       const subscribers = await prisma.subscriber.findMany({
-        where: { isActive: true, wantsVideos: true },
+        where: { isActive: true, wantsVideos: true, wantsInstant: true },
         select: { email: true },
       });
       const emails = subscribers.map((s) => s.email.trim()).filter(isValidEmail);
@@ -222,7 +237,9 @@ export async function broadcastVideoPublication(video: {
   }
 
   try {
-    await sendPushNotification(`New Video: ${video.title}`, excerpt, url);
+    await sendPushNotification(`New Video: ${video.title}`, excerpt, url, {
+      topics: ['videos'],
+    });
   } catch (e) {
     console.error('Failed to send video push:', e);
   }

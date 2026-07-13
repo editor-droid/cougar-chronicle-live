@@ -8,7 +8,10 @@ import MobileMenu from '@/components/MobileMenu';
 import Tracking from '@/components/Tracking';
 import PushManager from '@/components/PushManager';
 import PWASplashScreen from '@/components/PWASplashScreen';
+import BreakingBanner from '@/components/BreakingBanner';
 import { Toaster } from 'sonner';
+import prisma from '@/lib/prisma';
+import { getArticleUrl } from '@/lib/routes';
 import './globals.css'
 
 export const viewport: Viewport = {
@@ -74,11 +77,23 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const now = new Date();
+  const breaking = await prisma.post.findFirst({
+    where: {
+      state: 'PUBLISHED',
+      isBreaking: true,
+      publishedAt: { lte: now },
+      OR: [{ breakingUntil: null }, { breakingUntil: { gt: now } }],
+    },
+    orderBy: { publishedAt: 'desc' },
+    select: { id: true, title: true, slug: true, isPremium: true, printEditionId: true },
+  });
+
   return (
     // Default parchment for desktop. PWA sets .pwa-standalone + navy via early script/CSS only.
     <html lang="en" style={{ backgroundColor: '#FDFBF7' }}>
@@ -151,10 +166,19 @@ export default function RootLayout({
               <a href="/print-edition" className="nav-link font-sans">Print Edition</a>
               <a href="/videos" className="nav-link font-sans">Videos</a>
               <a href="/about" className="nav-link font-sans">About</a>
+              <a href="/membership" className="nav-link font-sans" style={{ color: 'var(--primary)', fontWeight: 600 }}>Member</a>
               <a href="/contact" className="nav-link font-sans">Contact</a>
               <a href="/donate" className="nav-link font-sans">Donate</a>
             </nav>
           </header>
+
+          <BreakingBanner
+            item={
+              breaking
+                ? { id: breaking.id, title: breaking.title, href: getArticleUrl(breaking) }
+                : null
+            }
+          />
 
           <main className="container animate-fade-in" style={{ paddingBottom: '4rem' }}>
             {children}
@@ -209,7 +233,13 @@ export default function RootLayout({
             </div>
           </div>
           <div className="container" style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-            <p className="font-sans text-sm" style={{ opacity: 0.6 }}>&copy; {new Date().getFullYear()} The Cougar Chronicle. All rights reserved.</p>
+            <p className="font-sans text-sm" style={{ opacity: 0.6 }}>
+              &copy; {new Date().getFullYear()} The Cougar Chronicle. Independent student journalism — not affiliated with BYU administration.
+              {' · '}
+              <a href="/corrections" style={{ color: 'white', opacity: 0.8 }}>Corrections</a>
+              {' · '}
+              <a href="/membership" style={{ color: 'white', opacity: 0.8 }}>Membership</a>
+            </p>
             <div style={{ display: 'flex', gap: '1rem', opacity: 0.8 }}>
               <a href="https://twitter.com/TheCougChron" target="_blank" rel="noopener noreferrer" style={{ color: 'white' }} aria-label="Twitter / X"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.008 3.974H5.059z"/></svg></a>
               <a href="https://www.instagram.com/thecougchron/" target="_blank" rel="noopener noreferrer" style={{ color: 'white' }} aria-label="Instagram"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>

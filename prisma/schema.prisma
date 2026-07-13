@@ -62,6 +62,8 @@ model Post {
   featuredImageAlt  String?
   isPremium         Boolean        @default(false)
   isAmerica250      Boolean        @default(false)
+  isBreaking        Boolean        @default(false)
+  breakingUntil     DateTime?
   customAuthor      String?
   printEditionId    String?
   printEditionOrder Int?
@@ -72,12 +74,14 @@ model Post {
 }
 
 model ArticleToken {
-  id        String   @id @default(cuid())
-  token     String   @unique
-  email     String
-  postId    String
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
+  id             String   @id @default(cuid())
+  token          String   @unique
+  email          String
+  postId         String
+  post           Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+  isGift         Boolean  @default(false)
+  giftedByUserId String?
 }
 
 model Account {
@@ -116,13 +120,28 @@ model VerificationToken {
 }
 
 model PrintEdition {
-  id            String   @id @default(cuid())
+  id            String          @id @default(cuid())
   title         String
-  pdfUrl        String   @db.Text
-  coverImageUrl String?  @db.Text
-  isActive      Boolean  @default(true)
-  createdAt     DateTime @default(now())
+  pdfUrl        String          @db.Text
+  coverImageUrl String?         @db.Text
+  isActive      Boolean         @default(true)
+  createdAt     DateTime        @default(now())
   posts         Post[]
+  purchases     PrintPurchase[]
+}
+
+model PrintPurchase {
+  id              String        @id @default(cuid())
+  email           String
+  name            String?
+  type            String        // digital | physical
+  amount          Float
+  stripeSessionId String?       @unique
+  printEditionId  String?
+  printEdition    PrintEdition? @relation(fields: [printEditionId], references: [id], onDelete: SetNull)
+  shippingJson    String?       @db.Text
+  fulfilled       Boolean       @default(false)
+  createdAt       DateTime      @default(now())
 }
 
 model ContactSubmission {
@@ -135,15 +154,18 @@ model ContactSubmission {
 }
 
 model Subscriber {
-  id           String   @id @default(cuid())
-  name         String?
-  email        String   @unique
-  createdAt    DateTime @default(now())
-  isActive     Boolean  @default(true)
-  wantsNews    Boolean  @default(true)
-  wantsFaith   Boolean  @default(true)
-  wantsOpinion Boolean  @default(true)
-  wantsVideos  Boolean  @default(true)
+  id             String   @id @default(cuid())
+  name           String?
+  email          String   @unique
+  createdAt      DateTime @default(now())
+  isActive       Boolean  @default(true)
+  wantsNews      Boolean  @default(true)
+  wantsFaith     Boolean  @default(true)
+  wantsOpinion   Boolean  @default(true)
+  wantsVideos    Boolean  @default(true)
+  wantsDigest    Boolean  @default(true)
+  wantsInstant   Boolean  @default(false)
+  wantsBreaking  Boolean  @default(true)
 }
 
 model EditorialNote {
@@ -179,12 +201,17 @@ model Favorite {
 }
 
 model PushSubscription {
-  id        String   @id @default(cuid())
-  endpoint  String   @unique
-  p256dh    String
-  auth      String
-  userId    String?
-  createdAt DateTime @default(now())
+  id            String   @id @default(cuid())
+  endpoint      String   @unique
+  p256dh        String
+  auth          String
+  userId        String?
+  createdAt     DateTime @default(now())
+  wantsNews     Boolean  @default(true)
+  wantsFaith    Boolean  @default(true)
+  wantsOpinion  Boolean  @default(true)
+  wantsVideos   Boolean  @default(true)
+  wantsBreaking Boolean  @default(true)
 
   user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import RSS from 'rss';
+import { getArticleUrl } from '@/lib/routes';
 
 export async function GET() {
   const baseUrl = process.env.NEXTAUTH_URL || 'https://thecougarchronicle.com';
@@ -10,36 +11,32 @@ export async function GET() {
     description: 'Independent, conservative student journalism at Brigham Young University.',
     feed_url: `${baseUrl}/feed.xml`,
     site_url: baseUrl,
-    image_url: `${baseUrl}/images/logo.png`,
+    image_url: `${baseUrl}/default-og.png`,
     language: 'en',
     pubDate: new Date().toUTCString(),
   });
 
   const posts = await prisma.post.findMany({
-    where: { state: 'PUBLISHED' },
-    orderBy: { createdAt: 'desc' },
+    where: { state: 'PUBLISHED', publishedAt: { lte: new Date() } },
+    orderBy: { publishedAt: 'desc' },
     take: 50,
-    include: {
-      author: true
-    }
+    include: { author: true },
   });
 
   posts.forEach((post) => {
-    const url = post.printEditionId 
-      ? `${baseUrl}/print-edition/${post.slug}` 
-      : `${baseUrl}/article/${post.slug}`;
-      
-    // Create a plain text summary from the HTML content
-    const summary = post.content ? post.content.replace(/<[^>]*>?/gm, '').substring(0, 200) + '...' : '';
+    const url = `${baseUrl}${getArticleUrl(post)}`;
+    const summary = post.content
+      ? post.content.replace(/<[^>]*>?/gm, '').substring(0, 200) + '...'
+      : '';
 
     feed.item({
       title: post.title,
       description: summary,
-      url: url,
+      url,
       guid: post.id,
       categories: [post.category],
       author: post.author?.name || 'Cougar Chronicle Staff',
-      date: post.createdAt,
+      date: post.publishedAt || post.createdAt,
     });
   });
 

@@ -5,24 +5,53 @@ import { auth } from '@/auth';
 export async function POST(req: Request) {
   try {
     const session = await auth();
-    const subscription = await req.json();
+    const body = await req.json();
 
-    if (!subscription || !subscription.endpoint) {
+    // Preference-only update needs an existing subscription endpoint from client
+    if (body.preferencesOnly && body.endpoint) {
+      const prefs = body.prefs || {};
+      await prisma.pushSubscription.updateMany({
+        where: { endpoint: body.endpoint },
+        data: {
+          wantsNews: prefs.wantsNews ?? true,
+          wantsFaith: prefs.wantsFaith ?? true,
+          wantsOpinion: prefs.wantsOpinion ?? true,
+          wantsVideos: prefs.wantsVideos ?? true,
+          wantsBreaking: prefs.wantsBreaking ?? true,
+        },
+      });
+      return NextResponse.json({ success: true });
+    }
+
+    if (!body?.endpoint) {
       return NextResponse.json({ error: 'Invalid subscription' }, { status: 400 });
     }
 
+    const keys = body.keys || {};
+    const prefs = body.prefs || {};
+
     await prisma.pushSubscription.upsert({
-      where: { endpoint: subscription.endpoint },
+      where: { endpoint: body.endpoint },
       update: {
-        p256dh: subscription.keys.p256dh,
-        auth: subscription.keys.auth,
+        p256dh: keys.p256dh || body.p256dh,
+        auth: keys.auth || body.auth,
         userId: session?.user?.id || null,
+        ...(prefs.wantsNews !== undefined && { wantsNews: !!prefs.wantsNews }),
+        ...(prefs.wantsFaith !== undefined && { wantsFaith: !!prefs.wantsFaith }),
+        ...(prefs.wantsOpinion !== undefined && { wantsOpinion: !!prefs.wantsOpinion }),
+        ...(prefs.wantsVideos !== undefined && { wantsVideos: !!prefs.wantsVideos }),
+        ...(prefs.wantsBreaking !== undefined && { wantsBreaking: !!prefs.wantsBreaking }),
       },
       create: {
-        endpoint: subscription.endpoint,
-        p256dh: subscription.keys.p256dh,
-        auth: subscription.keys.auth,
+        endpoint: body.endpoint,
+        p256dh: keys.p256dh,
+        auth: keys.auth,
         userId: session?.user?.id || null,
+        wantsNews: prefs.wantsNews ?? true,
+        wantsFaith: prefs.wantsFaith ?? true,
+        wantsOpinion: prefs.wantsOpinion ?? true,
+        wantsVideos: prefs.wantsVideos ?? true,
+        wantsBreaking: prefs.wantsBreaking ?? true,
       },
     });
 

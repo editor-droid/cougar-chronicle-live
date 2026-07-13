@@ -10,28 +10,31 @@ export async function POST(req: Request) {
     });
     const session = await auth();
     const contentType = req.headers.get('content-type') || '';
-    let type, amount, priceId, metadata, name;
-    
+    let type: string | undefined;
+    let amount = 0;
+    let priceId: string | undefined;
+    let metadata: any = {};
+    let name: string | undefined;
+
     if (contentType.includes('application/json')) {
       const body = await req.json();
       type = body.type;
-      amount = body.amount;
+      amount = Number(body.amount || 0);
       priceId = body.priceId;
-      metadata = body.metadata;
+      metadata = body.metadata || {};
       name = body.name;
     } else {
       const formData = await req.formData();
       type = formData.get('type') as string;
       amount = Number(formData.get('amount') || 0);
-      priceId = formData.get('priceId') as string;
-      metadata = JSON.parse(formData.get('metadata') as string || '{}');
+      priceId = (formData.get('priceId') as string) || undefined;
+      metadata = JSON.parse((formData.get('metadata') as string) || '{}');
       name = formData.get('name') as string;
     }
     const origin = req.headers.get('origin') || new URL(req.url).origin;
 
     let checkoutSession;
 
-    // 1. DONATIONS (Custom Amount)
     if (type === 'donate') {
       checkoutSession = await stripe.checkout.sessions.create({
         mode: 'payment',
@@ -46,20 +49,16 @@ export async function POST(req: Request) {
                 name: 'Donation to The Cougar Chronicle',
                 description: 'Support independent conservative journalism.',
               },
-              unit_amount: amount * 100, // amount in cents
+              unit_amount: Math.round(amount * 100),
             },
             quantity: 1,
           },
         ],
         success_url: `${origin}/donate?success=true&purchase=${amount}`,
         cancel_url: `${origin}/donate`,
-        metadata: {
-          type: 'donation'
-        }
+        metadata: { type: 'donation' },
       });
-    } 
-    // 2. SINGLE DIGITAL ARTICLE
-    else if (type === 'digital_article') {
+    } else if (type === 'digital_article') {
       checkoutSession = await stripe.checkout.sessions.create({
         mode: 'payment',
         payment_method_types: ['card'],
@@ -71,7 +70,7 @@ export async function POST(req: Request) {
               product_data: {
                 name: `Digital Article: ${name}`,
               },
-              unit_amount: 199, // $1.99 per article
+              unit_amount: 199,
             },
             quantity: 1,
           },
@@ -81,12 +80,10 @@ export async function POST(req: Request) {
         metadata: {
           type: 'digital_article',
           postId: metadata.postId,
-          slug: metadata.slug
-        }
+          slug: metadata.slug,
+        },
       });
-    }
-    // 3. DIGITAL PRINT EDITION (PDF)
-    else if (type === 'digital_print') {
+    } else if (type === 'digital_print') {
       checkoutSession = await stripe.checkout.sessions.create({
         mode: 'payment',
         payment_method_types: ['card'],
@@ -98,7 +95,7 @@ export async function POST(req: Request) {
               product_data: {
                 name: 'Print Edition (Digital PDF Download)',
               },
-              unit_amount: 1000, // $10.00
+              unit_amount: 1000,
             },
             quantity: 1,
           },
@@ -107,12 +104,10 @@ export async function POST(req: Request) {
         cancel_url: `${origin}/print-edition`,
         metadata: {
           type: 'digital_print',
-          printEditionId: metadata?.printEditionId
-        }
+          printEditionId: metadata?.printEditionId || '',
+        },
       });
-    }
-    // 4. PHYSICAL PRINT EDITION
-    else if (type === 'physical_print') {
+    } else if (type === 'physical_print') {
       checkoutSession = await stripe.checkout.sessions.create({
         mode: 'payment',
         payment_method_types: ['card'],
@@ -128,7 +123,7 @@ export async function POST(req: Request) {
                 name: 'Print Edition (Physical Copy)',
                 description: 'Delivered straight to your door.',
               },
-              unit_amount: 1500, // $15.00
+              unit_amount: 1500,
             },
             quantity: 1,
           },
@@ -136,32 +131,65 @@ export async function POST(req: Request) {
         success_url: `${origin}/print-edition?success=physical&purchase=15.00`,
         cancel_url: `${origin}/print-edition`,
         metadata: {
-          type: 'physical_print'
-        }
+          type: 'physical_print',
+          printEditionId: metadata?.printEditionId || '',
+        },
       });
-    }
-    // 5. SUBSCRIPTION FALLBACK
-    else if (type === 'subscription' && priceId) {
-      if (!session?.user) return new NextResponse('Unauthorized', { status: 401 });
-      checkoutSession = await stripe.checkout.sessions.create({
+    } else if (type === 'subscription') {
+      if (!session?.user) {
+        if (contentType.includes('application/json')) {
+          return NextResponse.json({ error: 'Login required' }, { status: 401 });
+        }
+        return NextResponse.redirect(`${origin}/login?callbackUrl=/membership`, 303);
+      }
+
+      const membershipPriceId =
+        priceId || process.env.STRIPE_MEMBERSHIP_PRICE_ID || '';
+
+      if (!membershipPriceId) {
+        return NextResponse.json(
+          { error: 'Membership price not configured' },
+          { status: 500 }
+        );
+      }
+
+      const createParams: Stripe.Checkout.SessionCreateParams = {
         mode: 'subscription',
         payment_method_types: ['card'],
-        customer_email: session.user.email || undefined,
-        line_items: [{ price: priceId, quantity: 1 }],
-        success_url: `${origin}/dashboard?success=true`,
-        cancel_url: `${origin}/dashboard`,
-        metadata: { userId: session.user.id, type: 'subscription' }
-      });
+        line_items: [{ price: membershipPriceId, quantity: 1 }],
+        success_url: `${origin}/membership?success=true`,
+        cancel_url: `${origin}/membership`,
+        client_reference_id: session.user.id,
+        metadata: { userId: session.user.id, type: 'subscription' },
+        subscription_data: {
+          metadata: { userId: session.user.id, type: 'subscription' },
+        },
+      };
+
+      if (session.user.email) {
+        // Prefer existing Stripe customer if we have stripeId
+        const prisma = (await import('@/lib/prisma')).default;
+        const dbUser = await prisma.user.findUnique({
+          where: { id: session.user.id },
+          select: { stripeId: true },
+        });
+        if (dbUser?.stripeId) {
+          createParams.customer = dbUser.stripeId;
+        } else {
+          createParams.customer_email = session.user.email;
+        }
+      }
+
+      checkoutSession = await stripe.checkout.sessions.create(createParams);
     }
 
     if (contentType.includes('application/json')) {
       return NextResponse.json({ url: checkoutSession?.url });
-    } else {
-      if (checkoutSession?.url) {
-        return NextResponse.redirect(checkoutSession.url, 303);
-      }
-      return new NextResponse('Checkout Session Failed', { status: 500 });
     }
+    if (checkoutSession?.url) {
+      return NextResponse.redirect(checkoutSession.url, 303);
+    }
+    return new NextResponse('Checkout Session Failed', { status: 500 });
   } catch (error) {
     console.error('[STRIPE_CHECKOUT]', error);
     return new NextResponse('Internal Error', { status: 500 });

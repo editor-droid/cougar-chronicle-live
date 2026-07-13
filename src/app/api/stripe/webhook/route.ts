@@ -23,97 +23,148 @@ export async function POST(req: Request) {
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session;
-    
-    const { type, userId, postId, slug } = session.metadata || {};
+
+    const { type, userId, postId } = session.metadata || {};
     const customerEmail = session.customer_details?.email;
     const customerName = session.customer_details?.name;
 
     if (type === 'subscription' && userId) {
       await prisma.user.update({
         where: { id: userId },
-        data: { 
+        data: {
           isSubscribed: true,
-          stripeId: session.customer as string,
-          giftLinks: { increment: 3 }
-        }
+          stripeId: (session.customer as string) || undefined,
+          giftLinks: { increment: 3 },
+        },
       });
-    } 
-    else if (type === 'donation') {
+    } else if (type === 'donation') {
       const amountTotal = session.amount_total ? session.amount_total / 100 : 0;
-      
       if (customerEmail) {
         await prisma.donation.create({
           data: {
             email: customerEmail,
             name: customerName,
             amount: amountTotal,
-            stripeSessionId: session.id
-          }
+            stripeSessionId: session.id,
+          },
         });
-        
-        console.log(`Donation received from ${customerEmail} for $${amountTotal}`);
       }
-    }
-    else if (type === 'physical_print') {
-      // Notify fulfillment team
-      console.log(`Physical Print Edition ordered by ${customerEmail}`);
-    }
-    else if (type === 'digital_print') {
-      if (customerEmail && session.metadata?.printEditionId) {
-        const edition = await prisma.printEdition.findUnique({
-          where: { id: session.metadata.printEditionId }
+    } else if (type === 'physical_print' || type === 'digital_print') {
+      const amountTotal = session.amount_total ? session.amount_total / 100 : 0;
+      const printEditionId = session.metadata?.printEditionId || null;
+      const shipping = (session as any).shipping_details
+        ? JSON.stringify((session as any).shipping_details)
+        : session.customer_details?.address
+          ? JSON.stringify(session.customer_details)
+          : null;
+
+      if (customerEmail) {
+        await prisma.printPurchase.create({
+          data: {
+            email: customerEmail,
+            name: customerName,
+            type: type === 'physical_print' ? 'physical' : 'digital',
+            amount: amountTotal,
+            stripeSessionId: session.id,
+            printEditionId: printEditionId || null,
+            shippingJson: shipping,
+            fulfilled: type === 'digital_print',
+          },
         });
-        
-        if (edition && edition.pdfUrl) {
-          const { Resend } = require('resend');
-          const resend = new Resend(process.env.RESEND_API_KEY);
-          
-          await resend.emails.send({
-            from: 'The Cougar Chronicle <noreply@cougarchronicle.com>',
-            to: customerEmail,
-            subject: `Your Digital Print Edition: ${edition.title}`,
-            html: `<p>Thank you for purchasing the digital print edition!</p><p>You can download your PDF replica here:</p><br/><a href="${edition.pdfUrl}">${edition.pdfUrl}</a>`
-          });
-          console.log(`Emailed Digital Print PDF to ${customerEmail}`);
+      }
+
+      if (type === 'digital_print' && customerEmail && printEditionId) {
+        const edition = await prisma.printEdition.findUnique({
+          where: { id: printEditionId },
+        });
+        if (edition?.pdfUrl) {
+          try {
+            const { Resend } = require('resend');
+            const resend = new Resend(process.env.RESEND_API_KEY);
+            await resend.emails.send({
+              from: 'The Cougar Chronicle <newsletter@updates.thecougarchronicle.com>',
+              to: customerEmail,
+              subject: `Your Digital Print Edition: ${edition.title}`,
+              html: `<p>Thank you for purchasing the digital print edition!</p><p><a href="${edition.pdfUrl}">Download your PDF</a></p>`,
+            });
+          } catch (e) {
+            console.error('Digital print email failed', e);
+          }
         }
       }
-    }
-    else if (type === 'digital_article' && postId) {
-      // Generate a secure access token for this article
+
+      if (type === 'physical_print' && customerEmail) {
+        try {
+          const { Resend } = require('resend');
+          const resend = new Resend(process.env.RESEND_API_KEY);
+          await resend.emails.send({
+            from: 'The Cougar Chronicle <newsletter@updates.thecougarchronicle.com>',
+            to: customerEmail,
+            subject: 'We received your Print Volume order',
+            html: `<p>Thanks for ordering a physical Print Volume from The Cougar Chronicle.</p><p>We'll fulfill your order and email when it ships. Questions? Reply to this message or contact us on the site.</p>`,
+          });
+        } catch (e) {
+          console.error('Physical print confirm email failed', e);
+        }
+      }
+    } else if (type === 'digital_article' && postId) {
       if (customerEmail) {
         const crypto = require('crypto');
         const secureToken = crypto.randomBytes(32).toString('hex');
-        
+
         await prisma.articleToken.create({
           data: {
             token: secureToken,
             email: customerEmail,
-            postId: postId
-          }
+            postId: postId,
+          },
         });
 
         const articleLink = `${process.env.NEXTAUTH_URL}/api/verify-token?token=${secureToken}`;
-        
-        // Use Resend to email them the secure link
-        const { Resend } = require('resend');
-        const resend = new Resend(process.env.RESEND_API_KEY);
-        
-        await resend.emails.send({
-          from: 'The Cougar Chronicle <noreply@cougarchronicle.com>',
-          to: customerEmail,
-          subject: 'Here is your premium article',
-          html: `<p>Thank you for purchasing this article! You can view the full, ad-free article anytime by clicking your private link below:</p><br/><a href="${articleLink}">${articleLink}</a>`
-        });
+        try {
+          const { Resend } = require('resend');
+          const resend = new Resend(process.env.RESEND_API_KEY);
+          await resend.emails.send({
+            from: 'The Cougar Chronicle <newsletter@updates.thecougarchronicle.com>',
+            to: customerEmail,
+            subject: 'Here is your premium article',
+            html: `<p>Thank you for purchasing this article!</p><p><a href="${articleLink}">Read your article</a></p>`,
+          });
+        } catch (e) {
+          console.error('Article purchase email failed', e);
+        }
       }
     }
   }
 
   if (event.type === 'invoice.payment_succeeded') {
     const invoice = event.data.object as any;
-    const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string);
-    await prisma.user.update({
-      where: { stripeId: subscription.customer as string },
-      data: { isSubscribed: true, giftLinks: { increment: 3 } }
+    if (invoice.subscription) {
+      try {
+        const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string);
+        const customerId = subscription.customer as string;
+        await prisma.user.updateMany({
+          where: { stripeId: customerId },
+          data: { isSubscribed: true },
+        });
+      } catch (e) {
+        console.error('invoice.payment_succeeded handler', e);
+      }
+    }
+  }
+
+  if (
+    event.type === 'customer.subscription.deleted' ||
+    event.type === 'customer.subscription.updated'
+  ) {
+    const subscription = event.data.object as Stripe.Subscription;
+    const customerId = subscription.customer as string;
+    const active =
+      subscription.status === 'active' || subscription.status === 'trialing';
+
+    await prisma.user.updateMany({
+      where: { stripeId: customerId },
+      data: { isSubscribed: active },
     });
   }
 

@@ -255,8 +255,8 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
                       Buy Article for $1.99
                     </button>
                   </form>
-                  <a href="/subscribe" className="btn btn-primary font-sans" style={{ fontWeight: 600 }}>
-                    Subscribe Now
+                  <a href="/membership" className="btn btn-primary font-sans" style={{ fontWeight: 600 }}>
+                    Become a Member
                   </a>
                 </div>
                 <div style={{ marginTop: '1.5rem' }}>

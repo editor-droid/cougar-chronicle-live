@@ -13,6 +13,8 @@ import { getArticleUrl } from '@/lib/routes';
 import { resolveStreamEmbedUrl, resolveStreamThumbnailUrl } from '@/lib/videos';
 import FavoriteButton from '@/components/FavoriteButton';
 import ShareButton from '@/components/ShareButton';
+import RelatedStories from '@/components/RelatedStories';
+import { getRelatedPosts } from '@/lib/related';
 export async function generateMetadata(
   { params }: { params: Promise<{ slug: string }> },
   parent: ResolvingMetadata
@@ -167,6 +169,8 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
     take: 3,
   });
 
+  const relatedPosts = await getRelatedPosts(post, 3);
+
   const htmlContent = post.content ? injectHeadingIds(post.content) : '';
 
   const jsonLd = {
@@ -214,6 +218,11 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
                   <Link href="/america-250" style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: 700, backgroundColor: 'var(--primary)', color: 'white', padding: '0.15rem 0.4rem', borderRadius: '0.25rem', textDecoration: 'none' }}>
                     🇺🇸 America 250
                   </Link>
+                )}
+                {post.isBreaking && (!post.breakingUntil || post.breakingUntil > new Date()) && (
+                  <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: 800, backgroundColor: '#b91c1c', color: 'white', padding: '0.15rem 0.4rem', borderRadius: '0.25rem', letterSpacing: '0.06em' }}>
+                    Breaking
+                  </span>
                 )}
               </div>
             </div>
@@ -294,8 +303,8 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
                       Buy Article for $1.99
                     </button>
                   </form>
-                  <a href="/subscribe" className="btn btn-primary font-sans" style={{ fontWeight: 600 }}>
-                    Subscribe Now
+                  <a href="/membership" className="btn btn-primary font-sans" style={{ fontWeight: 600 }}>
+                    Become a Member
                   </a>
                 </div>
                 <div style={{ marginTop: '1.5rem' }}>
@@ -305,6 +314,8 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
             </>
           )}
         </article>
+
+        <RelatedStories posts={relatedPosts} />
 
         {/* Next and Previous Navigation */}
         <div style={{ marginTop: '4rem', paddingTop: '2rem', borderTop: '1px solid var(--border)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '2rem' }}>

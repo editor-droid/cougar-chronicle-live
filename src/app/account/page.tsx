@@ -5,6 +5,9 @@ import Link from 'next/link';
 import { toggleNewsletter } from './actions';
 import { getArticleUrl } from '@/lib/routes';
 import PushSettings from '@/components/PushSettings';
+import MembershipCheckoutButton from '@/components/MembershipCheckoutButton';
+import BillingPortalButton from '@/components/BillingPortalButton';
+import GiftUnlockButton from '@/components/GiftUnlockButton';
 
 export const metadata = {
   title: 'My Account',
@@ -31,11 +34,32 @@ export default async function AccountPage() {
 
   const email = session.user.email as string;
 
+  const dbUser = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { isSubscribed: true, giftLinks: true, stripeId: true, role: true },
+  });
+  const isMember = dbUser?.isSubscribed === true;
+  const giftLinks = dbUser?.giftLinks ?? 0;
+
   // 1. Get subscriber status
   const subscriber = await prisma.subscriber.findUnique({
     where: { email }
   });
-  const isSubscribedToEmails = subscriber?.isActive ?? false;
+
+  const activeEdition = await prisma.printEdition.findFirst({
+    where: { isActive: true },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  // Premium posts for gift UI
+  const giftablePosts = isMember
+    ? await prisma.post.findMany({
+        where: { state: 'PUBLISHED', isPremium: true, publishedAt: { lte: new Date() } },
+        orderBy: { publishedAt: 'desc' },
+        take: 8,
+        select: { id: true, title: true },
+      })
+    : [];
 
   // 2. Get purchased digital articles via ArticleToken
   const tokens = await prisma.articleToken.findMany({
@@ -66,6 +90,58 @@ export default async function AccountPage() {
       </header>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
+
+        {/* MEMBERSHIP */}
+        <section>
+          <h2 className="font-serif" style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Membership</h2>
+          <div style={{ backgroundColor: 'var(--surface)', padding: '1.5rem', borderRadius: '0.5rem', border: '1px solid var(--border)' }}>
+            {isMember ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <p className="font-sans" style={{ margin: 0 }}>
+                  <strong style={{ color: '#15803d' }}>Chronicle Member</strong>
+                  <span className="text-muted text-sm"> — full digital access active</span>
+                </p>
+                <p className="font-sans text-sm text-muted" style={{ margin: 0 }}>
+                  Gift unlocks remaining: <strong>{giftLinks}</strong>
+                </p>
+                {activeEdition?.pdfUrl && (
+                  <a href={activeEdition.pdfUrl} target="_blank" rel="noopener noreferrer" className="btn btn-primary font-sans text-sm" style={{ alignSelf: 'flex-start' }}>
+                    Download Print Volume PDF
+                  </a>
+                )}
+                {dbUser?.stripeId && <BillingPortalButton />}
+                {giftablePosts.length > 0 && (
+                  <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem', marginTop: '0.5rem' }}>
+                    <h3 className="font-sans font-bold" style={{ fontSize: '1rem', marginBottom: '0.75rem' }}>
+                      Share a gift unlock
+                    </h3>
+                    <p className="font-sans text-sm text-muted" style={{ marginBottom: '0.75rem' }}>
+                      Create a one-time link so a friend can read a premium story free.
+                    </p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                      {giftablePosts.map((p) => (
+                        <div key={p.id} style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                          <span className="font-serif" style={{ fontSize: '1rem' }}>{p.title}</span>
+                          <GiftUnlockButton postId={p.id} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div>
+                <p className="font-sans text-sm text-muted" style={{ marginBottom: '1rem' }}>
+                  Unlock every premium digital story and the annual Print Volume PDF for $48/year.
+                </p>
+                <MembershipCheckoutButton />
+                <p className="font-sans text-xs text-muted" style={{ marginTop: '0.75rem' }}>
+                  <a href="/membership" style={{ color: 'var(--primary)' }}>Learn more about membership</a>
+                </p>
+              </div>
+            )}
+          </div>
+        </section>
 
         {/* DEVICE PREFERENCES SECTION */}
         <section>
@@ -103,6 +179,21 @@ export default async function AccountPage() {
                 <input type="checkbox" name="wantsVideos" defaultChecked={subscriber?.wantsVideos ?? true} style={{ width: '1.2rem', height: '1.2rem' }} />
                 <span className="font-sans font-medium">New Videos</span>
               </label>
+              <div style={{ marginTop: '0.5rem', borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
+                <p className="font-sans text-sm font-bold" style={{ marginBottom: '0.75rem' }}>How often</p>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', marginBottom: '0.5rem' }}>
+                  <input type="checkbox" name="wantsDigest" defaultChecked={subscriber?.wantsDigest ?? true} style={{ width: '1.2rem', height: '1.2rem' }} />
+                  <span className="font-sans font-medium">Weekly digest (recommended)</span>
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', marginBottom: '0.5rem' }}>
+                  <input type="checkbox" name="wantsInstant" defaultChecked={subscriber?.wantsInstant ?? false} style={{ width: '1.2rem', height: '1.2rem' }} />
+                  <span className="font-sans font-medium">Email me as soon as a story publishes</span>
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
+                  <input type="checkbox" name="wantsBreaking" defaultChecked={subscriber?.wantsBreaking ?? true} style={{ width: '1.2rem', height: '1.2rem' }} />
+                  <span className="font-sans font-medium">Breaking alerts by email</span>
+                </label>
+              </div>
               
               <div style={{ marginTop: '1rem', borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
                 <button type="submit" className="btn btn-primary font-sans text-sm">Save Preferences</button>

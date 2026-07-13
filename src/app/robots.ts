@@ -7,13 +7,8 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: [
-        '/premium-article/',
-        '/print-edition/',
-        '/dashboard/',
-        '/login',
-        '/api/'
-      ],
+      // Premium/print HTML teasers are indexable (paywall body). Block staff tools only.
+      disallow: ['/dashboard/', '/login', '/account', '/api/', '/restore-purchases'],
     },
     sitemap: `${baseUrl}/sitemap.xml`,
   };

@@ -30,6 +30,8 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
   const [printEditionOrder, setPrintEditionOrder] = useState(post?.printEditionOrder?.toString() || '');
   const [imageCaption, setImageCaption] = useState(post?.imageCaption || '');
   const [isAmerica250, setIsAmerica250] = useState(post?.isAmerica250 || false);
+  const [isBreaking, setIsBreaking] = useState(post?.isBreaking || false);
+  const [breakingHours, setBreakingHours] = useState<number | ''>(24);
   const [publishedAt, setPublishedAt] = useState(() => {
     if (post?.publishedAt) {
       const d = new Date(post.publishedAt);
@@ -201,7 +203,8 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
         title, slug, category, content, imageUrl, authorId: assignedAuthorId,
         seoTitle, seoDescription, seoKeywords,
         keyInsights, featuredImageAlt, customAuthor, isPremium,
-        isAmerica250, printEditionOrder, imageCaption,
+        isAmerica250, isBreaking, breakingHours: isBreaking ? breakingHours || 24 : null,
+        printEditionOrder, imageCaption,
         publishedAt: publishedAt || undefined
       });
 
@@ -403,6 +406,21 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                       <button type="button" title="Require a subscription or lifetime purchase to read." onClick={() => setIsPremium(!isPremium)} className={`${styles.pillToggle} ${isPremium ? styles.pillActive : ''}`}>★ Premium</button>
                       <button type="button" title="Feature this in the America 250 collection." onClick={() => setIsAmerica250(!isAmerica250)} className={`${styles.pillToggle} ${isAmerica250 ? styles.pillActive : ''}`}>🇺🇸 America 250</button>
+                      <button type="button" title="Pin as breaking news (banner + push)." onClick={() => setIsBreaking(!isBreaking)} className={`${styles.pillToggle} ${isBreaking ? styles.pillActive : ''}`}>⚡ Breaking</button>
+                      {isBreaking && (
+                        <select
+                          value={breakingHours === '' ? 24 : breakingHours}
+                          onChange={(e) => setBreakingHours(Number(e.target.value))}
+                          className="font-sans text-sm"
+                          style={{ marginLeft: '0.35rem', padding: '0.25rem 0.4rem', borderRadius: '0.25rem', border: '1px solid var(--border)' }}
+                          title="How long to keep the breaking banner"
+                        >
+                          <option value={12}>12 hours</option>
+                          <option value={24}>24 hours</option>
+                          <option value={48}>48 hours</option>
+                          <option value={72}>72 hours</option>
+                        </select>
+                      )}
                     </div>
                   </div>
                   <div className={styles.imageUploadZone} onClick={() => featuredFileInputRef.current?.click()}>

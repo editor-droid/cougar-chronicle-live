@@ -51,6 +51,9 @@ export default function DashboardNav({
         {link('videos', '/dashboard/videos', 'Videos')}
         {role === 'ADMIN' && link('donors', '/dashboard/donors', 'Donors')}
         {role === 'ADMIN' && link('subscribers', '/dashboard/subscribers', 'Subscribers')}
+        <Link href="/dashboard/print-orders" onClick={() => setOpen(false)}>
+          Print Orders
+        </Link>
       </nav>
     </div>
   );
