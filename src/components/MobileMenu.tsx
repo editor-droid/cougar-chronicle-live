@@ -7,9 +7,25 @@ import { Menu, X } from 'lucide-react';
 import SearchBar from './SearchBar';
 import SubscribeModal from './SubscribeModal';
 
+function isStandalonePwa() {
+  if (typeof window === 'undefined') return false;
+  return (
+    window.matchMedia('(display-mode: standalone)').matches ||
+    window.matchMedia('(display-mode: fullscreen)').matches ||
+    // iOS Safari "Add to Home Screen"
+    Boolean((window.navigator as Navigator & { standalone?: boolean }).standalone) ||
+    document.referrer.includes('android-app://')
+  );
+}
+
 export default function MobileMenu() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isPwa, setIsPwa] = useState(false);
   const pathname = usePathname();
+
+  useEffect(() => {
+    setIsPwa(isStandalonePwa());
+  }, []);
 
   // Close the menu when the route changes
   useEffect(() => {
@@ -68,6 +84,9 @@ export default function MobileMenu() {
                 <Link href="/about" className="mobile-nav-link font-sans">About</Link>
                 <Link href="/contact" className="mobile-nav-link font-sans">Contact</Link>
                 <Link href="/donate" className="mobile-nav-link font-sans">Donate</Link>
+                {isPwa && (
+                  <Link href="/account" className="mobile-nav-link font-sans">Account</Link>
+                )}
               </nav>
             </div>
           </div>

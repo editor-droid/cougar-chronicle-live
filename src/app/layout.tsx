@@ -8,6 +8,7 @@ import MobileMenu from '@/components/MobileMenu';
 import Tracking from '@/components/Tracking';
 import PushManager from '@/components/PushManager';
 import PWASplashScreen from '@/components/PWASplashScreen';
+import { Toaster } from 'sonner';
 import './globals.css'
 
 export const viewport: Viewport = {
@@ -169,6 +170,18 @@ export default function RootLayout({
 
         <Chatbot />
         <PushManager />
+        {/* Required for sonner toasts (push prompt, favorites, etc.) */}
+        <Toaster
+          position="top-center"
+          richColors
+          closeButton
+          offset="calc(1rem + env(safe-area-inset-top, 0px))"
+          toastOptions={{
+            style: {
+              fontFamily: 'var(--font-sans, system-ui, sans-serif)',
+            },
+          }}
+        />
 
         <footer className="site-footer" style={{ backgroundColor: 'var(--primary)', color: 'white', marginTop: '0', paddingTop: '4rem', paddingBottom: 'calc(2rem + env(safe-area-inset-bottom, 0px))', borderTop: 'none' }}>
           <div className="container" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '2rem', textAlign: 'left', marginBottom: '2rem' }}>

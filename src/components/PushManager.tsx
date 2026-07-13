@@ -5,12 +5,19 @@ import { toast } from 'sonner';
 
 export default function PushManager() {
   useEffect(() => {
-    // Only prompt if permission is default (meaning they haven't explicitly allowed or blocked it yet)
-    // and if we haven't prompted them in this session/local storage
+    // No login required — guests and signed-in users both get the prompt.
+    // Only skip if: already dismissed/accepted (localStorage), browser has no Notification API,
+    // or they already allowed/blocked system permission.
     const hasPrompted = localStorage.getItem('push_prompted');
-    
-    if (!hasPrompted && 'Notification' in window && 'serviceWorker' in navigator && Notification.permission === 'default') {
-      setTimeout(() => {
+
+    if (
+      !hasPrompted &&
+      typeof window !== 'undefined' &&
+      'Notification' in window &&
+      'serviceWorker' in navigator &&
+      Notification.permission === 'default'
+    ) {
+      const timer = setTimeout(() => {
         toast('Enable Notifications', {
           description: 'Get alerted when we publish new articles or videos.',
           action: {
@@ -24,11 +31,13 @@ export default function PushManager() {
             label: 'Maybe later',
             onClick: () => {
               localStorage.setItem('push_prompted', 'true');
-            }
+            },
           },
-          duration: 10000,
+          duration: 12000,
         });
-      }, 3000); // 3 second delay
+      }, 3000);
+
+      return () => clearTimeout(timer);
     }
   }, []);
 
