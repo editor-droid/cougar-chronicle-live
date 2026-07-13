@@ -134,7 +134,8 @@ export async function POST(req: Request) {
             <div style="background-color: #f1f5f9; padding: 20px; text-align: center; border-top: 1px solid #e2e8f0;">
               <p style="font-size: 12px; color: #64748b; margin: 0 0 10px 0;">&copy; ${new Date().getFullYear()} The Cougar Chronicle. All rights reserved.</p>
               <p style="font-size: 12px; color: #64748b; margin: 0;">
-                If you didn't mean to subscribe, you can <a href="${unsubLink}" style="color: #1e2b4d; text-decoration: underline;">unsubscribe here</a>.
+                You can <a href="${origin}/account" style="color: #1e2b4d; text-decoration: underline;">manage preferences</a>
+                or <a href="${unsubLink}" style="color: #1e2b4d; text-decoration: underline;">unsubscribe</a> anytime.
               </p>
             </div>
 

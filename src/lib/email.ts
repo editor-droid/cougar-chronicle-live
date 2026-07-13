@@ -13,3 +13,21 @@ export function isValidEmail(email: unknown): email is string {
   if (/['"`;]/.test(e)) return false;
   return true;
 }
+
+/** Shared footer for all list emails: why you're receiving + unsubscribe + preferences. */
+export function newsletterEmailFooter(origin: string, recipientEmail: string): string {
+  const unsub = `${origin}/unsubscribe?email=${encodeURIComponent(recipientEmail)}`;
+  const prefs = `${origin}/account`;
+  return `
+    <hr style="border: none; border-top: 1px solid #eaeaea; margin-top: 40px; margin-bottom: 16px;" />
+    <p style="font-size: 12px; color: #999; text-align: center; line-height: 1.6; margin: 0 0 8px 0;">
+      You are receiving this email because you subscribed to The Cougar Chronicle.
+      This is not a transactional message — you can opt out anytime.
+    </p>
+    <p style="font-size: 12px; color: #999; text-align: center; line-height: 1.6; margin: 0;">
+      <a href="${prefs}" style="color: #1B2253; text-decoration: underline;">Manage preferences</a>
+      &nbsp;·&nbsp;
+      <a href="${unsub}" style="color: #1B2253; text-decoration: underline;">Unsubscribe</a>
+    </p>
+  `;
+}

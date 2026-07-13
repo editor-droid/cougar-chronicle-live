@@ -12,8 +12,9 @@ export async function toggleNewsletter(formData: FormData) {
   const wantsNews = formData.get('wantsNews') === 'on';
   const wantsFaith = formData.get('wantsFaith') === 'on';
   const wantsOpinion = formData.get('wantsOpinion') === 'on';
+  const wantsVideos = formData.get('wantsVideos') === 'on';
   // If any category is selected, they are considered "active"
-  const isActive = wantsNews || wantsFaith || wantsOpinion;
+  const isActive = wantsNews || wantsFaith || wantsOpinion || wantsVideos;
 
   try {
     const existing = await prisma.subscriber.findUnique({
@@ -23,7 +24,7 @@ export async function toggleNewsletter(formData: FormData) {
     if (existing) {
       await prisma.subscriber.update({
         where: { email },
-        data: { isActive, wantsNews, wantsFaith, wantsOpinion }
+        data: { isActive, wantsNews, wantsFaith, wantsOpinion, wantsVideos }
       });
     } else if (isActive) {
       await prisma.subscriber.create({
@@ -33,7 +34,8 @@ export async function toggleNewsletter(formData: FormData) {
           isActive,
           wantsNews,
           wantsFaith,
-          wantsOpinion
+          wantsOpinion,
+          wantsVideos
         }
       });
     }

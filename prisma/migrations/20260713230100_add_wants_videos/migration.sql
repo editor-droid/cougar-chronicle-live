@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Subscriber" ADD COLUMN IF NOT EXISTS "wantsVideos" BOOLEAN NOT NULL DEFAULT true;

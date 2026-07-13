@@ -62,7 +62,11 @@ function UnsubscribeContent() {
           <div style={{ color: '#16a34a', fontSize: '4rem', marginBottom: '1rem' }}>✓</div>
           <h2 className="font-serif" style={{ marginBottom: '1rem' }}>Successfully Unsubscribed</h2>
           <p className="font-sans text-muted" style={{ marginBottom: '2rem' }}>
-            <strong>{email}</strong> has been removed from our mailing list. We're sorry to see you go!
+            <strong>{email}</strong> has been removed from our mailing list. We&apos;re sorry to see you go!
+          </p>
+          <p className="font-sans text-sm text-muted" style={{ marginBottom: '2rem' }}>
+            Prefer to keep some emails? Sign in and use{' '}
+            <Link href="/account" style={{ color: 'var(--primary)' }}>Manage preferences</Link> next time.
           </p>
           <Link href="/" className="btn btn-primary font-sans">
             Return to Homepage

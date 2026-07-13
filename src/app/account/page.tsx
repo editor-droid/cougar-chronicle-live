@@ -84,7 +84,7 @@ export default async function AccountPage() {
           <div style={{ backgroundColor: 'var(--surface)', padding: '1.5rem', borderRadius: '0.5rem', border: '1px solid var(--border)' }}>
             <div style={{ marginBottom: '1rem' }}>
               <h3 className="font-sans font-bold" style={{ fontSize: '1.1rem', marginBottom: '0.25rem' }}>Newsletter Categories</h3>
-              <p className="font-sans text-sm text-muted">Select which types of articles you want to receive in your inbox.</p>
+              <p className="font-sans text-sm text-muted">Select what you want in your inbox. New subscribers get all categories (including videos) on by default.</p>
             </div>
             <form action={toggleNewsletter} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
@@ -98,6 +98,10 @@ export default async function AccountPage() {
               <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
                 <input type="checkbox" name="wantsOpinion" defaultChecked={subscriber?.wantsOpinion ?? true} style={{ width: '1.2rem', height: '1.2rem' }} />
                 <span className="font-sans font-medium">Opinion & Editorial</span>
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
+                <input type="checkbox" name="wantsVideos" defaultChecked={subscriber?.wantsVideos ?? true} style={{ width: '1.2rem', height: '1.2rem' }} />
+                <span className="font-sans font-medium">New Videos</span>
               </label>
               
               <div style={{ marginTop: '1rem', borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>

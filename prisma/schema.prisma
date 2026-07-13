@@ -143,6 +143,7 @@ model Subscriber {
   wantsNews    Boolean  @default(true)
   wantsFaith   Boolean  @default(true)
   wantsOpinion Boolean  @default(true)
+  wantsVideos  Boolean  @default(true)
 }
 
 model EditorialNote {

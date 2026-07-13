@@ -24,12 +24,13 @@ export default async function SubscribersPage() {
               <th style={{ padding: '1rem' }} className="font-sans text-sm text-muted">NEWS</th>
               <th style={{ padding: '1rem' }} className="font-sans text-sm text-muted">FAITH</th>
               <th style={{ padding: '1rem' }} className="font-sans text-sm text-muted">OPINION</th>
+              <th style={{ padding: '1rem' }} className="font-sans text-sm text-muted">VIDEOS</th>
             </tr>
           </thead>
           <tbody>
             {subscribers.length === 0 ? (
               <tr>
-                <td colSpan={5} style={{ padding: '2rem', textAlign: 'center' }} className="font-sans text-muted">No subscribers yet.</td>
+                <td colSpan={6} style={{ padding: '2rem', textAlign: 'center' }} className="font-sans text-muted">No subscribers yet.</td>
               </tr>
             ) : (
               subscribers.map((sub) => (
@@ -39,6 +40,7 @@ export default async function SubscribersPage() {
                   <td style={{ padding: '1rem' }} className="font-sans text-center">{sub.wantsNews ? '✓' : '-'}</td>
                   <td style={{ padding: '1rem' }} className="font-sans text-center">{sub.wantsFaith ? '✓' : '-'}</td>
                   <td style={{ padding: '1rem' }} className="font-sans text-center">{sub.wantsOpinion ? '✓' : '-'}</td>
+                  <td style={{ padding: '1rem' }} className="font-sans text-center">{sub.wantsVideos ? '✓' : '-'}</td>
                 </tr>
               ))
             )}
