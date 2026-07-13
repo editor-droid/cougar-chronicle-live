@@ -662,20 +662,25 @@ input:focus, textarea:focus {
 
   .mobile-menu-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    /* Cover notch/home indicator while keeping controls tappable in the safe area */
+    height: 100dvh;
     background-color: var(--background);
     z-index: 9999;
     overflow-y: auto;
+    /* Ensure overlay sits above splash chrome and is edge-to-edge */
+    padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+    box-sizing: border-box;
   }
 
   .mobile-menu-content {
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    min-height: 100%;
+    box-sizing: border-box;
   }
 
   .mobile-menu-header {
@@ -685,6 +690,8 @@ input:focus, textarea:focus {
     margin-bottom: 2rem;
     padding-bottom: 1rem;
     border-bottom: 1px solid var(--border);
+    /* Extra breathing room below Dynamic Island / status bar */
+    padding-top: 0.25rem;
   }
 
   .mobile-menu-close {
@@ -692,6 +699,12 @@ input:focus, textarea:focus {
     border: none;
     padding: 0.5rem;
     cursor: pointer;
+    /* Larger hit target so X is easy to tap away from the notch */
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .mobile-menu-body {
