@@ -8,7 +8,7 @@ export async function GET() {
     start_url: "/dashboard/videos",
     scope: "/dashboard",
     display: "standalone",
-    background_color: "#ffffff",
+    background_color: "#1B2253",
     theme_color: "#1B2253",
     icons: [
       {

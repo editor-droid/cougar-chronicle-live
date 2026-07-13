@@ -63,7 +63,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'default',
+    statusBarStyle: 'black-translucent',
     title: 'Chronicle',
   },
   formatDetection: {
@@ -100,7 +100,7 @@ export default function RootLayout({
             })
           }}
         />
-        <div style={{ backgroundColor: 'var(--primary)', color: 'white', padding: '0.25rem 0', fontSize: '0.875rem' }}>
+        <div style={{ backgroundColor: 'var(--primary)', color: 'white', padding: '0.25rem 0', fontSize: '0.875rem', paddingTop: 'env(safe-area-inset-top)' }}>
           <div className="container" style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', alignItems: 'center' }}>
             <span className="font-sans font-bold">Follow Us:</span>
             <a href="https://twitter.com/TheCougChron" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center' }} aria-label="Twitter / X">
