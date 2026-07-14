@@ -20,6 +20,9 @@ export default function DonateForm() {
   const qualifiesForMembership = amount >= AUGUST_MEMBERSHIP_MIN;
   const isNamedSupporter =
     amount >= AUGUST_SUPPORTER_MIN && amount < AUGUST_MEMBERSHIP_MIN;
+  // Button labels only at exact preset tiers — not for every amount above them
+  const isExactPatriot = amount === AUGUST_SUPPORTER_MIN;
+  const isExactFounding = amount === AUGUST_MEMBERSHIP_MIN;
 
   const formStyle: React.CSSProperties = {
     padding: '2rem',
@@ -204,12 +207,11 @@ export default function DonateForm() {
           }}
           disabled={!amount || amount < 1}
         >
-          Donate ${amount || 0}
-          {qualifiesForMembership
-            ? ' · Founding Member'
-            : isNamedSupporter
-              ? ' · Patriot'
-              : ''}
+          {isExactFounding
+            ? `Donate $${amount} · Founding Member`
+            : isExactPatriot
+              ? `Donate $${amount} · Patriot`
+              : `Donate $${amount || 0}`}
         </button>
       </form>
 
