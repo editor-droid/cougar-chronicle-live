@@ -116,7 +116,7 @@ export default async function AccountPage() {
                       Share a gift unlock
                     </h3>
                     <p className="font-sans text-sm text-muted" style={{ marginBottom: '0.75rem' }}>
-                      Create a one-time link so a friend can read a premium story free.
+                      Email a friend the unlock, or copy a link for iMessage. Each gift uses one of your unlocks.
                     </p>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                       {giftablePosts.map((p) => (

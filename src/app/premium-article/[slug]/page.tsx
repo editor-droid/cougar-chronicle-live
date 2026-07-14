@@ -9,6 +9,7 @@ import ClientLightbox from './ClientLightbox';
 import KeyTakeaways from '@/components/KeyTakeaways';
 import ShareButton from '@/components/ShareButton';
 import RelatedStories from '@/components/RelatedStories';
+import GiftSaveBanner from '@/components/GiftSaveBanner';
 import { getRelatedPosts } from '@/lib/related';
 import { injectHeadingIds } from '@/lib/toc';
 import { getArticleUrl } from '@/lib/routes';
@@ -93,9 +94,10 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
 
   // Check access for premium articles
   let hasAccess = !post.isPremium;
+  let accessViaGift = false;
+  const session = await auth();
   
   if (post.isPremium) {
-    const session = await auth();
     // 1. Check if user is logged in and subscribed
     if (session?.user?.id) {
       const user = await prisma.user.findUnique({ where: { id: session.user.id } });
@@ -104,7 +106,7 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
       }
     }
     
-    // 2. Check if they have a valid magic token from buying the article individually
+    // 2. Check if they have a valid magic token from buying the article individually or gift
     if (!hasAccess) {
       const cookieStore = await cookies();
       const cookieToken = cookieStore.get(`article_token_${post.id}`)?.value;
@@ -116,10 +118,20 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
         });
         if (validToken && validToken.postId === post.id) {
           hasAccess = true;
+          accessViaGift = validToken.isGift === true;
         }
       }
     }
   }
+
+  // Soft “save access” prompt only for gift readers who are not logged-in members
+  const showGiftSaveBanner =
+    hasAccess &&
+    accessViaGift &&
+    !(session?.user?.id && (await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { isSubscribed: true },
+    }))?.isSubscribed);
 
   const nextPost = await prisma.post.findFirst({
     where: { state: 'PUBLISHED', createdAt: { gt: post.createdAt } },
@@ -176,6 +188,7 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
       />
       <ClientLightbox />
       <div style={{ display: 'flex', flexDirection: 'column' }}>
+        {showGiftSaveBanner && <GiftSaveBanner articleTitle={post.title} />}
         <article style={{ padding: '0', minHeight: '60vh' }}>
           <header style={{ marginBottom: '3rem', textAlign: 'center' }}>
             <div style={{ marginBottom: '1.5rem' }}>
