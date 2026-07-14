@@ -49,7 +49,7 @@ export default async function FundraiserPage() {
             </h3>
             <p className="font-sans text-sm text-muted" style={{ marginBottom: '1rem', lineHeight: 1.45 }}>
               <strong>$25</strong> — America 250 Patriot (named gift).{' '}
-              <strong>$48+</strong> — Founding Member for a year (premium digital + Print Volume PDF).
+              <strong>$48+</strong> — Founding Member for a year (we activate membership after checkout and email you).
             </p>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', alignItems: 'flex-end' }}>
               <span className="font-sans" style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--accent)', lineHeight: 1 }}>

@@ -23,8 +23,11 @@ export async function userHasActiveMembership(userId: string): Promise<boolean> 
 export async function grantYearMembership(opts: {
   userId?: string;
   email?: string | null;
+  name?: string | null;
   giftLinks?: number;
-}): Promise<{ granted: boolean; userId?: string }> {
+  /** If no account exists, create one (no password — set via forgot-password / Google). */
+  createIfMissing?: boolean;
+}): Promise<{ granted: boolean; userId?: string; createdUser?: boolean }> {
   const giftLinks = opts.giftLinks ?? 3;
   let user =
     opts.userId
@@ -37,6 +40,20 @@ export async function grantYearMembership(opts: {
     });
   }
 
+  let createdUser = false;
+  if (!user && opts.createIfMissing && opts.email) {
+    const email = opts.email.trim().toLowerCase();
+    user = await prisma.user.create({
+      data: {
+        email,
+        name: opts.name?.trim() || email.split('@')[0] || 'Member',
+        role: 'USER',
+        password: null,
+      },
+    });
+    createdUser = true;
+  }
+
   if (!user) {
     return { granted: false };
   }
@@ -47,7 +64,7 @@ export async function grantYearMembership(opts: {
       where: { id: user.id },
       data: { giftLinks: { increment: giftLinks } },
     });
-    return { granted: true, userId: user.id };
+    return { granted: true, userId: user.id, createdUser };
   }
 
   const expires = new Date();
@@ -64,11 +81,11 @@ export async function grantYearMembership(opts: {
     data: {
       isSubscribed: true,
       membershipExpiresAt: nextExpires,
-      giftLinks: { increment: giftLinks },
+      giftLinks: createdUser ? giftLinks : { increment: giftLinks },
     },
   });
 
-  return { granted: true, userId: user.id };
+  return { granted: true, userId: user.id, createdUser };
 }
 
 /** Calendar August (any year) — campaign window for fundraiser membership perk. */

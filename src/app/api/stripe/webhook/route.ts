@@ -63,38 +63,59 @@ export async function POST(req: Request) {
       if (
         campaign === 'august_fundraiser' &&
         amountTotal >= AUGUST_MEMBERSHIP_MIN &&
-        isAugustFundraiserWindow()
+        isAugustFundraiserWindow() &&
+        customerEmail
       ) {
+        // Always grant after purchase: match existing account or create one for their Stripe email
         const result = await grantYearMembership({
           userId: donorUserId || undefined,
           email: customerEmail,
+          name: customerName,
           giftLinks: 3,
+          createIfMissing: true,
         });
 
-        if (result.granted) {
-          console.log(
-            `[AUGUST_FUNDRAISER] Membership granted to user ${result.userId} ($${amountTotal})`
-          );
-        } else if (customerEmail && process.env.RESEND_API_KEY) {
+        if (result.granted && process.env.RESEND_API_KEY) {
           try {
             const { Resend } = require('resend');
             const resend = new Resend(process.env.RESEND_API_KEY);
             const origin = process.env.NEXTAUTH_URL || 'https://thecougarchronicle.com';
+            const expires = new Date();
+            expires.setFullYear(expires.getFullYear() + 1);
+
             await resend.emails.send({
               from: 'The Cougar Chronicle <newsletter@updates.thecougarchronicle.com>',
               to: customerEmail,
-              subject: 'Claim your America 250 Founding Membership',
-              html: `<p>Thank you for giving $${amountTotal.toFixed(0)} to our August Fundraising Drive!</p>
-                <p>Gifts of <strong>$${AUGUST_MEMBERSHIP_MIN}+</strong> from this campaign include a year as an
-                <strong>America 250 Founding Member</strong> — all premium digital stories, annual Print Volume PDF, and gift unlocks.</p>
-                <p>Create an account with <strong>this same email</strong> (${customerEmail}) so we can activate it:</p>
-                <p><a href="${origin}/register">Create your account</a> · then visit <a href="${origin}/account">My Account</a>.</p>
-                <p>If you already have an account under a different email, reply to this message and we’ll link it.</p>`,
+              subject: 'You’re an America 250 Founding Member — thank you!',
+              html: `
+                <div style="font-family: Georgia, serif; max-width: 560px; margin: 0 auto; color: #1A1A1A;">
+                  <p>Thank you for giving <strong>$${amountTotal.toFixed(0)}</strong> to our August Fundraising Drive.</p>
+                  <p>You’re now an <strong>America 250 Founding Member</strong> for one year
+                  (through about ${expires.toLocaleDateString()}):</p>
+                  <ul>
+                    <li>All premium digital stories</li>
+                    <li>Annual Print Volume PDF when it launches</li>
+                    <li>3 gift unlocks for friends</li>
+                  </ul>
+                  ${
+                    result.createdUser
+                      ? `<p>We created an account for <strong>${customerEmail}</strong>. To sign in:</p>
+                         <p><a href="${origin}/forgot-password">Set a password</a>
+                         or use <a href="${origin}/login">Google login</a> with this same email,
+                         then open <a href="${origin}/account">My Account</a>.</p>`
+                      : `<p>Sign in at <a href="${origin}/login">${origin}/login</a> with this email,
+                         then visit <a href="${origin}/account">My Account</a> for your membership and gifts.</p>`
+                  }
+                  <p style="color:#6B7280;font-size:14px;">Questions? Reply to this email or use our contact page.</p>
+                </div>`,
             });
           } catch (e) {
-            console.error('August membership claim email failed', e);
+            console.error('August membership welcome email failed', e);
           }
         }
+        console.log(
+          `[AUGUST_FUNDRAISER] Membership granted user=${result.userId} created=${result.createdUser} amount=$${amountTotal}`
+        );
       }
     } else if (type === 'physical_print' || type === 'digital_print') {
       const amountTotal = session.amount_total ? session.amount_total / 100 : 0;

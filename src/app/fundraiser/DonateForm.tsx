@@ -1,7 +1,6 @@
 'use client';
 import { useState } from 'react';
 import { Lock } from 'lucide-react';
-import Link from 'next/link';
 import {
   AUGUST_MEMBERSHIP_MIN,
   AUGUST_SUPPORTER_MIN,
@@ -55,12 +54,9 @@ export default function DonateForm() {
     if (qualifiesForMembership) {
       return (
         <>
-          <strong>America 250 Founding Member</strong> — one year of membership (premium digital stories, Print
-          Volume PDF, gift unlocks). Use the same email as your account (or{' '}
-          <Link href="/login?callbackUrl=/fundraiser" style={{ color: 'var(--primary)' }}>
-            sign in first
-          </Link>
-          ).
+          <strong>America 250 Founding Member</strong> — one year of membership after you donate (premium digital
+          stories, Print Volume PDF, gift unlocks). We’ll email you at checkout how to access everything — no account
+          needed up front.
         </>
       );
     }
