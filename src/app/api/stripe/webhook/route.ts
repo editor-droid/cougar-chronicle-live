@@ -56,11 +56,12 @@ export async function POST(req: Request) {
 
       // August fundraiser only: $25+ from /fundraiser = America 250 Founding Member (1 year)
       // (metadata.campaign must be august_fundraiser — regular /donate never sets this)
-      const {
-        grantYearMembership,
-        isAugustFundraiserWindow,
-        AUGUST_FOUNDING_MEMBER_MIN,
-      } = await import('@/lib/membership');
+      const { grantYearMembership, isAugustFundraiserWindow } = await import(
+        '@/lib/membership'
+      );
+      const { AUGUST_FOUNDING_MEMBER_MIN } = await import(
+        '@/lib/membership-constants'
+      );
       if (
         campaign === 'august_fundraiser' &&
         amountTotal >= AUGUST_FOUNDING_MEMBER_MIN &&

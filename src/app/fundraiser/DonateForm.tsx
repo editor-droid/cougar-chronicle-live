@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Lock } from 'lucide-react';
 import Link from 'next/link';
-import { AUGUST_FOUNDING_MEMBER_MIN } from '@/lib/membership';
+import { AUGUST_FOUNDING_MEMBER_MIN } from '@/lib/membership-constants';
 
 export default function DonateForm() {
   const [amount, setAmount] = useState<number>(50);

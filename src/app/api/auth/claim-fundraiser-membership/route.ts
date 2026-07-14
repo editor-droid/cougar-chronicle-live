@@ -1,11 +1,8 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import prisma from '@/lib/prisma';
-import {
-  grantYearMembership,
-  isAugustFundraiserWindow,
-  AUGUST_FOUNDING_MEMBER_MIN,
-} from '@/lib/membership';
+import { grantYearMembership, isAugustFundraiserWindow } from '@/lib/membership';
+import { AUGUST_FOUNDING_MEMBER_MIN } from '@/lib/membership-constants';
 
 /**
  * After register/login: if this email gave $25+ via August fundraiser
