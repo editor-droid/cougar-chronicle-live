@@ -32,7 +32,7 @@ export default async function FundraiserPage() {
             Fuel the Future of Independent Conservative Journalism
           </h1>
           <p className="font-sans" style={{ fontSize: '1.15rem', color: 'var(--muted)', marginBottom: '2rem', lineHeight: 1.6 }}>
-            The Cougar Chronicle relies entirely on the generosity of readers like you. We refuse to run ads or accept campus funding, ensuring our reporting remains uncompromising and totally independent.
+            The Cougar Chronicle relies entirely on the generosity of readers like you. We&apos;re an independent student publication—not funded by BYU administration—and we don&apos;t run ads, so our reporting stays free to pursue the stories that matter.
           </p>
 
           {/* Progress Tracker inside Hero */}
@@ -97,7 +97,7 @@ export default async function FundraiserPage() {
               </div>
               <div>
                 <h3 className="font-serif" style={{ fontSize: '1.35rem', marginBottom: '0.25rem', color: 'var(--foreground)' }}>Uncompromising Truth</h3>
-                <p className="font-sans text-muted" style={{ lineHeight: 1.6 }}>Your donation ensures we never have to compromise our values, cave to campus pressure, or shy away from the hard stories affecting the BYU community.</p>
+                <p className="font-sans text-muted" style={{ lineHeight: 1.6 }}>Your donation keeps us accountable to readers, not advertisers, so we can cover hard stories affecting the BYU community with honesty and integrity.</p>
               </div>
             </div>
 

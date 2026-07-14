@@ -19,7 +19,7 @@ const benefits = [
   'Unlimited access to every premium digital article, all year',
   'Annual Print Volume PDF the day it drops (one Volume per year)',
   'Three gift unlocks to share premium stories with friends',
-  'Support independent student journalism — no campus funding, no ads driving coverage',
+  'Support independent student journalism — reader-funded, no ads driving coverage',
   'Member status on your account; cancel anytime through Stripe',
 ];
 
