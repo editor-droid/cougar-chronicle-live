@@ -28,9 +28,10 @@ model User {
   password          String?
   image             String?
   role              Role               @default(USER)
-  stripeId          String?            @unique
-  isSubscribed      Boolean            @default(false)
-  giftLinks         Int                @default(0)
+  stripeId              String?            @unique
+  isSubscribed          Boolean            @default(false)
+  membershipExpiresAt   DateTime?
+  giftLinks             Int                @default(0)
   posts             Post[]
   accounts          Account[]
   sessions          Session[]

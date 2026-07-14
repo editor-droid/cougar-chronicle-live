@@ -33,12 +33,16 @@ export async function POST(req: Request) {
         where: { id: userId },
         data: {
           isSubscribed: true,
+          membershipExpiresAt: null, // ongoing Stripe subscription
           stripeId: (session.customer as string) || undefined,
           giftLinks: { increment: 3 },
         },
       });
     } else if (type === 'donation') {
       const amountTotal = session.amount_total ? session.amount_total / 100 : 0;
+      const campaign = session.metadata?.campaign || 'general';
+      const donorUserId = session.metadata?.userId || '';
+
       if (customerEmail) {
         await prisma.donation.create({
           data: {
@@ -48,6 +52,48 @@ export async function POST(req: Request) {
             stripeSessionId: session.id,
           },
         });
+      }
+
+      // August fundraiser only: $48+ from /fundraiser grants 1 year membership
+      // (metadata.campaign must be august_fundraiser — regular /donate never sets this)
+      const { grantYearMembership, isAugustFundraiserWindow } = await import(
+        '@/lib/membership'
+      );
+      if (
+        campaign === 'august_fundraiser' &&
+        amountTotal >= 48 &&
+        isAugustFundraiserWindow()
+      ) {
+        const result = await grantYearMembership({
+          userId: donorUserId || undefined,
+          email: customerEmail,
+          giftLinks: 3,
+        });
+
+        if (result.granted) {
+          console.log(
+            `[AUGUST_FUNDRAISER] Membership granted to user ${result.userId} ($${amountTotal})`
+          );
+        } else if (customerEmail && process.env.RESEND_API_KEY) {
+          // No account yet — tell them to register with this email
+          try {
+            const { Resend } = require('resend');
+            const resend = new Resend(process.env.RESEND_API_KEY);
+            const origin = process.env.NEXTAUTH_URL || 'https://thecougarchronicle.com';
+            await resend.emails.send({
+              from: 'The Cougar Chronicle <newsletter@updates.thecougarchronicle.com>',
+              to: customerEmail,
+              subject: 'Claim your Chronicle Membership (August gift)',
+              html: `<p>Thank you for giving $${amountTotal.toFixed(0)} to our August Fundraising Drive!</p>
+                <p>Gifts of <strong>$48 or more</strong> include <strong>one year of Chronicle Membership</strong> (all premium digital stories + annual Print Volume PDF + gift unlocks).</p>
+                <p>Create an account with <strong>this same email</strong> (${customerEmail}) so we can activate it:</p>
+                <p><a href="${origin}/register">Create your account</a> · then visit <a href="${origin}/account">My Account</a>.</p>
+                <p>If you already have an account under a different email, reply to this message and we’ll link it.</p>`,
+            });
+          } catch (e) {
+            console.error('August membership claim email failed', e);
+          }
+        }
       }
     } else if (type === 'physical_print' || type === 'digital_print') {
       const amountTotal = session.amount_total ? session.amount_total / 100 : 0;

@@ -101,7 +101,10 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
     // 1. Check if user is logged in and subscribed
     if (session?.user?.id) {
       const user = await prisma.user.findUnique({ where: { id: session.user.id } });
-      if (user?.isSubscribed || user?.role === 'ADMIN' || user?.role === 'EDITOR' || post.authorId === user?.id) {
+      const memberOk =
+        user?.isSubscribed &&
+        (!user.membershipExpiresAt || user.membershipExpiresAt > new Date());
+      if (memberOk || user?.role === 'ADMIN' || user?.role === 'EDITOR' || post.authorId === user?.id) {
         hasAccess = true;
       }
     }

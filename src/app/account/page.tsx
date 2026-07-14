@@ -8,6 +8,7 @@ import PushSettings from '@/components/PushSettings';
 import MembershipCheckoutButton from '@/components/MembershipCheckoutButton';
 import BillingPortalButton from '@/components/BillingPortalButton';
 import GiftUnlockButton from '@/components/GiftUnlockButton';
+import ClaimFundraiserMembership from '@/components/ClaimFundraiserMembership';
 
 export const metadata = {
   title: 'My Account',
@@ -36,9 +37,17 @@ export default async function AccountPage() {
 
   const dbUser = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { isSubscribed: true, giftLinks: true, stripeId: true, role: true },
+    select: {
+      isSubscribed: true,
+      membershipExpiresAt: true,
+      giftLinks: true,
+      stripeId: true,
+      role: true,
+    },
   });
-  const isMember = dbUser?.isSubscribed === true;
+  const isMember =
+    dbUser?.isSubscribed === true &&
+    (!dbUser.membershipExpiresAt || dbUser.membershipExpiresAt > new Date());
   const giftLinks = dbUser?.giftLinks ?? 0;
 
   // 1. Get subscriber status
@@ -89,6 +98,7 @@ export default async function AccountPage() {
         </form>
       </header>
 
+      <ClaimFundraiserMembership />
       <div style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
 
         {/* MEMBERSHIP */}
@@ -99,7 +109,13 @@ export default async function AccountPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <p className="font-sans" style={{ margin: 0 }}>
                   <strong style={{ color: '#15803d' }}>Chronicle Member</strong>
-                  <span className="text-muted text-sm"> — full digital access active</span>
+                  <span className="text-muted text-sm">
+                    {' '}
+                    — full digital access
+                    {dbUser?.membershipExpiresAt
+                      ? ` until ${dbUser.membershipExpiresAt.toLocaleDateString()}`
+                      : ' (renewing subscription)'}
+                  </span>
                 </p>
                 <p className="font-sans text-sm text-muted" style={{ margin: 0 }}>
                   Gift unlocks remaining: <strong>{giftLinks}</strong>

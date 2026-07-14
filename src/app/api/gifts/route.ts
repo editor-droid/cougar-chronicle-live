@@ -33,7 +33,14 @@ export async function POST(req: Request) {
 
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { isSubscribed: true, giftLinks: true, email: true, name: true, role: true },
+      select: {
+        isSubscribed: true,
+        membershipExpiresAt: true,
+        giftLinks: true,
+        email: true,
+        name: true,
+        role: true,
+      },
     });
 
     if (!user) {
@@ -41,7 +48,10 @@ export async function POST(req: Request) {
     }
 
     const isStaff = user.role === 'ADMIN' || user.role === 'EDITOR';
-    if (!user.isSubscribed && !isStaff) {
+    const memberOk =
+      user.isSubscribed &&
+      (!user.membershipExpiresAt || user.membershipExpiresAt > new Date());
+    if (!memberOk && !isStaff) {
       return NextResponse.json({ error: 'Membership required' }, { status: 403 });
     }
     if (user.giftLinks < 1 && !isStaff) {

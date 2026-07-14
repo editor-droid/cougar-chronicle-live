@@ -168,11 +168,15 @@ export default async function MembershipPage({
             year, plus the Volume PDF and gift unlocks — better if you read more than a couple of locked pieces.
           </Faq>
           <Faq q="Can I just donate instead?">
-            Yes.{' '}
+            Yes —{' '}
             <Link href="/donate" style={{ color: 'var(--primary)' }}>
-              Donate anytime
+              donate anytime
             </Link>{' '}
-            with no membership benefits. Membership is for readers who want full access while funding the work.
+            with no membership benefits. During the{' '}
+            <Link href="/fundraiser" style={{ color: 'var(--primary)' }}>
+              August Fundraising Drive
+            </Link>
+            , gifts of $48+ from that page include a full year of membership.
           </Faq>
           <Faq q="Do I need an account?">
             Yes — membership is tied to your login so premium unlocks work on every device. Checkout will send you

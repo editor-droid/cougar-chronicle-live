@@ -36,6 +36,13 @@ export async function POST(req: Request) {
     let checkoutSession;
 
     if (type === 'donate') {
+      const campaign = (metadata?.campaign as string) || '';
+      const isAugustFundraiser = campaign === 'august_fundraiser';
+      const successPath = isAugustFundraiser
+        ? `/fundraiser?success=true&purchase=${amount}`
+        : `/donate?success=true&purchase=${amount}`;
+      const cancelPath = isAugustFundraiser ? '/fundraiser' : '/donate';
+
       checkoutSession = await stripe.checkout.sessions.create({
         mode: 'payment',
         submit_type: 'donate',
@@ -46,17 +53,25 @@ export async function POST(req: Request) {
             price_data: {
               currency: 'usd',
               product_data: {
-                name: 'Donation to The Cougar Chronicle',
-                description: 'Support independent conservative journalism.',
+                name: isAugustFundraiser
+                  ? 'August Fundraising Drive — The Cougar Chronicle'
+                  : 'Donation to The Cougar Chronicle',
+                description: isAugustFundraiser
+                  ? 'August drive gift. $48+ includes one year of Chronicle Membership when matched to your account email.'
+                  : 'Support independent conservative journalism.',
               },
               unit_amount: Math.round(amount * 100),
             },
             quantity: 1,
           },
         ],
-        success_url: `${origin}/donate?success=true&purchase=${amount}`,
-        cancel_url: `${origin}/donate`,
-        metadata: { type: 'donation' },
+        success_url: `${origin}${successPath}`,
+        cancel_url: `${origin}${cancelPath}`,
+        metadata: {
+          type: 'donation',
+          campaign: campaign || 'general',
+          userId: session?.user?.id || '',
+        },
       });
     } else if (type === 'digital_article') {
       checkoutSession = await stripe.checkout.sessions.create({

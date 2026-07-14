@@ -44,7 +44,11 @@ export default async function FundraiserPage() {
             border: '1px solid rgba(var(--border-rgb, 0,0,0), 0.05)',
             transform: 'translateY(1rem)'
           }}>
-            <h3 className="font-serif" style={{ fontSize: '1.25rem', marginBottom: '1rem', color: 'var(--primary)' }}>August Fundraising Drive</h3>
+            <h3 className="font-serif" style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: 'var(--primary)' }}>August Fundraising Drive</h3>
+            <p className="font-sans text-sm text-muted" style={{ marginBottom: '1rem', lineHeight: 1.45 }}>
+              Give <strong>$48+</strong> on this page in August and receive a full year of{' '}
+              <a href="/membership" style={{ color: 'var(--primary)' }}>Chronicle Membership</a> (premium digital + Print Volume PDF).
+            </p>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', alignItems: 'flex-end' }}>
               <span className="font-sans" style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--accent)', lineHeight: 1 }}>
                 ${totalRaised.toLocaleString()} <span style={{ fontSize: '0.9rem', fontWeight: 500, color: 'var(--muted)' }}>raised</span>
