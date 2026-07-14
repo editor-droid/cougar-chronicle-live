@@ -164,9 +164,7 @@ export default async function RootLayout({
               <a href="/category/opinion" className="nav-link font-sans">Opinion</a>
               <a href="/america-250" className="nav-link font-sans" style={{ color: 'var(--primary)', fontWeight: 600 }}>America 250</a>
               <a href="/print-edition" className="nav-link font-sans">Print Edition</a>
-              <a href="/videos" className="nav-link font-sans">Videos</a>
               <a href="/about" className="nav-link font-sans">About</a>
-              <a href="/membership" className="nav-link font-sans" style={{ color: 'var(--primary)', fontWeight: 600 }}>Member</a>
               <a href="/contact" className="nav-link font-sans">Contact</a>
               <a href="/donate" className="nav-link font-sans">Donate</a>
             </nav>

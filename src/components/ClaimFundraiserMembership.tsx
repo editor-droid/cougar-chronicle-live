@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 
-/** On account load, claim August $48+ fundraiser membership if eligible. */
+/** On account load, claim August $25+ America 250 Founding Membership if eligible. */
 export default function ClaimFundraiserMembership() {
   const ran = useRef(false);
 
@@ -14,8 +14,7 @@ export default function ClaimFundraiserMembership() {
       .then((r) => r.json())
       .then((data) => {
         if (data.granted) {
-          toast.success('Your August gift unlocked a year of Chronicle Membership!');
-          // soft refresh so membership UI updates
+          toast.success('You’re an America 250 Founding Member for one year — thank you!');
           window.location.reload();
         }
       })

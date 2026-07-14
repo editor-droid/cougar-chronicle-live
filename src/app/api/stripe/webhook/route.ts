@@ -54,14 +54,16 @@ export async function POST(req: Request) {
         });
       }
 
-      // August fundraiser only: $48+ from /fundraiser grants 1 year membership
+      // August fundraiser only: $25+ from /fundraiser = America 250 Founding Member (1 year)
       // (metadata.campaign must be august_fundraiser — regular /donate never sets this)
-      const { grantYearMembership, isAugustFundraiserWindow } = await import(
-        '@/lib/membership'
-      );
+      const {
+        grantYearMembership,
+        isAugustFundraiserWindow,
+        AUGUST_FOUNDING_MEMBER_MIN,
+      } = await import('@/lib/membership');
       if (
         campaign === 'august_fundraiser' &&
-        amountTotal >= 48 &&
+        amountTotal >= AUGUST_FOUNDING_MEMBER_MIN &&
         isAugustFundraiserWindow()
       ) {
         const result = await grantYearMembership({
@@ -72,10 +74,9 @@ export async function POST(req: Request) {
 
         if (result.granted) {
           console.log(
-            `[AUGUST_FUNDRAISER] Membership granted to user ${result.userId} ($${amountTotal})`
+            `[AUGUST_FUNDRAISER] Founding membership granted to user ${result.userId} ($${amountTotal})`
           );
         } else if (customerEmail && process.env.RESEND_API_KEY) {
-          // No account yet — tell them to register with this email
           try {
             const { Resend } = require('resend');
             const resend = new Resend(process.env.RESEND_API_KEY);
@@ -83,9 +84,10 @@ export async function POST(req: Request) {
             await resend.emails.send({
               from: 'The Cougar Chronicle <newsletter@updates.thecougarchronicle.com>',
               to: customerEmail,
-              subject: 'Claim your Chronicle Membership (August gift)',
+              subject: 'Claim your America 250 Founding Membership',
               html: `<p>Thank you for giving $${amountTotal.toFixed(0)} to our August Fundraising Drive!</p>
-                <p>Gifts of <strong>$48 or more</strong> include <strong>one year of Chronicle Membership</strong> (all premium digital stories + annual Print Volume PDF + gift unlocks).</p>
+                <p>Gifts of <strong>$${AUGUST_FOUNDING_MEMBER_MIN}+</strong> from this campaign include a year as an
+                <strong>America 250 Founding Member</strong> — all premium digital stories, annual Print Volume PDF, and gift unlocks.</p>
                 <p>Create an account with <strong>this same email</strong> (${customerEmail}) so we can activate it:</p>
                 <p><a href="${origin}/register">Create your account</a> · then visit <a href="${origin}/account">My Account</a>.</p>
                 <p>If you already have an account under a different email, reply to this message and we’ll link it.</p>`,

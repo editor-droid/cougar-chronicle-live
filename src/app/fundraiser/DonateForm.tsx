@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { Lock } from 'lucide-react';
 import Link from 'next/link';
+import { AUGUST_FOUNDING_MEMBER_MIN } from '@/lib/membership';
 
 export default function DonateForm() {
   const [amount, setAmount] = useState<number>(50);
@@ -13,7 +14,7 @@ export default function DonateForm() {
     setAmount(Number(e.target.value));
   };
 
-  const qualifiesForMembership = amount >= 48;
+  const qualifiesForMembership = amount >= AUGUST_FOUNDING_MEMBER_MIN;
 
   const formStyle: React.CSSProperties = {
     padding: '2rem',
@@ -48,10 +49,10 @@ export default function DonateForm() {
         className="font-serif"
         style={{ fontSize: '1.75rem', marginBottom: '0.25rem', color: 'var(--foreground)', textAlign: 'center' }}
       >
-        August Fundraising Drive
+        America 250 · August Drive
       </h2>
       <p className="font-sans text-muted" style={{ textAlign: 'center', marginBottom: '1rem', fontSize: '0.95rem' }}>
-        Select an amount to securely donate via Stripe.
+        Celebrate the founding — and fund independent campus journalism.
       </p>
 
       <div
@@ -64,11 +65,14 @@ export default function DonateForm() {
           textAlign: 'center',
         }}
       >
-        <p className="font-sans text-sm" style={{ margin: 0, lineHeight: 1.45, color: qualifiesForMembership ? '#065f46' : 'var(--muted)' }}>
+        <p
+          className="font-sans text-sm"
+          style={{ margin: 0, lineHeight: 1.45, color: qualifiesForMembership ? '#065f46' : 'var(--muted)' }}
+        >
           {qualifiesForMembership ? (
             <>
-              <strong>Includes 1 year of Chronicle Membership</strong> — all premium digital stories, annual Print
-              Volume PDF, and 3 gift unlocks. Use the same email as your account (or{' '}
+              <strong>America 250 Founding Member</strong> — one year of membership (premium digital stories, Print
+              Volume PDF, gift unlocks). Use the same email as your account (or{' '}
               <Link href="/login?callbackUrl=/fundraiser" style={{ color: 'var(--primary)' }}>
                 sign in first
               </Link>
@@ -76,18 +80,15 @@ export default function DonateForm() {
             </>
           ) : (
             <>
-              Give <strong>$48 or more</strong> this August from this page and receive a full year of{' '}
-              <Link href="/membership" style={{ color: 'var(--primary)' }}>
-                Chronicle Membership
-              </Link>
-              .
+              Give <strong>${AUGUST_FOUNDING_MEMBER_MIN} or more</strong> on this page in August and become an{' '}
+              <strong>America 250 Founding Member</strong> for a full year.
             </>
           )}
         </p>
       </div>
 
       <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginBottom: '2rem', flexWrap: 'wrap' }}>
-        {[25, 48, 50, 100, 250].map((tier) => (
+        {[25, 50, 100, 250].map((tier) => (
           <button
             key={tier}
             type="button"
@@ -100,8 +101,8 @@ export default function DonateForm() {
             }}
           >
             ${tier}
-            {tier === 48 ? (
-              <span style={{ display: 'block', fontSize: '0.65rem', fontWeight: 600, opacity: 0.85 }}>Member</span>
+            {tier === AUGUST_FOUNDING_MEMBER_MIN ? (
+              <span style={{ display: 'block', fontSize: '0.65rem', fontWeight: 600, opacity: 0.85 }}>Founding</span>
             ) : null}
           </button>
         ))}
@@ -151,7 +152,6 @@ export default function DonateForm() {
       <form action="/api/stripe/checkout" method="POST">
         <input type="hidden" name="type" value="donate" />
         <input type="hidden" name="amount" value={amount} />
-        {/* Only /fundraiser sends this campaign — regular /donate does not */}
         <input
           type="hidden"
           name="metadata"
@@ -175,21 +175,9 @@ export default function DonateForm() {
             transition: 'transform 0.2s, box-shadow 0.2s',
           }}
           disabled={!amount || amount < 1}
-          onMouseEnter={(e) => {
-            if (amount >= 1) {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 12px 24px rgba(var(--primary-rgb, 0,0,0), 0.3)';
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (amount >= 1) {
-              e.currentTarget.style.transform = 'none';
-              e.currentTarget.style.boxShadow = '0 8px 20px rgba(var(--primary-rgb, 0,0,0), 0.25)';
-            }
-          }}
         >
           Donate ${amount || 0}
-          {qualifiesForMembership ? ' + Membership' : ''}
+          {qualifiesForMembership ? ' · Founding Member' : ''}
         </button>
       </form>
 
