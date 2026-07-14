@@ -176,7 +176,7 @@ export default async function MembershipPage({
             <Link href="/fundraiser" style={{ color: 'var(--primary)' }}>
               August Fundraising Drive
             </Link>
-            , gifts of $25+ from that page make you an America 250 Founding Member for a year.
+            , gifts of $48+ from that page make you an America 250 Founding Member for a year ($25 is a named Patriot gift without membership perks).
           </Faq>
           <Faq q="Do I need an account?">
             Yes — membership is tied to your login so premium unlocks work on every device. Checkout will send you

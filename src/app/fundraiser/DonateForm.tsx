@@ -2,7 +2,10 @@
 import { useState } from 'react';
 import { Lock } from 'lucide-react';
 import Link from 'next/link';
-import { AUGUST_FOUNDING_MEMBER_MIN } from '@/lib/membership-constants';
+import {
+  AUGUST_MEMBERSHIP_MIN,
+  AUGUST_SUPPORTER_MIN,
+} from '@/lib/membership-constants';
 
 export default function DonateForm() {
   const [amount, setAmount] = useState<number>(50);
@@ -14,7 +17,9 @@ export default function DonateForm() {
     setAmount(Number(e.target.value));
   };
 
-  const qualifiesForMembership = amount >= AUGUST_FOUNDING_MEMBER_MIN;
+  const qualifiesForMembership = amount >= AUGUST_MEMBERSHIP_MIN;
+  const isNamedSupporter =
+    amount >= AUGUST_SUPPORTER_MIN && amount < AUGUST_MEMBERSHIP_MIN;
 
   const formStyle: React.CSSProperties = {
     padding: '2rem',
@@ -43,6 +48,35 @@ export default function DonateForm() {
     boxShadow: isHovered === tier && amount !== tier ? '0 4px 12px rgba(0,0,0,0.05)' : 'none',
   });
 
+  const statusMessage = () => {
+    if (qualifiesForMembership) {
+      return (
+        <>
+          <strong>America 250 Founding Member</strong> — one year of membership (premium digital stories, Print
+          Volume PDF, gift unlocks). Use the same email as your account (or{' '}
+          <Link href="/login?callbackUrl=/fundraiser" style={{ color: 'var(--primary)' }}>
+            sign in first
+          </Link>
+          ).
+        </>
+      );
+    }
+    if (isNamedSupporter) {
+      return (
+        <>
+          <strong>America 250 Patriot</strong> — thank you for celebrating the founding with us. (Named gift —
+          membership perks begin at <strong>${AUGUST_MEMBERSHIP_MIN}</strong>.)
+        </>
+      );
+    }
+    return (
+      <>
+        Give <strong>${AUGUST_SUPPORTER_MIN}</strong> to be recognized as an America 250 Patriot, or{' '}
+        <strong>${AUGUST_MEMBERSHIP_MIN}+</strong> for a full year as a Founding Member.
+      </>
+    );
+  };
+
   return (
     <div style={formStyle}>
       <h2
@@ -57,8 +91,10 @@ export default function DonateForm() {
 
       <div
         style={{
-          background: qualifiesForMembership ? '#ecfdf5' : '#f8fafc',
-          border: `1px solid ${qualifiesForMembership ? '#6ee7b7' : 'var(--border)'}`,
+          background: qualifiesForMembership ? '#ecfdf5' : isNamedSupporter ? '#fffbeb' : '#f8fafc',
+          border: `1px solid ${
+            qualifiesForMembership ? '#6ee7b7' : isNamedSupporter ? '#fcd34d' : 'var(--border)'
+          }`,
           borderRadius: '0.5rem',
           padding: '0.85rem 1rem',
           marginBottom: '1.5rem',
@@ -67,28 +103,18 @@ export default function DonateForm() {
       >
         <p
           className="font-sans text-sm"
-          style={{ margin: 0, lineHeight: 1.45, color: qualifiesForMembership ? '#065f46' : 'var(--muted)' }}
+          style={{
+            margin: 0,
+            lineHeight: 1.45,
+            color: qualifiesForMembership ? '#065f46' : isNamedSupporter ? '#92400e' : 'var(--muted)',
+          }}
         >
-          {qualifiesForMembership ? (
-            <>
-              <strong>America 250 Founding Member</strong> — one year of membership (premium digital stories, Print
-              Volume PDF, gift unlocks). Use the same email as your account (or{' '}
-              <Link href="/login?callbackUrl=/fundraiser" style={{ color: 'var(--primary)' }}>
-                sign in first
-              </Link>
-              ).
-            </>
-          ) : (
-            <>
-              Give <strong>${AUGUST_FOUNDING_MEMBER_MIN} or more</strong> on this page in August and become an{' '}
-              <strong>America 250 Founding Member</strong> for a full year.
-            </>
-          )}
+          {statusMessage()}
         </p>
       </div>
 
       <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginBottom: '2rem', flexWrap: 'wrap' }}>
-        {[25, 50, 100, 250].map((tier) => (
+        {[25, 48, 50, 100, 250].map((tier) => (
           <button
             key={tier}
             type="button"
@@ -101,7 +127,10 @@ export default function DonateForm() {
             }}
           >
             ${tier}
-            {tier === AUGUST_FOUNDING_MEMBER_MIN ? (
+            {tier === AUGUST_SUPPORTER_MIN ? (
+              <span style={{ display: 'block', fontSize: '0.65rem', fontWeight: 600, opacity: 0.85 }}>Patriot</span>
+            ) : null}
+            {tier === AUGUST_MEMBERSHIP_MIN ? (
               <span style={{ display: 'block', fontSize: '0.65rem', fontWeight: 600, opacity: 0.85 }}>Founding</span>
             ) : null}
           </button>
@@ -172,12 +201,15 @@ export default function DonateForm() {
             cursor: amount >= 1 ? 'pointer' : 'not-allowed',
             opacity: amount >= 1 ? 1 : 0.7,
             boxShadow: '0 8px 20px rgba(var(--primary-rgb, 0,0,0), 0.25)',
-            transition: 'transform 0.2s, box-shadow 0.2s',
           }}
           disabled={!amount || amount < 1}
         >
           Donate ${amount || 0}
-          {qualifiesForMembership ? ' · Founding Member' : ''}
+          {qualifiesForMembership
+            ? ' · Founding Member'
+            : isNamedSupporter
+              ? ' · Patriot'
+              : ''}
         </button>
       </form>
 

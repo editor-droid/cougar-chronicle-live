@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 
-/** On account load, claim August $25+ America 250 Founding Membership if eligible. */
+/** On account load, claim August $48+ America 250 Founding Membership if eligible. */
 export default function ClaimFundraiserMembership() {
   const ran = useRef(false);
 

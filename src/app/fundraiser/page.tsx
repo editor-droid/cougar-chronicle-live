@@ -48,8 +48,8 @@ export default async function FundraiserPage() {
               August Fundraising Drive · America 250
             </h3>
             <p className="font-sans text-sm text-muted" style={{ marginBottom: '1rem', lineHeight: 1.45 }}>
-              Give <strong>$25+</strong> on this page in August and become an{' '}
-              <strong>America 250 Founding Member</strong> for a year — premium digital access + annual Print Volume PDF.
+              <strong>$25</strong> — America 250 Patriot (named gift).{' '}
+              <strong>$48+</strong> — Founding Member for a year (premium digital + Print Volume PDF).
             </p>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', alignItems: 'flex-end' }}>
               <span className="font-sans" style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--accent)', lineHeight: 1 }}>

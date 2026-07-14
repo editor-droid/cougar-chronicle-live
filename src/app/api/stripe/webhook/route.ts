@@ -54,17 +54,15 @@ export async function POST(req: Request) {
         });
       }
 
-      // August fundraiser only: $25+ from /fundraiser = America 250 Founding Member (1 year)
-      // (metadata.campaign must be august_fundraiser — regular /donate never sets this)
+      // August fundraiser only: $48+ from /fundraiser = membership perks (1 year).
+      // $25 is a named “Patriot” gift only (no unlock). Regular /donate never sets this campaign.
       const { grantYearMembership, isAugustFundraiserWindow } = await import(
         '@/lib/membership'
       );
-      const { AUGUST_FOUNDING_MEMBER_MIN } = await import(
-        '@/lib/membership-constants'
-      );
+      const { AUGUST_MEMBERSHIP_MIN } = await import('@/lib/membership-constants');
       if (
         campaign === 'august_fundraiser' &&
-        amountTotal >= AUGUST_FOUNDING_MEMBER_MIN &&
+        amountTotal >= AUGUST_MEMBERSHIP_MIN &&
         isAugustFundraiserWindow()
       ) {
         const result = await grantYearMembership({
@@ -75,7 +73,7 @@ export async function POST(req: Request) {
 
         if (result.granted) {
           console.log(
-            `[AUGUST_FUNDRAISER] Founding membership granted to user ${result.userId} ($${amountTotal})`
+            `[AUGUST_FUNDRAISER] Membership granted to user ${result.userId} ($${amountTotal})`
           );
         } else if (customerEmail && process.env.RESEND_API_KEY) {
           try {
@@ -87,7 +85,7 @@ export async function POST(req: Request) {
               to: customerEmail,
               subject: 'Claim your America 250 Founding Membership',
               html: `<p>Thank you for giving $${amountTotal.toFixed(0)} to our August Fundraising Drive!</p>
-                <p>Gifts of <strong>$${AUGUST_FOUNDING_MEMBER_MIN}+</strong> from this campaign include a year as an
+                <p>Gifts of <strong>$${AUGUST_MEMBERSHIP_MIN}+</strong> from this campaign include a year as an
                 <strong>America 250 Founding Member</strong> — all premium digital stories, annual Print Volume PDF, and gift unlocks.</p>
                 <p>Create an account with <strong>this same email</strong> (${customerEmail}) so we can activate it:</p>
                 <p><a href="${origin}/register">Create your account</a> · then visit <a href="${origin}/account">My Account</a>.</p>

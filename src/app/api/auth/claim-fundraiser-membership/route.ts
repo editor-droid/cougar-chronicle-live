@@ -2,10 +2,10 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import prisma from '@/lib/prisma';
 import { grantYearMembership, isAugustFundraiserWindow } from '@/lib/membership';
-import { AUGUST_FOUNDING_MEMBER_MIN } from '@/lib/membership-constants';
+import { AUGUST_MEMBERSHIP_MIN } from '@/lib/membership-constants';
 
 /**
- * After register/login: if this email gave $25+ via August fundraiser
+ * After register/login: if this email gave $48+ via August fundraiser
  * and doesn't have membership yet, grant one year (Founding Member).
  */
 export async function POST() {
@@ -33,7 +33,7 @@ export async function POST() {
   const gifts = await prisma.donation.findMany({
     where: {
       email: { equals: session.user.email, mode: 'insensitive' },
-      amount: { gte: AUGUST_FOUNDING_MEMBER_MIN },
+      amount: { gte: AUGUST_MEMBERSHIP_MIN },
       createdAt: { gte: since },
     },
     orderBy: { createdAt: 'desc' },

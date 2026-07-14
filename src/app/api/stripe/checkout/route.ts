@@ -57,7 +57,7 @@ export async function POST(req: Request) {
                   ? 'August Fundraising Drive — The Cougar Chronicle'
                   : 'Donation to The Cougar Chronicle',
                 description: isAugustFundraiser
-                  ? 'August / America 250 drive. $25+ includes one year as a Founding Member when matched to your account email.'
+                  ? 'August / America 250 drive. $48+ = Founding Member for one year when matched to your account email.'
                   : 'Support independent conservative journalism.',
               },
               unit_amount: Math.round(amount * 100),
