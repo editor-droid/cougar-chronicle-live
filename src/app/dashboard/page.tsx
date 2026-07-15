@@ -20,6 +20,7 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ [k
 
   const role = session.user.role;
   const isEditorOrAdmin = role === 'EDITOR' || role === 'ADMIN';
+  const canPublish = role === 'ADMIN';
 
   // Parse search and pagination params
   const pageParam = searchParams?.page;
@@ -171,10 +172,16 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ [k
                       {/* Server Action Form */}
                       <form action={updatePostState} style={{ display: 'inline-block' }}>
                         <input type="hidden" name="postId" value={post.id} />
-                        {isEditorOrAdmin && post.state === 'APPROVED' && (
+                        {canPublish && post.state === 'APPROVED' && (
                           <>
                             <input type="hidden" name="newState" value="PUBLISHED" />
                             <button type="submit" className="btn btn-primary text-sm" style={{ padding: '0.25rem 0.5rem', backgroundColor: 'green', color: 'white' }}>Publish</button>
+                          </>
+                        )}
+                        {role === 'EDITOR' && post.state === 'IN_REVIEW' && (
+                          <>
+                            <input type="hidden" name="newState" value="APPROVED" />
+                            <button type="submit" className="btn btn-primary text-sm" style={{ padding: '0.25rem 0.5rem' }}>Approve</button>
                           </>
                         )}
                         {!isEditorOrAdmin && post.state === 'DRAFT' && (

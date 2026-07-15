@@ -8,6 +8,7 @@ import { Resend } from 'resend';
 import { getArticleUrl } from '@/lib/routes';
 import { broadcastPostPublication } from '@/lib/publish-utils';
 import { syncArticleVideosToLibrary } from '@/lib/article-videos';
+import { canApprovePosts, canPublishPosts } from '@/lib/roles';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_fallback_key_so_build_does_not_crash');
 
@@ -52,10 +53,15 @@ export async function updatePostState(formData: FormData) {
 
   const role = session.user.role;
   
-  // Basic RBAC check for state transitions
-  if (newState === 'APPROVED' || newState === 'PUBLISHED') {
-    if (role !== 'EDITOR' && role !== 'ADMIN') {
-      throw new Error('Only editors can approve or publish');
+  // RBAC: editors approve; only admins publish live
+  if (newState === 'PUBLISHED') {
+    if (!canPublishPosts(role)) {
+      throw new Error('Only admins can publish posts');
+    }
+  }
+  if (newState === 'APPROVED') {
+    if (!canApprovePosts(role)) {
+      throw new Error('Only editors or admins can approve posts');
     }
   }
 

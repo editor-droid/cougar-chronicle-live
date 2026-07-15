@@ -311,7 +311,7 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
             {isSubmitting ? 'Saving...' : 'Save Draft'}
           </button>
 
-          {/* Workflow Buttons */}
+          {/* Workflow: writers submit → editors approve → admins publish */}
           {userRole === 'WRITER' && (!post || post.state === 'DRAFT') && (
              <button type="button" onClick={() => handleSaveData('IN_REVIEW')} disabled={isSubmitting} className={`${styles.headerButton} ${styles.btnSubmit}`}>
                Submit for Review
@@ -322,7 +322,13 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
                Approve Draft
              </button>
           )}
-          {(userRole === 'EDITOR' || userRole === 'ADMIN') && post?.state !== 'PUBLISHED' && (
+          {/* Editors may mark scheduled time via Approve when a future publish date is set */}
+          {userRole === 'EDITOR' && post?.state !== 'PUBLISHED' && post?.state !== 'IN_REVIEW' && publishedAt && new Date(publishedAt) > new Date() && (
+             <button type="button" onClick={() => handleSaveData('APPROVED')} disabled={isSubmitting} className={`${styles.headerButton} ${styles.btnSubmit}`}>
+               Save as Scheduled
+             </button>
+          )}
+          {userRole === 'ADMIN' && post?.state !== 'PUBLISHED' && (
              <button type="button" onClick={() => handleSaveData(publishedAt && new Date(publishedAt) > new Date() ? 'APPROVED' : 'PUBLISHED')} disabled={isSubmitting} className={`${styles.headerButton} ${styles.btnPublish}`}>
                {publishedAt && new Date(publishedAt) > new Date() ? 'Schedule' : 'Publish Live'}
              </button>
