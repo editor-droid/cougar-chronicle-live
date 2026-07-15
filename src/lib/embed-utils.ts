@@ -142,8 +142,8 @@ export function detectEmbedProviderHint(
 }
 
 /**
- * Article-only playback: muted autoplay, loop, no chrome.
- * Applied at render time so /videos watch pages and the editor keep normal controls.
+ * Article-only playback: muted autoplay + loop, with player controls on hover/tap.
+ * Applied at render time so /videos watch pages keep their own player settings.
  * Browsers require mute for autoplay to work reliably.
  */
 export function withArticleInlinePlayback(src: string): string {
@@ -158,12 +158,12 @@ export function withArticleInlinePlayback(src: string): string {
         '';
       u.searchParams.set('autoplay', '1');
       u.searchParams.set('mute', '1');
-      u.searchParams.set('controls', '0');
+      u.searchParams.set('controls', '1');
       u.searchParams.set('loop', '1');
       u.searchParams.set('playsinline', '1');
       u.searchParams.set('modestbranding', '1');
       u.searchParams.set('rel', '0');
-      u.searchParams.set('fs', '0');
+      u.searchParams.set('fs', '1');
       // YouTube only loops if playlist is set to the same video id
       if (id) u.searchParams.set('playlist', id);
       return u.toString();
@@ -175,7 +175,8 @@ export function withArticleInlinePlayback(src: string): string {
       u.searchParams.set('autoplay', 'true');
       u.searchParams.set('muted', 'true');
       u.searchParams.set('loop', 'true');
-      u.searchParams.set('controls', 'false');
+      // Show chrome so hover/tap can pause, scrub, unmute, fullscreen
+      u.searchParams.set('controls', 'true');
       u.searchParams.set('preload', 'auto');
       return u.toString();
     }
@@ -187,7 +188,7 @@ export function withArticleInlinePlayback(src: string): string {
 
 /**
  * Rewrite Stream/YouTube iframe (and data-src) URLs in article HTML for
- * silent looping autoplay without player chrome. Instagram left alone.
+ * muted looping autoplay with interactive controls. Instagram left alone.
  */
 export function enhanceArticleVideoEmbeds(html: string): string {
   if (!html) return html;
