@@ -657,7 +657,12 @@ input:focus, textarea:focus {
   display: none;
 }
 
+.desktop-only-links {
+  display: flex;
+}
+
 @media (max-width: 768px) {
+  .desktop-only-links { display: none !important; }
   .header-actions { display: none !important; }
   .main-nav { display: none !important; }
   .mobile-menu-wrapper { display: block; }

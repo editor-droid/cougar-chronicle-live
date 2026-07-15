@@ -122,7 +122,7 @@ export default async function RootLayout({
         />
         <div className="top-social-bar">
           <div className="container" style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', alignItems: 'center' }}>
-            <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+            <div className="desktop-only-links" style={{ gap: '1.5rem', alignItems: 'center' }}>
               <a href="/donate" className="font-sans font-bold" style={{ color: 'inherit', textDecoration: 'none' }}>Donate</a>
               <a href="/about" className="font-sans font-bold" style={{ color: 'inherit', textDecoration: 'none' }}>About Us</a>
               <a href="/contact" className="font-sans font-bold" style={{ color: 'inherit', textDecoration: 'none' }}>Contact Us</a>
