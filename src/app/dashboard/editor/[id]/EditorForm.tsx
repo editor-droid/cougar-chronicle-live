@@ -287,7 +287,7 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
         <h1 className="font-serif" style={{ fontSize: '2.5rem', marginBottom: '2rem', color: '#111827' }}>
           {isNew ? 'Create New Draft' : 'Edit Post'}
         </h1>
-        {/* Sticky Header */}
+        {/* Status / actions bar (scrolls with page — not sticky) */}
         <header className={styles.header}>
           <div className={styles.headerLeft}>
             <button type="button" onClick={() => router.push('/dashboard')} className={styles.headerButton}>
