@@ -73,9 +73,9 @@ html.pwa-standalone body {
   font-family: var(--font-sans);
 }
 
-/* PWA Native App Feel */
+/* Mobile / PWA touch polish — allow overscroll so swipe-down refresh works again */
 html, body {
-  overscroll-behavior-y: none; /* Prevents pull-to-refresh/bounce */
+  overscroll-behavior-y: auto;
   -webkit-tap-highlight-color: transparent; /* Removes blue tap highlight on iOS/Android */
 }
 
