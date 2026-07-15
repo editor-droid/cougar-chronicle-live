@@ -135,9 +135,10 @@ export const VideoEmbed = Node.create({
           class: 'video-embed-iframe',
           style:
             'position:absolute;inset:0;width:100%;height:100%;border:0;',
+          // Prefer `allow` (includes fullscreen). Do not also set allowfullscreen —
+          // browsers warn that allow takes precedence and TipTap emits both.
           allow:
             'accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen',
-          allowfullscreen: 'true',
           loading: 'lazy',
           referrerpolicy: 'strict-origin-when-cross-origin',
           title: `${provider} embed`,
@@ -145,7 +146,6 @@ export const VideoEmbed = Node.create({
           ...(provider === 'instagram'
             ? {
                 scrolling: 'no',
-                frameborder: '0',
               }
             : {}),
         },

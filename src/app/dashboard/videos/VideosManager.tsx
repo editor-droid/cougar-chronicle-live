@@ -114,7 +114,8 @@ export default function VideosManager({
   const abortActiveUpload = useCallback(() => {
     uploadGenerationRef.current += 1;
     try {
-      tusUploadRef.current?.abort(true);
+      // Client-only abort — Cloudflare Stream CORS does not allow TUS DELETE
+      tusUploadRef.current?.abort(false);
     } catch {
       /* ignore */
     }

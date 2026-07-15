@@ -200,7 +200,9 @@ function EmbedDialog({
   const abortUpload = useCallback(() => {
     uploadGenRef.current += 1;
     try {
-      tusUploadRef.current?.abort(true);
+      // abort(false) = stop client only. abort(true) sends DELETE, which
+      // Cloudflare Stream blocks via CORS and can break a finished upload.
+      tusUploadRef.current?.abort(false);
     } catch {
       /* ignore */
     }
@@ -230,7 +232,8 @@ function EmbedDialog({
           inputRef.current?.focus();
         }
       }, 50);
-    } else {
+    } else if (tusUploadRef.current) {
+      // Stop only in-flight client uploads (never DELETE remote Stream media)
       abortUpload();
     }
   }, [open, initialUrl, preferredProvider, resetUploadState, abortUpload]);
@@ -371,6 +374,8 @@ function EmbedDialog({
 
         setUploadProgress(100);
         setUploadPhase("done");
+        // Detach tus handle so dialog close does not touch a finished upload
+        tusUploadRef.current = null;
         // Auto-insert into the article at the caret
         insertStreamUid(setup.uid as string);
       } catch (err) {
@@ -1861,8 +1866,12 @@ export const RichTextEditor = forwardRef<
   }>({ open: false, mode: "video", anchor: null });
 
   const extensions = useMemo(() => [
+    // Newer StarterKit ships link + underline — disable them so we only
+    // register our configured copies (avoids TipTap duplicate-name warning).
     StarterKit.configure({
       heading: false,
+      link: false,
+      underline: false,
     }),
     Heading.configure({ levels: [1, 2, 3] }),
     Link.configure({
