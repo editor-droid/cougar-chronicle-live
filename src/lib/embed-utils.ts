@@ -3,7 +3,7 @@ import {
   streamEmbedUrl,
   youtubeEmbedUrl,
 } from './videos';
-import { rewriteMediaUrlsInHtml } from './media-url';
+import { prepareArticleHtmlImages } from './media-url';
 
 export type EmbedProvider = 'youtube' | 'instagram' | 'stream';
 
@@ -192,8 +192,8 @@ export function withArticleInlinePlayback(src: string): string {
 export function enhanceArticleVideoEmbeds(html: string): string {
   if (!html) return html;
 
-  // Legacy R2 public URLs → CDN custom domain (images in body)
-  let out = rewriteMediaUrlsInHtml(html);
+  // Legacy hosts → CDN, then body <img> via same-origin /_next/image (like hero)
+  let out = prepareArticleHtmlImages(html);
 
   out = out.replace(
     /(<iframe\b[^>]*?\bsrc=["'])([^"']+)(["'])/gi,

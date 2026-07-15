@@ -27,3 +27,50 @@ export function rewriteMediaUrlsInHtml(html: string): string {
   if (!html || !/pub-[a-f0-9]+\.r2\.dev/i.test(html)) return html;
   return html.replace(LEGACY_R2_HOST_RE, publicMediaBase());
 }
+
+function isOurMediaUrl(src: string): boolean {
+  return /cdn\.thecougarchronicle\.com|pub-[a-f0-9]+\.r2\.dev|r2\.cloudflarestorage\.com/i.test(
+    src
+  );
+}
+
+/**
+ * Point article body <img> tags through same-origin Next.js image optimizer.
+ * Hero images already use next/image; body HTML used raw cdn URLs, so phones on
+ * broken home DNS (cdn → Railway) only got a cert error on in-article images.
+ */
+export function rewriteArticleImagesThroughOptimizer(html: string): string {
+  if (!html || !/<img\b/i.test(html)) return html;
+
+  return html.replace(
+    /<img\b([^>]*?)\bsrc=(["'])([^"']+)\2([^>]*)>/gi,
+    (full, pre: string, quote: string, src: string, post: string) => {
+      if (!src || src.startsWith('/_next/image') || src.startsWith('data:')) {
+        return full;
+      }
+      // Decode HTML entities that TipTap may leave in attributes
+      const decoded = src
+        .replace(/&amp;/g, '&')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'");
+      if (!isOurMediaUrl(decoded)) return full;
+
+      const clean = rewriteMediaUrl(decoded);
+      // Prefer width from data-width / style for sharper mobile images
+      const widthMatch =
+        full.match(/\bdata-width=["']?(\d+)/i) ||
+        full.match(/\bwidth:\s*(\d+)px/i);
+      const w = Math.min(
+        1920,
+        Math.max(640, widthMatch ? parseInt(widthMatch[1], 10) * 2 : 1920)
+      );
+      const optimized = `/_next/image?url=${encodeURIComponent(clean)}&w=${w}&q=75`;
+      return `<img${pre}src=${quote}${optimized}${quote}${post}>`;
+    }
+  );
+}
+
+/** Full pass for published article HTML: CDN host + same-origin image srcs. */
+export function prepareArticleHtmlImages(html: string): string {
+  return rewriteArticleImagesThroughOptimizer(rewriteMediaUrlsInHtml(html));
+}
