@@ -69,10 +69,10 @@ export default function ShareButton({
   const share = async () => {
     // Native sheet URL is tagged "native" — covers iMessage, AirDrop, Notes, etc.
     // We cannot tag "iMessage" alone; the OS does not tell us which app they pick.
+    // Share URL only (no title/text) so iMessage etc. leave the composer blank —
+    // rich preview still comes from Open Graph on the link itself.
     const shareUrl = trackedUrl('native');
     const shareData: ShareData = {
-      title,
-      text: text || title,
       url: shareUrl,
     };
 
