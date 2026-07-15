@@ -1,16 +1,13 @@
 /**
  * Rewrite stored media URLs: pub-*.r2.dev → https://cdn.thecougarchronicle.com
  *
- * Usage (repo root, DATABASE_URL in .env):
  *   node scripts/rewrite-r2-urls-to-cdn.mjs --dry-run
  *   node scripts/rewrite-r2-urls-to-cdn.mjs --apply
- *
- * Only use --apply after CDN returns 200 for a real object:
- *   curl -sI "https://cdn.thecougarchronicle.com/<file-key>"
  */
 
 import { readFileSync, existsSync } from 'fs';
 import { resolve } from 'path';
+import { execFileSync } from 'child_process';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
@@ -55,42 +52,52 @@ if (!process.env.DATABASE_URL) {
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter: new PrismaPg(pool) });
 
+/** Probe CDN via public DNS (1.1.1.1), not poisoned local/home router cache. */
+function probeCdn() {
+  const doh = JSON.parse(
+    execFileSync(
+      'curl.exe',
+      [
+        '-s',
+        'https://1.1.1.1/dns-query?name=cdn.thecougarchronicle.com&type=A',
+        '-H',
+        'accept: application/dns-json',
+      ],
+      { encoding: 'utf8' }
+    )
+  );
+  const ips = (doh.Answer || []).filter((a) => a.type === 1).map((a) => a.data);
+  if (!ips.length) throw new Error('No public A records for cdn via 1.1.1.1');
+  console.log(`Public DNS A: ${ips.join(', ')}`);
+
+  const out = execFileSync(
+    'curl.exe',
+    [
+      '-sI',
+      '--max-time',
+      '20',
+      '--resolve',
+      `cdn.thecougarchronicle.com:443:${ips[0]}`,
+      `${NEW}/${probeKey}`,
+    ],
+    { encoding: 'utf8' }
+  );
+  console.log(out.split(/\r?\n/).slice(0, 8).join('\n'));
+  const ok = /^HTTP\/[\d.]+ 200/m.test(out) && /content-type:\s*image\//i.test(out);
+  if (!ok) throw new Error('CDN HEAD did not return 200 image/* on Cloudflare edge');
+  console.log('CDN healthy on public edge.\n');
+}
+
 async function main() {
   console.log(`Old host: ${OLD}`);
   console.log(`New host: ${NEW}`);
-  console.log(`Mode:     ${dryRun ? 'DRY RUN (no writes)' : 'APPLY'}`);
-  console.log('');
+  console.log(`Mode:     ${dryRun ? 'DRY RUN' : 'APPLY'}\n`);
 
-  const probeUrl = `${NEW}/${probeKey}`;
-  console.log(`Probing CDN: ${probeUrl}`);
   try {
-    const res = await fetch(probeUrl, { method: 'HEAD', redirect: 'follow' });
-    const ct = res.headers.get('content-type') || '';
-    console.log(`CDN HEAD: ${res.status} ${ct}`);
-    const looksLikeImage = /^image\//i.test(ct) || res.ok;
-    if (!res.ok || !looksLikeImage) {
-      console.log(
-        '\nCDN is NOT healthy yet (need HTTP 200 + image from R2 custom domain).'
-      );
-      console.log(
-        'Right now DNS for cdn.thecougarchronicle.com must point through Cloudflare R2,'
-      );
-      console.log(
-        'not CNAME → thecougarchronicle.com (Railway). Fix that before --apply.\n'
-      );
-      if (!dryRun) {
-        console.error('Aborting --apply.');
-        process.exit(1);
-      }
-    } else {
-      console.log('CDN looks good.\n');
-    }
+    probeCdn();
   } catch (e) {
     console.error(`CDN probe failed: ${e.message}`);
-    if (!dryRun) {
-      console.error('Aborting --apply.');
-      process.exit(1);
-    }
+    if (!dryRun) process.exit(1);
     console.log('(continuing dry-run counts only)\n');
   }
 
@@ -118,9 +125,7 @@ async function main() {
   console.log(`  PrintEdition fields:  ${prints.c}`);
 
   if (dryRun) {
-    console.log(
-      '\nDry run only. After CDN returns 200 for a real file:\n  node scripts/rewrite-r2-urls-to-cdn.mjs --apply\n'
-    );
+    console.log('\nDry run only. To apply:\n  node scripts/rewrite-r2-urls-to-cdn.mjs --apply\n');
     return;
   }
 
@@ -157,7 +162,7 @@ async function main() {
   console.log(`  Post.content:       ${r2}`);
   console.log(`  Video.thumbnail:    ${r3}`);
   console.log(`  PrintEdition:       ${r4}`);
-  console.log('\nDone.');
+  console.log('\nDone. Old pub- URLs rewritten to CDN.');
 }
 
 main()
