@@ -3,6 +3,7 @@ import {
   streamEmbedUrl,
   youtubeEmbedUrl,
 } from './videos';
+import { rewriteMediaUrlsInHtml } from './media-url';
 
 export type EmbedProvider = 'youtube' | 'instagram' | 'stream';
 
@@ -191,7 +192,10 @@ export function withArticleInlinePlayback(src: string): string {
 export function enhanceArticleVideoEmbeds(html: string): string {
   if (!html) return html;
 
-  let out = html.replace(
+  // Legacy R2 public URLs → CDN custom domain (images in body)
+  let out = rewriteMediaUrlsInHtml(html);
+
+  out = out.replace(
     /(<iframe\b[^>]*?\bsrc=["'])([^"']+)(["'])/gi,
     (full, pre: string, src: string, post: string) => {
       if (!/youtube\.com|youtube-nocookie|cloudflarestream|videodelivery/i.test(src)) {

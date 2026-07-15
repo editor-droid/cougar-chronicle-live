@@ -17,6 +17,7 @@ import RelatedStories from '@/components/RelatedStories';
 import { getRelatedPosts } from '@/lib/related';
 import { buildNewsArticleJsonLdWithVideos } from '@/lib/article-videos';
 import { enhanceArticleVideoEmbeds } from '@/lib/embed-utils';
+import { rewriteMediaUrl } from '@/lib/media-url';
 export async function generateMetadata(
   { params }: { params: Promise<{ slug: string }> },
   parent: ResolvingMetadata
@@ -43,6 +44,7 @@ export async function generateMetadata(
       : 'Read this article on The Cougar Chronicle.');
       
   const keywords = post.seoKeywords ? post.seoKeywords.split(',').map(k => k.trim()) : [];
+  const heroImage = rewriteMediaUrl(post.imageUrl) || null;
 
   return {
     title: title,
@@ -56,8 +58,8 @@ export async function generateMetadata(
       description: description,
       type: 'article',
       url: getArticleUrl(post),
-      images: post.imageUrl 
-        ? [{ url: post.imageUrl, alt: post.title }] 
+      images: heroImage 
+        ? [{ url: heroImage, alt: post.title }] 
         : [{ url: '/images/default-article.jpg', width: 1080, height: 720, alt: 'The Cougar Chronicle' }],
       publishedTime: post.publishedAt?.toISOString() || post.createdAt.toISOString(),
       authors: [post.customAuthor || post.author.name || 'The Cougar Chronicle'],
@@ -66,8 +68,8 @@ export async function generateMetadata(
       card: 'summary_large_image',
       title: `${title} | The Cougar Chronicle`,
       description: description,
-      images: post.imageUrl 
-        ? [{ url: post.imageUrl, alt: post.title }] 
+      images: heroImage 
+        ? [{ url: heroImage, alt: post.title }] 
         : [{ url: '/images/default-article.jpg', width: 1080, height: 720, alt: 'The Cougar Chronicle' }],
     }
   };
@@ -242,7 +244,7 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
             <figure style={{ marginBottom: '2.5rem', width: '100%' }}>
               <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', borderRadius: '0.5rem', overflow: 'hidden', backgroundColor: 'var(--surface-hover)', border: '1px solid var(--border)' }}>
                 <Image 
-                  src={post.imageUrl} 
+                  src={rewriteMediaUrl(post.imageUrl)} 
                   alt={post.featuredImageAlt || post.title} 
                   fill 
                   priority
