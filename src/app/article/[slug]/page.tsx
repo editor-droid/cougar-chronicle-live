@@ -16,6 +16,7 @@ import ShareButton from '@/components/ShareButton';
 import RelatedStories from '@/components/RelatedStories';
 import { getRelatedPosts } from '@/lib/related';
 import { buildNewsArticleJsonLdWithVideos } from '@/lib/article-videos';
+import { enhanceArticleVideoEmbeds } from '@/lib/embed-utils';
 export async function generateMetadata(
   { params }: { params: Promise<{ slug: string }> },
   parent: ResolvingMetadata
@@ -172,7 +173,9 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
 
   const relatedPosts = await getRelatedPosts(post, 3);
 
-  const htmlContent = post.content ? injectHeadingIds(post.content) : '';
+  const htmlContent = post.content
+    ? enhanceArticleVideoEmbeds(injectHeadingIds(post.content))
+    : '';
 
   // NewsArticle + nested VideoObject(s) for any Stream/YouTube embeds
   const jsonLd = await buildNewsArticleJsonLdWithVideos(post);

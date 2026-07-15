@@ -1,4 +1,8 @@
-import { parseYoutubeId, streamEmbedUrl, youtubeEmbedUrl } from './videos';
+import {
+  parseYoutubeId,
+  streamEmbedUrl,
+  youtubeEmbedUrl,
+} from './videos';
 
 export type EmbedProvider = 'youtube' | 'instagram' | 'stream';
 
@@ -134,4 +138,90 @@ export function detectEmbedProviderHint(
   if (/cloudflarestream|videodelivery/.test(u)) return 'stream';
   if (parseStreamUid(input) && !parseYoutubeId(input)) return 'stream';
   return 'unknown';
+}
+
+/**
+ * Article-only playback: muted autoplay, loop, no chrome.
+ * Applied at render time so /videos watch pages and the editor keep normal controls.
+ * Browsers require mute for autoplay to work reliably.
+ */
+export function withArticleInlinePlayback(src: string): string {
+  if (!src || typeof src !== 'string') return src;
+  try {
+    // YouTube embed
+    if (/youtube\.com\/embed\//i.test(src) || /youtube-nocookie\.com\/embed\//i.test(src)) {
+      const u = new URL(src, 'https://www.youtube.com');
+      const id =
+        u.pathname.split('/').filter(Boolean).pop()?.replace(/[^a-zA-Z0-9_-]/g, '') ||
+        parseYoutubeId(src) ||
+        '';
+      u.searchParams.set('autoplay', '1');
+      u.searchParams.set('mute', '1');
+      u.searchParams.set('controls', '0');
+      u.searchParams.set('loop', '1');
+      u.searchParams.set('playsinline', '1');
+      u.searchParams.set('modestbranding', '1');
+      u.searchParams.set('rel', '0');
+      u.searchParams.set('fs', '0');
+      // YouTube only loops if playlist is set to the same video id
+      if (id) u.searchParams.set('playlist', id);
+      return u.toString();
+    }
+
+    // Cloudflare Stream
+    if (/cloudflarestream\.com|videodelivery\.net/i.test(src)) {
+      const u = new URL(src, 'https://iframe.videodelivery.net');
+      u.searchParams.set('autoplay', 'true');
+      u.searchParams.set('muted', 'true');
+      u.searchParams.set('loop', 'true');
+      u.searchParams.set('controls', 'false');
+      u.searchParams.set('preload', 'auto');
+      return u.toString();
+    }
+  } catch {
+    /* keep original */
+  }
+  return src;
+}
+
+/**
+ * Rewrite Stream/YouTube iframe (and data-src) URLs in article HTML for
+ * silent looping autoplay without player chrome. Instagram left alone.
+ */
+export function enhanceArticleVideoEmbeds(html: string): string {
+  if (!html) return html;
+
+  let out = html.replace(
+    /(<iframe\b[^>]*?\bsrc=["'])([^"']+)(["'])/gi,
+    (full, pre: string, src: string, post: string) => {
+      if (!/youtube\.com|youtube-nocookie|cloudflarestream|videodelivery/i.test(src)) {
+        return full;
+      }
+      return `${pre}${withArticleInlinePlayback(src)}${post}`;
+    }
+  );
+
+  // Keep data-src in sync (used if anything re-reads embeds)
+  out = out.replace(
+    /(data-src=["'])([^"']+)(["'])/gi,
+    (full, pre: string, src: string, post: string) => {
+      if (!/youtube\.com|youtube-nocookie|cloudflarestream|videodelivery/i.test(src)) {
+        return full;
+      }
+      return `${pre}${withArticleInlinePlayback(src)}${post}`;
+    }
+  );
+
+  // Prefer autoplay-friendly allow attribute
+  out = out.replace(
+    /(<iframe\b[^>]*?\ballow=["'])([^"']*)(["'])/gi,
+    (full, pre: string, allow: string, post: string) => {
+      if (!/autoplay/i.test(allow)) {
+        return `${pre}${allow}${allow.endsWith(';') || !allow ? '' : '; '}autoplay; muted${post}`;
+      }
+      return full;
+    }
+  );
+
+  return out;
 }

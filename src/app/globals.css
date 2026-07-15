@@ -915,6 +915,14 @@ input:focus, textarea:focus {
   border: 0;
 }
 
+/* Ambient article Stream/YouTube: autoplay+loop+no chrome (params set server-side).
+   Block clicks so player UI can't reappear; Instagram stays interactive. */
+.article-content .video-embed:not(.video-embed--instagram):not([data-provider="instagram"]),
+.article-content [data-video-embed]:not([data-provider="instagram"]),
+.article-content [data-youtube-video] {
+  pointer-events: none;
+}
+
 /* Fallback for bare iframes without wrapper (legacy HTML) */
 .article-content > iframe,
 .article-content p > iframe {

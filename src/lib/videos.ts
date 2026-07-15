@@ -152,6 +152,9 @@ export function streamEmbedUrl(
     primaryColor?: string;
     autoplay?: boolean;
     muted?: boolean;
+    loop?: boolean;
+    /** false hides Stream chrome (play bar, etc.) */
+    controls?: boolean;
     preload?: 'auto' | 'metadata' | 'none';
   }
 ): string {
@@ -164,6 +167,8 @@ export function streamEmbedUrl(
   }
   if (opts?.autoplay) params.set('autoplay', 'true');
   if (opts?.muted) params.set('muted', 'true');
+  if (opts?.loop) params.set('loop', 'true');
+  if (opts?.controls === false) params.set('controls', 'false');
   if (opts?.preload) params.set('preload', opts.preload);
   return `https://${streamCustomerHost()}/${uid}/iframe?${params.toString()}`;
 }

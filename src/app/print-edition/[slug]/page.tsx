@@ -11,6 +11,7 @@ import ShareButton from '@/components/ShareButton';
 import RelatedStories from '@/components/RelatedStories';
 import { getRelatedPosts } from '@/lib/related';
 import { injectHeadingIds } from '@/lib/toc';
+import { enhanceArticleVideoEmbeds } from '@/lib/embed-utils';
 import { getArticleUrl } from '@/lib/routes';
 export async function generateMetadata(
   { params }: { params: Promise<{ slug: string }> },
@@ -145,7 +146,9 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
 
   const relatedPosts = await getRelatedPosts(post, 3);
 
-  const htmlContent = post.content ? injectHeadingIds(post.content) : '';
+  const htmlContent = post.content
+    ? enhanceArticleVideoEmbeds(injectHeadingIds(post.content))
+    : '';
 
   const jsonLd = {
     '@context': 'https://schema.org',
