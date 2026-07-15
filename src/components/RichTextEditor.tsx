@@ -1586,12 +1586,25 @@ function LinkInput({
 }
 
 // ── Floating Bubble Toolbar ─────────────────────────────────────────────────
-function FloatingBubbleToolbar({ editor }: { editor: Editor }) {
+function FloatingBubbleToolbar({
+  editor,
+  onImageInsert,
+  onVideoEmbed,
+}: {
+  editor: Editor;
+  onImageInsert?: () => void;
+  onVideoEmbed?: (e: React.MouseEvent) => void;
+}) {
   const [isInsertingLink, setIsInsertingLink] = useState(false);
   const [url, setUrl] = useState("");
+  // Track selection range so link UI resets only when caret/range actually moves
+  const lastFromTo = useRef({ from: -1, to: -1 });
 
   useEffect(() => {
     const handleReset = () => {
+      const { from, to } = editor.state.selection;
+      if (from === lastFromTo.current.from && to === lastFromTo.current.to) return;
+      lastFromTo.current = { from, to };
       setIsInsertingLink(false);
       setUrl("");
     };
@@ -1605,12 +1618,15 @@ function FloatingBubbleToolbar({ editor }: { editor: Editor }) {
     <BubbleMenu
       editor={editor}
       // @ts-expect-error - Tiptap types missing tippyOptions in this version
-      tippyOptions={{ duration: 100, placement: "top" }}
-      shouldShow={({ editor }) => {
-        if (editor.isActive("image") || editor.isActive("gallery"))
-          return false;
+      tippyOptions={{ duration: 100, placement: "top", offset: [0, 8] }}
+      shouldShow={({ editor, view }) => {
+        if (!editor.isEditable || !view.hasFocus()) return false;
+        // Hide over media/atoms and when the dedicated link menu is showing
+        if (editor.isActive("image") || editor.isActive("gallery")) return false;
+        if (editor.isActive("videoEmbed")) return false;
         if (editor.isActive("link")) return false;
-        return !editor.state.selection.empty;
+        // Show on caret click (empty selection) and on text highlight
+        return true;
       }}
     >
       {isInsertingLink ? (
@@ -1631,6 +1647,8 @@ function FloatingBubbleToolbar({ editor }: { editor: Editor }) {
           background: "var(--surface)",
           border: "1px solid var(--border)",
           backdropFilter: "blur(12px)",
+          maxWidth: "min(100vw - 16px, 520px)",
+          flexWrap: "wrap",
         }}
       >
         {/* Headings */}
@@ -1707,7 +1725,7 @@ function FloatingBubbleToolbar({ editor }: { editor: Editor }) {
           style={{ background: "var(--border)" }}
         />
 
-        {/* Link */}
+        {/* Link / Image / Video — available on click, not only highlight */}
         <ToolbarButton
           onClick={() => setIsInsertingLink(true)}
           active={editor.isActive("link")}
@@ -1716,6 +1734,29 @@ function FloatingBubbleToolbar({ editor }: { editor: Editor }) {
         >
           <LinkIcon size={14} />
         </ToolbarButton>
+        {onImageInsert && (
+          <ToolbarButton
+            onClick={() => onImageInsert()}
+            title="Insert Image"
+            size="small"
+          >
+            <ImageIcon size={14} />
+          </ToolbarButton>
+        )}
+        {onVideoEmbed && (
+          <ToolbarButton
+            onClick={(e) => onVideoEmbed(e)}
+            title="Insert Video (upload Stream / URL)"
+            size="small"
+          >
+            <Video size={14} />
+          </ToolbarButton>
+        )}
+
+        <div
+          className="w-px h-4 mx-0.5"
+          style={{ background: "var(--border)" }}
+        />
 
         {/* Alignment */}
         <ToolbarButton
@@ -2078,10 +2119,16 @@ export const RichTextEditor = forwardRef<
                 editor={editor}
                 className="rich-text-editor-content"
               />
-              {/* Floating bubble toolbar on text selection */}
+              {/* Floating bubble toolbar near caret / selection */}
               {editor && (
                 <>
-                  <FloatingBubbleToolbar editor={editor} />
+                  <FloatingBubbleToolbar
+                    editor={editor}
+                    onImageInsert={onImageInsert}
+                    onVideoEmbed={(e) =>
+                      openEmbedNearCursor({ mode: "video", fromEvent: e })
+                    }
+                  />
                   <LinkBubbleMenu editor={editor} />
                 </>
               )}
