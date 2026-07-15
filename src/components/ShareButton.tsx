@@ -9,6 +9,8 @@ type ShareButtonProps = {
   title: string;
   url?: string;
   text?: string;
+  /** utm_campaign — e.g. article (default) vs video */
+  campaign?: string;
 };
 
 type ShareChannel = 'native' | 'copy' | 'twitter' | 'facebook' | 'email';
@@ -18,7 +20,12 @@ type ShareChannel = 'native' | 'copy' | 'twitter' | 'facebook' | 'email';
  * Desktop: dropdown — Copy, X, Facebook, Email.
  * UTMs only on these outbound share links (not site browsing).
  */
-export default function ShareButton({ title, url, text }: ShareButtonProps) {
+export default function ShareButton({
+  title,
+  url,
+  text,
+  campaign = 'article',
+}: ShareButtonProps) {
   const [copied, setCopied] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -44,7 +51,7 @@ export default function ShareButton({ title, url, text }: ShareButtonProps) {
     return withUtm(raw, {
       source: 'share',
       medium: channel,
-      campaign: 'article',
+      campaign,
     });
   };
 

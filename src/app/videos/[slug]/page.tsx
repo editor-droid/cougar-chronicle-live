@@ -294,6 +294,7 @@ export default async function VideoWatchPage({ params }: Props) {
                   title={video.title}
                   text={`${video.title} — The Cougar Chronicle`}
                   url={pageUrl}
+                  campaign="video"
                 />
               </span>
               <span>·</span>
