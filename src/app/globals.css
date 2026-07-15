@@ -875,10 +875,53 @@ input:focus, textarea:focus {
   }
 }
 
-.article-content iframe {
+.article-content iframe,
+.rich-text-editor-content iframe {
   max-width: 100%;
-  margin: 2rem auto;
+  margin: 0;
   display: block;
+}
+
+/* TipTap / published article video embeds (YouTube, Instagram, Stream) */
+.article-content .video-embed,
+.article-content [data-video-embed],
+.article-content [data-youtube-video],
+.article-content [data-instagram-embed],
+.rich-text-editor-content .video-embed,
+.rich-text-editor-content [data-video-embed] {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  margin: 1.75rem auto;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #0a0a0a;
+}
+
+.article-content .video-embed--instagram,
+.article-content [data-instagram-embed],
+.article-content [data-provider="instagram"] {
+  max-width: 400px;
+}
+
+.article-content .video-embed iframe,
+.article-content [data-video-embed] iframe,
+.article-content [data-youtube-video] iframe,
+.article-content [data-instagram-embed] iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* Fallback for bare iframes without wrapper (legacy HTML) */
+.article-content > iframe,
+.article-content p > iframe {
+  width: 100%;
+  min-height: 360px;
+  margin: 1.75rem auto;
+  border-radius: 8px;
 }
 
 .article-sidebar {

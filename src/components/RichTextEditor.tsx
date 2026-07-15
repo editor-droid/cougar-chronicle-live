@@ -13,8 +13,10 @@ import { Table } from "@tiptap/extension-table";
 import TableRow from "@tiptap/extension-table-row";
 import TableCell from "@tiptap/extension-table-cell";
 import TableHeader from "@tiptap/extension-table-header";
-import Youtube from "@tiptap/extension-youtube";
 import Highlight from "@tiptap/extension-highlight";
+import { VideoEmbed } from "../lib/VideoEmbedExtension";
+import { parseVideoEmbedInput, type EmbedProvider } from "../lib/embed-utils";
+import { streamEmbedUrl, youtubeEmbedUrl } from "../lib/videos";
 import {
   useEffect,
   useCallback,
@@ -118,79 +120,95 @@ function ToolbarButton({
   );
 }
 
-// ── Embed Dialog ──────────────────────────────────────────────────────────────
+// ── Embed Dialog (YouTube / Instagram / Cloudflare Stream) ───────────────────
+type EmbedDialogMode = "video" | "link";
+
 function EmbedDialog({
   open,
   onClose,
-  onInsert,
-  type,
+  onInsertVideo,
+  onInsertLink,
+  mode,
   initialUrl = "",
+  preferredProvider,
 }: {
   open: boolean;
   onClose: () => void;
-  onInsert: (url: string) => void;
-  type: "youtube" | "instagram" | "link";
+  onInsertVideo: (attrs: {
+    src: string;
+    provider: EmbedProvider;
+    aspectRatio: string;
+  }) => void;
+  onInsertLink: (url: string) => void;
+  mode: EmbedDialogMode;
   initialUrl?: string;
+  preferredProvider?: EmbedProvider;
 }) {
   const [url, setUrl] = useState("");
   const [error, setError] = useState("");
+  const [tab, setTab] = useState<"paste" | "library">("paste");
+  const [library, setLibrary] = useState<
+    { id: string; title: string; platform: string; externalId: string; thumbnailUrl: string | null; embedUrl: string }[]
+  >([]);
+  const [libraryLoading, setLibraryLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (open) {
       setUrl(initialUrl);
       setError("");
+      setTab("paste");
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [open, initialUrl]);
 
+  useEffect(() => {
+    if (!open || mode !== "video" || tab !== "library") return;
+    let cancelled = false;
+    setLibraryLoading(true);
+    fetch("/api/videos?limit=30")
+      .then((r) => r.json())
+      .then((data) => {
+        if (!cancelled) setLibrary(data.videos || []);
+      })
+      .catch(() => {
+        if (!cancelled) setLibrary([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLibraryLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, mode, tab]);
+
   if (!open) return null;
 
-  const config = {
-    youtube: {
-      title: "Embed YouTube Video",
-      placeholder: "https://www.youtube.com/watch?v=...",
-      hint: "Paste a YouTube video URL. Supports youtube.com/watch, youtu.be, and youtube.com/shorts links.",
-      validate: (u: string) => {
-        const patterns = [
-          /youtube\.com\/watch\?v=[\w-]+/,
-          /youtu\.be\/[\w-]+/,
-          /youtube\.com\/embed\/[\w-]+/,
-          /youtube\.com\/shorts\/[\w-]+/,
-        ];
-        return patterns.some(p => p.test(u));
-      },
-      errorMsg: "Please enter a valid YouTube URL",
-      icon: <Video size={20} />,
-      color: "var(--primary)",
-    },
-    instagram: {
-      title: "Embed Instagram Post",
-      placeholder: "https://www.instagram.com/p/ABC123/",
-      hint: "Paste an Instagram post, reel, or IGTV URL.",
-      validate: (u: string) => /instagram\.com\/(p|reel|tv)\/[\w-]+/.test(u),
-      errorMsg:
-        "Please enter a valid Instagram post URL (e.g. instagram.com/p/...)",
-      icon: <Camera size={20} />,
-      color: "var(--primary)",
-    },
-    link: {
-      title: "Insert Link",
-      placeholder: "https://example.com",
-      hint: "Enter the URL you want to link to.",
-      validate: (u: string) => {
-        try {
-          new URL(u);
-          return true;
-        } catch {
-          return false;
-        }
-      },
-      errorMsg: "Please enter a valid URL starting with http:// or https://",
-      icon: <LinkIcon size={20} />,
-      color: "var(--primary)",
-    },
-  }[type];
+  const isLink = mode === "link";
+  const parsed = !isLink && url.trim() ? parseVideoEmbedInput(url.trim()) : null;
+  const previewSrc = parsed?.embedSrc || null;
+
+  const title = isLink
+    ? "Insert Link"
+    : preferredProvider === "instagram"
+      ? "Embed Instagram"
+      : preferredProvider === "stream"
+        ? "Embed Cloudflare Stream"
+        : preferredProvider === "youtube"
+          ? "Embed YouTube"
+          : "Embed Video";
+
+  const hint = isLink
+    ? "Enter the URL you want to link to."
+    : "Paste a YouTube, Instagram, or Cloudflare Stream URL (or Stream video ID). You can also pick from your published Videos library.";
+
+  const placeholder = isLink
+    ? "https://example.com"
+    : preferredProvider === "instagram"
+      ? "https://www.instagram.com/p/… or /reel/…"
+      : preferredProvider === "stream"
+        ? "Stream iframe URL or video ID"
+        : "YouTube, Instagram, or Stream URL…";
 
   const handleInsert = () => {
     const trimmed = url.trim();
@@ -198,11 +216,63 @@ function EmbedDialog({
       setError("URL is required");
       return;
     }
-    if (!config.validate(trimmed)) {
-      setError(config.errorMsg);
+    if (isLink) {
+      try {
+        new URL(trimmed);
+        onInsertLink(trimmed);
+        onClose();
+      } catch {
+        setError("Please enter a valid URL starting with http:// or https://");
+      }
       return;
     }
-    onInsert(trimmed);
+    const embed = parseVideoEmbedInput(trimmed);
+    if (!embed) {
+      setError(
+        "Could not recognize that URL. Use YouTube, Instagram (p/reel/tv), or a Cloudflare Stream link/ID."
+      );
+      return;
+    }
+    if (preferredProvider && embed.provider !== preferredProvider) {
+      // Soft warning only if they opened Instagram and pasted YouTube — still allow
+    }
+    onInsertVideo({
+      src: embed.embedSrc,
+      provider: embed.provider,
+      aspectRatio: embed.aspectRatio,
+    });
+    onClose();
+  };
+
+  const insertFromLibrary = (v: (typeof library)[0]) => {
+    if (v.platform === "STREAM" && v.externalId) {
+      onInsertVideo({
+        src: streamEmbedUrl(v.externalId, {
+          letterboxColor: "transparent",
+          primaryColor: "#1b2253",
+        }),
+        provider: "stream",
+        aspectRatio: "16 / 9",
+      });
+    } else if (v.platform === "YOUTUBE" && v.externalId) {
+      onInsertVideo({
+        src: youtubeEmbedUrl(v.externalId),
+        provider: "youtube",
+        aspectRatio: "16 / 9",
+      });
+    } else if (v.embedUrl) {
+      const embed = parseVideoEmbedInput(v.embedUrl);
+      if (embed) {
+        onInsertVideo({
+          src: embed.embedSrc,
+          provider: embed.provider,
+          aspectRatio: embed.aspectRatio,
+        });
+      } else {
+        setError("Could not embed that library video.");
+        return;
+      }
+    }
     onClose();
   };
 
@@ -211,22 +281,8 @@ function EmbedDialog({
       e.preventDefault();
       handleInsert();
     }
-    if (e.key === "Escape") {
-      onClose();
-    }
+    if (e.key === "Escape") onClose();
   };
-
-  // Extract YouTube video ID for preview
-  const getYoutubeId = (u: string): string | null => {
-    const match = u.match(
-      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([\w-]+)/
-    );
-    return match ? match[1] : null;
-  };
-
-  const showPreview =
-    type === "youtube" && url.trim() && config.validate(url.trim());
-  const videoId = showPreview ? getYoutubeId(url.trim()) : null;
 
   return (
     <div
@@ -237,121 +293,181 @@ function EmbedDialog({
       }}
     >
       <div
-        className="w-full max-w-md mx-4 rounded-xl shadow-2xl overflow-hidden"
+        className="w-full max-w-lg mx-4 rounded-xl shadow-2xl overflow-hidden"
         style={{
           background: "var(--surface)",
           border: "1px solid var(--border)",
+          maxHeight: "90vh",
+          display: "flex",
+          flexDirection: "column",
         }}
       >
-        {/* Header */}
         <div
           className="flex items-center justify-between px-5 py-3.5"
           style={{ borderBottom: "1px solid var(--border)" }}
         >
           <div className="flex items-center gap-2.5">
-            <span style={{ color: config.color }}>{config.icon}</span>
-            <h3
-              className="font-bold text-sm"
-              style={{ color: "var(--foreground)" }}
-            >
-              {config.title}
+            <span style={{ color: "var(--primary)" }}>
+              {isLink ? <LinkIcon size={20} /> : preferredProvider === "instagram" ? <Camera size={20} /> : <Video size={20} />}
+            </span>
+            <h3 className="font-bold text-sm" style={{ color: "var(--foreground)" }}>
+              {title}
             </h3>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="p-1 rounded-lg transition-colors hover:bg-[var(--surface)]"
+            className="p-1 rounded-lg transition-colors"
             style={{ color: "var(--muted)" }}
           >
             <X size={16} />
           </button>
         </div>
 
-        {/* Body */}
-        <div className="px-5 py-4 space-y-3">
-          <p
-            className="text-xs leading-relaxed"
-            style={{ color: "var(--muted)" }}
+        {!isLink && (
+          <div
+            className="flex gap-1 px-5 pt-3"
+            style={{ borderBottom: "1px solid var(--border)" }}
           >
-            {config.hint}
-          </p>
-
-          <div>
-            <input
-              ref={inputRef}
-              type="text"
-              value={url}
-              onChange={e => {
-                setUrl(e.target.value);
-                setError("");
-              }}
-              onKeyDown={handleKeyDown}
-              placeholder={config.placeholder}
-              className="w-full text-sm rounded-lg px-3.5 py-2.5 transition-all"
-              style={{
-                background: "var(--surface)",
-                color: "var(--foreground)",
-                border: error
-                  ? "1.5px solid var(--primary)"
-                  : "1.5px solid var(--border)",
-                outline: "none",
-              }}
-              onFocus={e => {
-                if (!error) e.target.style.borderColor = "var(--primary)";
-              }}
-              onBlur={e => {
-                if (!error) e.target.style.borderColor = "var(--border)";
-              }}
-            />
-            {error && (
-              <div className="flex items-center gap-1.5 mt-1.5">
-                <AlertCircle
-                  size={12}
-                  style={{ color: "var(--primary)" }}
-                />
-                <p className="text-xs" style={{ color: "var(--primary)" }}>
-                  {error}
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* YouTube Preview */}
-          {showPreview && videoId && (
-            <div
-              className="rounded-lg overflow-hidden"
-              style={{ border: "1px solid var(--border)" }}
-            >
-              <div
+            {(["paste", "library"] as const).map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => setTab(t)}
+                className="font-sans text-xs font-bold px-3 py-2"
                 style={{
-                  position: "relative",
-                  paddingBottom: "56.25%",
-                  height: 0,
+                  background: "transparent",
+                  border: "none",
+                  borderBottom: tab === t ? "2px solid var(--primary)" : "2px solid transparent",
+                  color: tab === t ? "var(--primary)" : "var(--muted)",
+                  cursor: "pointer",
                 }}
               >
-                <iframe
-                  src={`https://www.youtube.com/embed/${videoId}`}
-                  style={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    width: "100%",
-                    height: "100%",
-                    border: "none",
+                {t === "paste" ? "Paste URL" : "Videos library"}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <div className="px-5 py-4 space-y-3" style={{ overflowY: "auto" }}>
+          {(isLink || tab === "paste") && (
+            <>
+              <p className="text-xs leading-relaxed" style={{ color: "var(--muted)" }}>
+                {hint}
+              </p>
+              <div>
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={url}
+                  onChange={e => {
+                    setUrl(e.target.value);
+                    setError("");
                   }}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
+                  onKeyDown={handleKeyDown}
+                  placeholder={placeholder}
+                  className="w-full text-sm rounded-lg px-3.5 py-2.5 transition-all"
+                  style={{
+                    background: "var(--background)",
+                    color: "var(--foreground)",
+                    border: error
+                      ? "1.5px solid #b91c1c"
+                      : "1.5px solid var(--border)",
+                    outline: "none",
+                  }}
                 />
+                {error && (
+                  <div className="flex items-center gap-1.5 mt-1.5">
+                    <AlertCircle size={12} style={{ color: "#b91c1c" }} />
+                    <p className="text-xs" style={{ color: "#b91c1c" }}>
+                      {error}
+                    </p>
+                  </div>
+                )}
+                {parsed && (
+                  <p className="text-xs mt-1.5 font-sans" style={{ color: "var(--primary)" }}>
+                    Detected: <strong>{parsed.provider}</strong>
+                  </p>
+                )}
+              </div>
+
+              {previewSrc && (
+                <div
+                  className="rounded-lg overflow-hidden"
+                  style={{ border: "1px solid var(--border)", aspectRatio: parsed?.aspectRatio || "16 / 9", position: "relative", background: "#000" }}
+                >
+                  <iframe
+                    src={previewSrc}
+                    style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: "none" }}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                    allowFullScreen
+                    title="Preview"
+                  />
+                </div>
+              )}
+            </>
+          )}
+
+          {!isLink && tab === "library" && (
+            <div>
+              {libraryLoading && (
+                <p className="text-sm font-sans text-muted">Loading library…</p>
+              )}
+              {!libraryLoading && library.length === 0 && (
+                <p className="text-sm font-sans text-muted">
+                  No published videos yet. Add some under Dashboard → Videos, or paste a URL.
+                </p>
+              )}
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", maxHeight: "280px", overflowY: "auto" }}>
+                {library.map((v) => (
+                  <button
+                    key={v.id}
+                    type="button"
+                    onClick={() => insertFromLibrary(v)}
+                    className="font-sans text-left"
+                    style={{
+                      display: "flex",
+                      gap: "0.75rem",
+                      alignItems: "center",
+                      padding: "0.5rem",
+                      border: "1px solid var(--border)",
+                      borderRadius: "0.5rem",
+                      background: "var(--background)",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {v.thumbnailUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={v.thumbnailUrl}
+                        alt=""
+                        width={72}
+                        height={40}
+                        style={{ objectFit: "cover", borderRadius: 4, width: 72, height: 40 }}
+                      />
+                    ) : (
+                      <div style={{ width: 72, height: 40, background: "var(--border)", borderRadius: 4 }} />
+                    )}
+                    <div style={{ minWidth: 0 }}>
+                      <div className="text-sm font-medium" style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {v.title}
+                      </div>
+                      <div className="text-xs text-muted">{v.platform === "STREAM" ? "Cloudflare Stream" : "YouTube"}</div>
+                    </div>
+                  </button>
+                ))}
               </div>
             </div>
           )}
         </div>
 
-        {/* Footer */}
+        {(isLink || tab === "paste") && (
         <div
           className="flex items-center justify-end gap-2.5 px-5 py-3.5"
           style={{ borderTop: "1px solid var(--border)" }}
         >
           <button
+            type="button"
             onClick={onClose}
             className="px-4 py-2 rounded-lg text-xs font-bold transition-all"
             style={{
@@ -363,10 +479,11 @@ function EmbedDialog({
             Cancel
           </button>
           <button
+            type="button"
             onClick={handleInsert}
             className="px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5"
             style={{
-              background: config.color,
+              background: "var(--primary)",
               color: "oklch(1 0 0)",
             }}
           >
@@ -374,6 +491,7 @@ function EmbedDialog({
             Insert
           </button>
         </div>
+        )}
       </div>
     </div>
   );
@@ -696,14 +814,14 @@ function Toolbar({
   editor,
   onImageInsert,
   onGalleryInsert,
-  onYoutube,
+  onVideoEmbed,
   onInstagram,
   onLink,
 }: {
   editor: Editor | null;
   onImageInsert?: () => void;
   onGalleryInsert?: () => void;
-  onYoutube: () => void;
+  onVideoEmbed: () => void;
   onInstagram: () => void;
   onLink: () => void;
 }) {
@@ -890,13 +1008,13 @@ function Toolbar({
       {/* Table */}
       <TableDropdown editor={editor} />
 
-      {/* YouTube */}
-      <ToolbarButton onClick={onYoutube} title="Embed YouTube Video">
+      {/* Video: YouTube / Stream / library */}
+      <ToolbarButton onClick={onVideoEmbed} title="Embed video (YouTube, Stream, library)">
         <Video size={15} />
       </ToolbarButton>
 
       {/* Instagram */}
-      <ToolbarButton onClick={onInstagram} title="Embed Instagram Post">
+      <ToolbarButton onClick={onInstagram} title="Embed Instagram">
         <Camera size={15} />
       </ToolbarButton>
 
@@ -1388,9 +1506,10 @@ export const RichTextEditor = forwardRef<
 ) {
   const [embedDialog, setEmbedDialog] = useState<{
     open: boolean;
-    type: "youtube" | "instagram" | "link";
+    mode: EmbedDialogMode;
+    preferredProvider?: EmbedProvider;
     initialUrl?: string;
-  }>({ open: false, type: "youtube" });
+  }>({ open: false, mode: "video" });
 
   const extensions = useMemo(() => [
     StarterKit.configure({
@@ -1413,15 +1532,11 @@ export const RichTextEditor = forwardRef<
     TableHeader,
     TableCell,
     Highlight.configure({ HTMLAttributes: { class: 'editorial-highlight', style: 'background-color: #fef08a; padding: 0.1rem 0.2rem; border-radius: 0.2rem;' } }),
-    Youtube.configure({
-      inline: false,
-      HTMLAttributes: {
-        class: "youtube-embed",
-      },
-    }),
+    VideoEmbed,
   ], [placeholder]);
 
   const editor = useEditor({
+    immediatelyRender: false,
     extensions,
     content: value,
     editorProps: {
@@ -1481,30 +1596,28 @@ export const RichTextEditor = forwardRef<
     [editor, insertImage, insertGallery]
   );
 
-  const handleEmbedInsert = useCallback(
+  const handleInsertVideo = useCallback(
+    (attrs: { src: string; provider: EmbedProvider; aspectRatio: string }) => {
+      if (!editor) return;
+      editor
+        .chain()
+        .focus()
+        .setVideoEmbed({
+          src: attrs.src,
+          provider: attrs.provider,
+          aspectRatio: attrs.aspectRatio,
+        })
+        .run();
+    },
+    [editor]
+  );
+
+  const handleInsertLink = useCallback(
     (url: string) => {
       if (!editor) return;
-
-      if (embedDialog.type === "youtube") {
-        editor
-          .chain()
-          .focus()
-          .setYoutubeVideo({ src: url, width: 640, height: 360 })
-          .run();
-      } else if (embedDialog.type === "instagram") {
-        const embedUrl = url.replace(/\/$/, "") + "/embed";
-        editor
-          .chain()
-          .focus()
-          .insertContent(
-            `<div data-instagram-embed="true" class="instagram-embed-wrapper"><iframe src="${embedUrl}" width="400" height="480" frameborder="0" scrolling="no" allowtransparency="true" style="border-radius:8px; max-width:100%;"></iframe></div>`
-          )
-          .run();
-      } else if (embedDialog.type === "link") {
-        editor.chain().focus().setLink({ href: url, target: "_blank" }).run();
-      }
+      editor.chain().focus().setLink({ href: url, target: "_blank" }).run();
     },
-    [editor, embedDialog.type]
+    [editor]
   );
 
   const showEditor = viewMode === "edit" || viewMode === "split";
@@ -1521,11 +1634,17 @@ export const RichTextEditor = forwardRef<
             editor={editor}
             onImageInsert={onImageInsert}
             onGalleryInsert={onGalleryInsert}
-            onYoutube={() => setEmbedDialog({ open: true, type: "youtube" })}
-            onInstagram={() =>
-              setEmbedDialog({ open: true, type: "instagram" })
+            onVideoEmbed={() =>
+              setEmbedDialog({ open: true, mode: "video" })
             }
-            onLink={() => setEmbedDialog({ open: true, type: "link" })}
+            onInstagram={() =>
+              setEmbedDialog({
+                open: true,
+                mode: "video",
+                preferredProvider: "instagram",
+              })
+            }
+            onLink={() => setEmbedDialog({ open: true, mode: "link" })}
           />
         )}
         <div
@@ -1563,13 +1682,14 @@ export const RichTextEditor = forwardRef<
         </div>
       </div>
 
-      {/* Embed Dialog */}
       <EmbedDialog
         open={embedDialog.open}
-        type={embedDialog.type}
+        mode={embedDialog.mode}
+        preferredProvider={embedDialog.preferredProvider}
         initialUrl={embedDialog.initialUrl}
         onClose={() => setEmbedDialog(prev => ({ ...prev, open: false }))}
-        onInsert={handleEmbedInsert}
+        onInsertVideo={handleInsertVideo}
+        onInsertLink={handleInsertLink}
       />
     </>
   );
