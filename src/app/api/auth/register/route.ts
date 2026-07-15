@@ -11,10 +11,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Too many registration attempts' }, { status: 429 });
     }
 
-    const { name, email, password } = await req.json();
+    const { name, email, password, purpose } = await req.json();
 
     if (!name || !email || !password) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    if (typeof password === 'string' && password.length < 6) {
+      return NextResponse.json(
+        { error: 'Password must be at least 6 characters' },
+        { status: 400 }
+      );
     }
 
     // Check if user already exists
@@ -29,13 +36,15 @@ export async function POST(req: Request) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user with WRITER role by default
+    // Readers (favorites modal) → USER; legacy writer registration form → WRITER
+    const role = purpose === 'reader' ? 'USER' : 'WRITER';
+
     const user = await prisma.user.create({
       data: {
         name,
         email,
         password: hashedPassword,
-        role: 'WRITER'
+        role,
       }
     });
 

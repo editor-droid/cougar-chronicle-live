@@ -19,7 +19,8 @@ import {
 import VideoHighlights from '@/components/VideoHighlights';
 import FavoriteButton from '@/components/FavoriteButton';
 import ShareButton from '@/components/ShareButton';
-import LinkifiedText from '@/components/LinkifiedText';
+import VideoDescription from '@/components/VideoDescription';
+import { parseVideoDescription } from '@/lib/video-description';
 import VideoWatchPlayer from './VideoWatchPlayer';
 
 export const dynamic = 'force-dynamic';
@@ -175,6 +176,30 @@ export default async function VideoWatchPage({ params }: Props) {
     initialFavorited = Boolean(fav);
   }
 
+  // Resolve article/video titles for nice “Read: …” buttons
+  const parsedDesc = parseVideoDescription(video.description);
+  const resolvedTitles: Record<string, string> = {};
+  const articleSlugs = parsedDesc.links
+    .filter((l) => l.kind === 'article' && l.slug)
+    .map((l) => l.slug!);
+  const videoSlugs = parsedDesc.links
+    .filter((l) => l.kind === 'video' && l.slug)
+    .map((l) => l.slug!);
+  if (articleSlugs.length) {
+    const posts = await prisma.post.findMany({
+      where: { slug: { in: articleSlugs }, state: 'PUBLISHED' },
+      select: { slug: true, title: true },
+    });
+    for (const p of posts) resolvedTitles[p.slug] = p.title;
+  }
+  if (videoSlugs.length) {
+    const vids = await prisma.video.findMany({
+      where: { slug: { in: videoSlugs }, isActive: true },
+      select: { slug: true, title: true },
+    });
+    for (const v of vids) resolvedTitles[v.slug] = v.title;
+  }
+
   return (
     <div className="container animate-fade-in" style={{ marginTop: '2rem', marginBottom: '4rem' }}>
       <script
@@ -294,13 +319,11 @@ export default async function VideoWatchPage({ params }: Props) {
           />
 
           {video.description && (
-            <LinkifiedText
+            <VideoDescription
               text={video.description}
-              className="font-sans"
+              resolvedTitles={resolvedTitles}
+              portrait={portrait}
               style={{
-                fontSize: '1.05rem',
-                lineHeight: 1.65,
-                color: 'var(--foreground)',
                 margin: '0 0 0.5rem',
                 maxWidth: portrait ? '36rem' : '40rem',
                 marginLeft: portrait ? 'auto' : undefined,
