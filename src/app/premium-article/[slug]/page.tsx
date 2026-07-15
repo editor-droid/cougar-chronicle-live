@@ -13,6 +13,7 @@ import GiftSaveBanner from '@/components/GiftSaveBanner';
 import { getRelatedPosts } from '@/lib/related';
 import { injectHeadingIds } from '@/lib/toc';
 import { getArticleUrl } from '@/lib/routes';
+import { buildNewsArticleJsonLdWithVideos } from '@/lib/article-videos';
 export async function generateMetadata(
   { params }: { params: Promise<{ slug: string }> },
   parent: ResolvingMetadata
@@ -156,32 +157,14 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
 
   const htmlContent = post.content ? injectHeadingIds(post.content) : '';
 
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'NewsArticle',
-    headline: post.title,
-    image: post.imageUrl ? [post.imageUrl] : [],
-    datePublished: post.publishedAt?.toISOString() || post.createdAt.toISOString(),
-    dateModified: post.updatedAt.toISOString(),
-    author: [{
-      '@type': 'Person',
-      name: post.customAuthor || post.author.name || 'Staff'
-    }],
-    publisher: {
-      '@type': 'Organization',
-      name: 'The Cougar Chronicle',
-      logo: {
-        '@type': 'ImageObject',
-        url: 'https://thecougarchronicle.com/icon.png'
-      }
-    },
-    isAccessibleForFree: "False",
+  const jsonLd = await buildNewsArticleJsonLdWithVideos(post, {
+    isAccessibleForFree: 'False',
     hasPart: {
       '@type': 'WebPageElement',
-      isAccessibleForFree: "False",
-      cssSelector: '.article-content'
-    }
-  };
+      isAccessibleForFree: 'False',
+      cssSelector: '.article-content',
+    },
+  });
 
   return (
     <div className="article-page-layout">

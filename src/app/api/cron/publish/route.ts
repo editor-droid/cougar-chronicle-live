@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { broadcastPostPublication } from '@/lib/publish-utils';
+import { syncArticleVideosToLibrary } from '@/lib/article-videos';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,12 +41,19 @@ export async function GET(request: Request) {
 
     for (const post of postsToPublish) {
       // 1. Update state to PUBLISHED
-      await prisma.post.update({
+      const published = await prisma.post.update({
         where: { id: post.id },
         data: { state: 'PUBLISHED' },
       });
 
-      // 2. Fire the broadcast emails
+      // 2. Stream/YouTube embeds → /videos library + schema
+      try {
+        await syncArticleVideosToLibrary(published);
+      } catch (e) {
+        console.error('Failed to sync article videos for', post.id, e);
+      }
+
+      // 3. Fire the broadcast emails
       await broadcastPostPublication(post);
       
       publishedCount++;

@@ -7,8 +7,39 @@ import { PostState, Role } from '@prisma/client';
 import { Resend } from 'resend';
 import { getArticleUrl } from '@/lib/routes';
 import { broadcastPostPublication } from '@/lib/publish-utils';
+import { syncArticleVideosToLibrary } from '@/lib/article-videos';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_fallback_key_so_build_does_not_crash');
+
+/** Create /videos library entries for Stream+YouTube embeds in published posts. */
+async function maybeSyncArticleVideos(post: {
+  id: string;
+  title: string;
+  slug: string;
+  content: string | null;
+  state: string;
+  seoDescription?: string | null;
+  seoTitle?: string | null;
+  seoKeywords?: string | null;
+  publishedAt?: Date | null;
+  createdAt?: Date;
+  isPremium?: boolean;
+  printEditionId?: string | null;
+}) {
+  if (post.state !== 'PUBLISHED') return;
+  try {
+    const result = await syncArticleVideosToLibrary(post);
+    if (result.created > 0) {
+      revalidatePath('/videos');
+      revalidatePath('/');
+      console.log(
+        `[article-videos] post=${post.id} created=${result.created} existing=${result.existing}`
+      );
+    }
+  } catch (e) {
+    console.error('[article-videos] sync failed', e);
+  }
+}
 
 export async function updatePostState(formData: FormData) {
   const session = await auth();
@@ -86,10 +117,22 @@ export async function updatePostState(formData: FormData) {
     }
   }
 
-  await prisma.post.update({
+  const updatedPost = await prisma.post.update({
     where: { id: postId },
     data: updateData
   });
+
+  if (newState === 'PUBLISHED') {
+    await maybeSyncArticleVideos({
+      ...post,
+      ...updatedPost,
+      content: updatedPost.content ?? post.content,
+      seoDescription: updatedPost.seoDescription ?? post.seoDescription,
+      seoTitle: updatedPost.seoTitle ?? post.seoTitle,
+      seoKeywords: updatedPost.seoKeywords ?? post.seoKeywords,
+      state: 'PUBLISHED',
+    });
+  }
 
   // Handle email notifications based on state transitions
   try {
@@ -168,7 +211,7 @@ export async function savePost(data: any) {
       throw new Error('You can only edit your own posts');
     }
 
-    await prisma.post.update({
+    const updated = await prisma.post.update({
       where: { id: data.id },
       data: {
         title: data.title,
@@ -197,6 +240,7 @@ export async function savePost(data: any) {
         ...(data.publishedAt !== undefined && { publishedAt: data.publishedAt ? new Date(data.publishedAt) : null })
       }
     });
+    await maybeSyncArticleVideos(updated);
   } else {
     await prisma.post.create({
       data: {
