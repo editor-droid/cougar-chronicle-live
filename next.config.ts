@@ -77,6 +77,17 @@ const nextConfig: NextConfig = {
         destination: '/recruiting',
         permanent: true,
       },
+      // Taxonomy v2: Opinion is a format tag, not a section desk
+      {
+        source: '/category/opinion',
+        destination: '/opinion',
+        permanent: true,
+      },
+      {
+        source: '/category/Opinion',
+        destination: '/opinion',
+        permanent: true,
+      },
     ];
   },
 };

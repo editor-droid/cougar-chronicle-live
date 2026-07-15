@@ -167,10 +167,12 @@ export default async function RootLayout({
             
             <nav className="main-nav" style={{ marginTop: '1.5rem', borderTop: '1px solid var(--border)', paddingTop: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
               <a href="/category/news" className="nav-link font-sans">News</a>
+              <a href="/category/politics" className="nav-link font-sans">Politics</a>
               <a href="/category/faith" className="nav-link font-sans">Faith</a>
-              <a href="/category/opinion" className="nav-link font-sans">Opinion</a>
+              <a href="/category/family" className="nav-link font-sans">Family</a>
               <a href="/america-250" className="nav-link font-sans" style={{ color: 'var(--primary)', fontWeight: 600 }}>America 250</a>
               <a href="/print-edition" className="nav-link font-sans">Print Edition</a>
+              <a href="/videos" className="nav-link font-sans">Videos</a>
             </nav>
           </header>
 
@@ -217,8 +219,10 @@ export default async function RootLayout({
               <h4 className="font-sans" style={{ color: 'white', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1rem', fontSize: '0.875rem' }}>Sections</h4>
               <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 <li><a href="/category/news" style={{ color: 'white', opacity: 0.8, textDecoration: 'none' }}>News</a></li>
+                <li><a href="/category/politics" style={{ color: 'white', opacity: 0.8, textDecoration: 'none' }}>Politics</a></li>
                 <li><a href="/category/faith" style={{ color: 'white', opacity: 0.8, textDecoration: 'none' }}>Faith</a></li>
-                <li><a href="/category/opinion" style={{ color: 'white', opacity: 0.8, textDecoration: 'none' }}>Opinion</a></li>
+                <li><a href="/category/family" style={{ color: 'white', opacity: 0.8, textDecoration: 'none' }}>Family</a></li>
+                <li><a href="/opinion" style={{ color: 'white', opacity: 0.8, textDecoration: 'none' }}>Opinion</a></li>
                 <li><a href="/america-250" style={{ color: 'white', opacity: 0.8, textDecoration: 'none' }}>America 250</a></li>
                 <li><a href="/print-edition" style={{ color: 'white', opacity: 0.8, textDecoration: 'none' }}>Print Edition</a></li>
                 <li><a href="/videos" style={{ color: 'white', opacity: 0.8, textDecoration: 'none' }}>Videos</a></li>

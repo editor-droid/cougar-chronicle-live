@@ -3,75 +3,42 @@ import Link from 'next/link';
 import { getArticleUrl } from '@/lib/routes';
 import Image from 'next/image';
 import type { Metadata } from 'next';
-import { notFound, redirect } from 'next/navigation';
-import { getSection, isSectionSlug } from '@/lib/sections';
+import { getSectionLabel } from '@/lib/sections';
 import { rewriteMediaUrl } from '@/lib/media-url';
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}): Promise<Metadata> {
-  const { slug } = await params;
-  if (slug.toLowerCase() === 'opinion') {
-    return { title: 'Opinion' };
-  }
-  const section = getSection(slug);
-  const categoryName = section?.label || slug.charAt(0).toUpperCase() + slug.slice(1);
-
-  return {
-    title: categoryName,
+export const metadata: Metadata = {
+  title: 'Opinion',
+  description:
+    'Op-eds and opinion from The Cougar Chronicle — across News, Politics, Faith, Family, and more.',
+  keywords: [
+    'BYU conservative opinion',
+    'LDS student perspectives',
+    'op-ed',
+    'Campus culture',
+    'Faith-based political commentary',
+  ],
+  alternates: { canonical: 'https://thecougarchronicle.com/opinion' },
+  openGraph: {
+    title: 'Opinion | The Cougar Chronicle',
     description:
-      section?.description ||
-      `Browse all articles filed under ${categoryName} in The Cougar Chronicle.`,
-    keywords: section?.keywords || [],
-    openGraph: {
-      title: `${categoryName} | The Cougar Chronicle`,
-      description:
-        section?.description ||
-        `Browse all articles filed under ${categoryName} in The Cougar Chronicle.`,
-      images: [{ url: '/default-og.png', width: 1200, height: 630 }],
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: `${categoryName} | The Cougar Chronicle`,
-      description:
-        section?.description ||
-        `Browse all articles filed under ${categoryName} in The Cougar Chronicle.`,
-      images: ['/default-og.png'],
-    },
-  };
-}
+      'Op-eds and opinion from The Cougar Chronicle across every section.',
+    images: [{ url: '/default-og.png', width: 1200, height: 630 }],
+  },
+};
 
-export default async function CategoryPage({
-  params,
+export default async function OpinionArchivePage({
   searchParams,
 }: {
-  params: Promise<{ slug: string }>;
   searchParams: Promise<{ page?: string; sort?: string }>;
 }) {
-  const { slug: rawSlug } = await params;
-  const slug = rawSlug.toLowerCase();
-
-  // Legacy desk → format archive (also covered by next.config redirect)
-  if (slug === 'opinion') {
-    redirect('/opinion');
-  }
-
-  if (!isSectionSlug(slug)) {
-    notFound();
-  }
-
-  const section = getSection(slug)!;
-  const resolvedSearchParams = await searchParams;
-
-  const currentPage = parseInt(resolvedSearchParams.page || '1', 10);
-  const sortOrder = resolvedSearchParams.sort === 'oldest' ? 'asc' : 'desc';
+  const resolved = await searchParams;
+  const currentPage = parseInt(resolved.page || '1', 10);
+  const sortOrder = resolved.sort === 'oldest' ? 'asc' : 'desc';
   const postsPerPage = 18;
   const skip = (currentPage - 1) * postsPerPage;
 
   const where = {
-    category: slug,
+    format: 'opinion',
     state: 'PUBLISHED' as const,
     publishedAt: { lte: new Date() },
   };
@@ -88,7 +55,6 @@ export default async function CategoryPage({
   ]);
 
   const totalPages = Math.ceil(totalPosts / postsPerPage) || 1;
-  const categoryName = section.label;
 
   return (
     <div className="container animate-fade-in" style={{ marginTop: '2rem' }}>
@@ -106,18 +72,16 @@ export default async function CategoryPage({
       >
         <div>
           <h1 className="font-serif" style={{ fontSize: '3.5rem', margin: 0 }}>
-            {categoryName}
+            Opinion
           </h1>
-          {section.description && (
-            <p className="font-sans text-muted" style={{ margin: '0.5rem 0 0', maxWidth: '36rem' }}>
-              {section.description}
-            </p>
-          )}
+          <p className="font-sans text-muted" style={{ margin: '0.5rem 0 0' }}>
+            Op-eds across every section of The Cougar Chronicle.
+          </p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <span className="font-sans text-sm text-muted">Sort by:</span>
           <Link
-            href={`/category/${slug}?sort=newest`}
+            href="/opinion?sort=newest"
             className="font-sans text-sm"
             style={{
               fontWeight: sortOrder === 'desc' ? 'bold' : 'normal',
@@ -129,7 +93,7 @@ export default async function CategoryPage({
           </Link>
           <span className="text-muted">|</span>
           <Link
-            href={`/category/${slug}?sort=oldest`}
+            href="/opinion?sort=oldest"
             className="font-sans text-sm"
             style={{
               fontWeight: sortOrder === 'asc' ? 'bold' : 'normal',
@@ -144,7 +108,7 @@ export default async function CategoryPage({
 
       {posts.length === 0 ? (
         <p className="text-center text-muted font-sans">
-          No articles published in this section yet.
+          No opinion pieces published yet. (Run section migration, then re-check.)
         </p>
       ) : (
         <div
@@ -183,22 +147,20 @@ export default async function CategoryPage({
                   </div>
                 )}
                 <div style={{ padding: '1.25rem', flex: 1 }}>
-                  {post.format === 'opinion' && (
-                    <span
-                      className="font-sans text-xs"
-                      style={{
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.06em',
-                        fontWeight: 700,
-                        color: 'var(--primary)',
-                      }}
-                    >
-                      Opinion
-                    </span>
-                  )}
+                  <span
+                    className="font-sans text-xs"
+                    style={{
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.06em',
+                      fontWeight: 700,
+                      color: 'var(--primary)',
+                    }}
+                  >
+                    {getSectionLabel(post.category)} · Opinion
+                  </span>
                   <h2
                     className="font-serif"
-                    style={{ fontSize: '1.35rem', margin: '0.35rem 0', lineHeight: 1.25 }}
+                    style={{ fontSize: '1.35rem', margin: '0.5rem 0', lineHeight: 1.25 }}
                   >
                     {post.title}
                   </h2>
@@ -224,7 +186,7 @@ export default async function CategoryPage({
         >
           {currentPage > 1 && (
             <Link
-              href={`/category/${slug}?page=${currentPage - 1}&sort=${resolvedSearchParams.sort || 'newest'}`}
+              href={`/opinion?page=${currentPage - 1}&sort=${resolved.sort || 'newest'}`}
               className="btn btn-secondary font-sans"
             >
               Previous
@@ -235,7 +197,7 @@ export default async function CategoryPage({
           </span>
           {currentPage < totalPages && (
             <Link
-              href={`/category/${slug}?page=${currentPage + 1}&sort=${resolvedSearchParams.sort || 'newest'}`}
+              href={`/opinion?page=${currentPage + 1}&sort=${resolved.sort || 'newest'}`}
               className="btn btn-secondary font-sans"
             >
               Next

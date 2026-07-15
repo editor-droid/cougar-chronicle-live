@@ -46,7 +46,10 @@ model Post {
   title          String
   slug           String          @unique
   content        String?         @db.Text
+  /// Section / desk slug: news | politics | faith | family | print-edition
   category       String
+  /// Format tag: news (reportage) | opinion (op-ed). Independent of section.
+  format         String          @default("news")
   state          PostState       @default(DRAFT)
   imageUrl       String?
   authorId       String

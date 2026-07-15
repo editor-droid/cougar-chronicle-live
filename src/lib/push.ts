@@ -68,15 +68,17 @@ export async function sendPushNotification(
 
 export function topicsForPost(post: {
   category?: string;
+  format?: string;
   isBreaking?: boolean;
   isAmerica250?: boolean;
 }): PushTopic[] {
   const topics: PushTopic[] = [];
   if (post.isBreaking) topics.push('breaking');
-  const cat = (post.category || '').toLowerCase();
-  if (cat === 'news') topics.push('news');
+  if (post.isAmerica250) topics.push('opinion');
+  const format = (post.format || 'news').toLowerCase();
+  const cat = (post.category || 'news').toLowerCase();
+  if (format === 'opinion') topics.push('opinion');
   else if (cat === 'faith') topics.push('faith');
-  else if (cat === 'opinion' || post.isAmerica250) topics.push('opinion');
-  else topics.push('news');
+  else topics.push('news'); // news, politics, family, print-edition reportage
   return topics;
 }

@@ -109,9 +109,14 @@ export async function broadcastPostPublication(
           : [{ wantsInstant: true }],
       };
       if (!post.isAmerica250 && !post.isBreaking) {
-        if (post.category === 'news') whereClause.wantsNews = true;
-        else if (post.category === 'faith') whereClause.wantsFaith = true;
-        else if (post.category === 'opinion') whereClause.wantsOpinion = true;
+        const { preferenceBucket } = await import('@/lib/sections');
+        const bucket = preferenceBucket(
+          post.category || 'news',
+          (post as { format?: string }).format || 'news'
+        );
+        if (bucket === 'news') whereClause.wantsNews = true;
+        else if (bucket === 'faith') whereClause.wantsFaith = true;
+        else if (bucket === 'opinion') whereClause.wantsOpinion = true;
       }
 
       const subscribers = await prisma.subscriber.findMany({

@@ -223,6 +223,7 @@ export async function savePost(data: any) {
         title: data.title,
         slug: data.slug,
         category: data.category,
+        format: data.format === 'opinion' ? 'opinion' : 'news',
         content: data.content,
         imageUrl: data.imageUrl,
         seoTitle: data.seoTitle,
@@ -253,6 +254,7 @@ export async function savePost(data: any) {
         title: data.title,
         slug: data.slug,
         category: data.category,
+        format: data.format === 'opinion' ? 'opinion' : 'news',
         content: data.content,
         imageUrl: data.imageUrl,
         authorId: role === 'WRITER' ? session.user.id : data.authorId, // Ensure WRITERs can't assign to others

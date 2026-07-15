@@ -16,6 +16,11 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
 
   const [title, setTitle] = useState(post?.title || '');
   const [category, setCategory] = useState(post?.category || 'news');
+  const [format, setFormat] = useState<'news' | 'opinion'>(
+    post?.format === 'opinion' || post?.category === 'opinion' || post?.category === 'Opinion'
+      ? 'opinion'
+      : 'news'
+  );
   const [slug, setSlug] = useState(post?.slug || '');
   const [imageUrl, setImageUrl] = useState(post?.imageUrl || '');
   const [seoTitle, setSeoTitle] = useState(post?.seoTitle || '');
@@ -200,7 +205,7 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
     try {
       await savePost({
         id: post?.id,
-        title, slug, category, content, imageUrl, authorId: assignedAuthorId,
+        title, slug, category, format, content, imageUrl, authorId: assignedAuthorId,
         seoTitle, seoDescription, seoKeywords,
         keyInsights, featuredImageAlt, customAuthor, isPremium,
         isAmerica250, isBreaking, breakingHours: isBreaking ? breakingHours || 24 : null,
@@ -464,11 +469,38 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
 
                 <div className={styles.inputGroup}>
                   <label className={styles.inputLabel}>Category & Authors</label>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#6b7280', marginBottom: '0.35rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    Section
+                  </label>
                   <select value={category} onChange={(e) => setCategory(e.target.value)} className={styles.textInput}>
                     <option value="news">News</option>
+                    <option value="politics">Politics</option>
                     <option value="faith">Faith</option>
-                    <option value="opinion">Opinion</option>
+                    <option value="family">Family</option>
+                    <option value="print-edition">Print Edition</option>
                   </select>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#6b7280', margin: '1rem 0 0.35rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    Format
+                  </label>
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      onClick={() => setFormat('news')}
+                      className={`${styles.pillToggle} ${format === 'news' ? styles.pillActive : ''}`}
+                    >
+                      News
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormat('opinion')}
+                      className={`${styles.pillToggle} ${format === 'opinion' ? styles.pillActive : ''}`}
+                    >
+                      Opinion (op-ed)
+                    </button>
+                  </div>
+                  <p className="font-sans" style={{ fontSize: '0.7rem', color: '#9ca3af', margin: '0.4rem 0 0' }}>
+                    Section = desk. Format = reportage vs opinion (any section can be an op-ed).
+                  </p>
                   <select value={assignedAuthorId} onChange={(e) => setAssignedAuthorId(e.target.value)} className={styles.textInput}>
                     {availableAuthors.map((a: any) => <option key={a.id} value={a.id}>{a.name || a.email}</option>)}
                   </select>
