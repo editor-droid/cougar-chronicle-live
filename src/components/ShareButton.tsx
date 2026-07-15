@@ -116,8 +116,8 @@ export default function ShareButton({ title, url, text }: ShareButtonProps) {
           color: 'inherit',
           font: 'inherit',
         }}
-        title="Share article"
-        aria-label="Share article"
+        title="Share"
+        aria-label="Share"
         aria-expanded={menuOpen}
       >
         {copied ? (

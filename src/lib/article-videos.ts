@@ -172,6 +172,7 @@ export async function syncArticleVideosToLibrary(
         ? post.title
         : `${post.title} (video ${i + 1})`;
 
+    // Plain URL is linkified on the video page into a clickable article link
     let description = `${baseDesc}\n\nFeatured in: https://thecougarchronicle.com${articlePath}`;
     if (description.length > 4000) description = description.slice(0, 4000);
 

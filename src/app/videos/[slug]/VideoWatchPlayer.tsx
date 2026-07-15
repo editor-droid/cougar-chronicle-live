@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight, Maximize2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -88,9 +88,8 @@ export default function VideoWatchPlayer({
         <iframe
           src={embedUrl}
           title={title}
-          // Fullscreen requires allow + allowFullScreen AND site Permissions-Policy fullscreen=*
+          // Fullscreen via allow= only (avoid allowfullscreen attribute conflict warning)
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-          allowFullScreen
           loading="eager"
           referrerPolicy="strict-origin-when-cross-origin"
           style={{
@@ -103,23 +102,6 @@ export default function VideoWatchPlayer({
           }}
         />
       </div>
-
-      <p
-        className="font-sans text-xs text-muted"
-        style={{
-          margin: 0,
-          textAlign: 'center',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '0.35rem',
-          lineHeight: 1.4,
-          padding: '0 0.5rem',
-        }}
-      >
-        <Maximize2 size={12} aria-hidden />
-        Full screen is on the player controls (usually bottom-right). Picture-in-picture is separate.
-      </p>
 
       {(prev || next) && (
         <div

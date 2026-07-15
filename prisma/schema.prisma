@@ -37,6 +37,7 @@ model User {
   sessions          Session[]
   editorialNotes    EditorialNote[]
   favorites         Favorite[]
+  videoFavorites    VideoFavorite[]
   pushSubscriptions PushSubscription[]
 }
 
@@ -201,6 +202,20 @@ model Favorite {
   @@unique([userId, postId])
 }
 
+/// Saved /videos/[slug] entries (mirrors article Favorite).
+model VideoFavorite {
+  id        String   @id @default(cuid())
+  userId    String
+  videoId   String
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  video Video @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, videoId])
+  @@index([userId, createdAt])
+}
+
 model PushSubscription {
   id            String   @id @default(cuid())
   endpoint      String   @unique
@@ -262,6 +277,7 @@ model Video {
   publishedAt   DateTime      @default(now())
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
+  favorites     VideoFavorite[]
 
   @@index([isActive, showOnHome, sortOrder])
   @@index([isActive, showInSidebar, sortOrder])

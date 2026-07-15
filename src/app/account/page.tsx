@@ -77,12 +77,36 @@ export default async function AccountPage() {
     orderBy: { createdAt: 'desc' }
   });
 
-  // 3. Get favorites
+  // 3. Get favorites (articles + videos)
   const favorites = await prisma.favorite.findMany({
     where: { userId: session.user.id },
     include: { post: true },
     orderBy: { createdAt: 'desc' }
   });
+  const videoFavorites = await prisma.videoFavorite.findMany({
+    where: { userId: session.user.id },
+    include: { video: true },
+    orderBy: { createdAt: 'desc' },
+  });
+  const allFavorites = [
+    ...favorites.map((f) => ({
+      id: f.id,
+      createdAt: f.createdAt,
+      kind: 'article' as const,
+      title: f.post.title,
+      href: getArticleUrl(f.post),
+      cta: 'Read Article',
+    })),
+    ...videoFavorites.map((f) => ({
+      id: f.id,
+      createdAt: f.createdAt,
+      kind: 'video' as const,
+      title: f.video.title,
+      href: `/videos/${f.video.slug}`,
+      cta: 'Watch Video',
+    })),
+  ].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
 
   return (
     <div className="container animate-fade-in" style={{ marginTop: '2rem', maxWidth: '800px', marginBottom: '6rem' }}>
@@ -254,26 +278,32 @@ export default async function AccountPage() {
         <section>
           <h2 className="font-serif" style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>My Favorites</h2>
           
-          {favorites.length === 0 ? (
+          {allFavorites.length === 0 ? (
             <div style={{ backgroundColor: 'var(--surface)', padding: '2rem', borderRadius: '0.5rem', border: '1px solid var(--border)', textAlign: 'center' }}>
-              <p className="font-sans text-muted" style={{ marginBottom: '1rem' }}>You haven't favorited any articles yet.</p>
-              <Link href="/category/news" className="btn btn-primary font-sans text-sm">Browse Articles</Link>
+              <p className="font-sans text-muted" style={{ marginBottom: '1rem' }}>You haven&apos;t favorited any articles or videos yet.</p>
+              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                <Link href="/category/news" className="btn btn-primary font-sans text-sm">Browse Articles</Link>
+                <Link href="/videos" className="btn btn-secondary font-sans text-sm">Browse Videos</Link>
+              </div>
             </div>
           ) : (
             <div style={{ backgroundColor: 'var(--surface)', borderRadius: '0.5rem', border: '1px solid var(--border)', overflow: 'hidden' }}>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                {favorites.map((f) => (
+                {allFavorites.map((f) => (
                   <li key={f.id} style={{ padding: '1.5rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
                     <div>
-                      <Link href={getArticleUrl(f.post)} style={{ textDecoration: 'none' }}>
-                        <h3 className="font-serif hover:text-primary transition-colors" style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>
-                          {f.post.title}
+                      <span className="font-sans text-xs" style={{ textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 700, color: 'var(--primary)' }}>
+                        {f.kind === 'video' ? 'Video' : 'Article'}
+                      </span>
+                      <Link href={f.href} style={{ textDecoration: 'none', display: 'block' }}>
+                        <h3 className="font-serif hover:text-primary transition-colors" style={{ fontSize: '1.25rem', marginBottom: '0.25rem', marginTop: '0.25rem' }}>
+                          {f.title}
                         </h3>
                       </Link>
                       <p className="font-sans text-sm text-muted">Favorited on {new Date(f.createdAt).toLocaleDateString()}</p>
                     </div>
-                    <Link href={getArticleUrl(f.post)} className="btn btn-secondary font-sans text-sm">
-                      Read Article &rarr;
+                    <Link href={f.href} className="btn btn-secondary font-sans text-sm">
+                      {f.cta} &rarr;
                     </Link>
                   </li>
                 ))}

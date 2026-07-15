@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
+import { auth } from '@/auth';
 import {
   buildVideoBreadcrumbJsonLd,
   buildVideoObjectJsonLd,
@@ -16,6 +17,9 @@ import {
   videoPageUrl,
 } from '@/lib/videos';
 import VideoHighlights from '@/components/VideoHighlights';
+import FavoriteButton from '@/components/FavoriteButton';
+import ShareButton from '@/components/ShareButton';
+import LinkifiedText from '@/components/LinkifiedText';
 import VideoWatchPlayer from './VideoWatchPlayer';
 
 export const dynamic = 'force-dynamic';
@@ -156,6 +160,21 @@ export default async function VideoWatchPage({ params }: Props) {
   const durationLabel = formatDurationLabel(video.durationSec);
   const aspect = videoAspectRatioCss(video.width, video.height);
 
+  const session = await auth();
+  let initialFavorited = false;
+  if (session?.user?.id) {
+    const fav = await prisma.videoFavorite.findUnique({
+      where: {
+        userId_videoId: {
+          userId: session.user.id,
+          videoId: video.id,
+        },
+      },
+      select: { id: true },
+    });
+    initialFavorited = Boolean(fav);
+  }
+
   return (
     <div className="container animate-fade-in" style={{ marginTop: '2rem', marginBottom: '4rem' }}>
       <script
@@ -241,6 +260,18 @@ export default async function VideoWatchPage({ params }: Props) {
                 justifyContent: portrait ? 'center' : 'flex-start',
               }}
             >
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.65rem' }}>
+                <FavoriteButton
+                  videoId={video.id}
+                  initialFavorited={initialFavorited}
+                />
+                <ShareButton
+                  title={video.title}
+                  text={`${video.title} — The Cougar Chronicle`}
+                  url={pageUrl}
+                />
+              </span>
+              <span>·</span>
               <time dateTime={video.publishedAt.toISOString()}>
                 {video.publishedAt.toLocaleDateString(undefined, {
                   year: 'numeric',
@@ -263,7 +294,8 @@ export default async function VideoWatchPage({ params }: Props) {
           />
 
           {video.description && (
-            <p
+            <LinkifiedText
+              text={video.description}
               className="font-sans"
               style={{
                 fontSize: '1.05rem',
@@ -275,9 +307,7 @@ export default async function VideoWatchPage({ params }: Props) {
                 marginRight: portrait ? 'auto' : undefined,
                 textAlign: portrait ? 'center' : 'left',
               }}
-            >
-              {video.description}
-            </p>
+            />
           )}
 
           {thumbnailUrl && (
