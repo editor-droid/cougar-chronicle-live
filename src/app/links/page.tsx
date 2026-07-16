@@ -52,11 +52,13 @@ export default async function LinksHubPage() {
 
   return (
     <div
+      data-link-hub-page
       style={{
-        minHeight: '70vh',
-        padding: '2rem 1rem 4rem',
+        minHeight: '100dvh',
+        padding: '2rem 1rem 3rem',
         display: 'flex',
         justifyContent: 'center',
+        boxSizing: 'border-box',
       }}
     >
       <div style={{ width: '100%', maxWidth: '26rem' }}>

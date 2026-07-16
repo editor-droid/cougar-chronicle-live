@@ -306,6 +306,22 @@ input:focus, textarea:focus {
   font-size: 0.875rem;
 }
 
+/* Public /links hub: standalone bio page (no site chrome) */
+body:has([data-link-hub-page]) .top-social-bar,
+body:has([data-link-hub-page]) .site-header,
+body:has([data-link-hub-page]) .breaking-banner,
+body:has([data-link-hub-page]) .site-footer {
+  display: none !important;
+}
+
+body:has([data-link-hub-page]) .site-shell > main.container {
+  max-width: none;
+  width: 100%;
+  padding-left: 0;
+  padding-right: 0;
+  padding-bottom: 0 !important;
+}
+
 /* Home Layout Specifics */
 .home-layout {
   display: grid;

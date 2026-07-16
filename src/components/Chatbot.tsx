@@ -67,7 +67,13 @@ export default function Chatbot() {
     }
   }, [messages, isOpen]);
 
-  if (pathname.startsWith('/dashboard') || pathname.startsWith('/admin')) {
+  // Dashboard + public link hub (bio page) — no chat chrome
+  if (
+    pathname.startsWith('/dashboard') ||
+    pathname.startsWith('/admin') ||
+    pathname === '/links' ||
+    pathname.startsWith('/links/')
+  ) {
     return null;
   }
 

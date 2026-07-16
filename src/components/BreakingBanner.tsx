@@ -27,6 +27,7 @@ export default function BreakingBanner({ item }: { item: BreakingItem | null }) 
 
   return (
     <div
+      className="breaking-banner"
       role="status"
       style={{
         backgroundColor: '#1B2253',

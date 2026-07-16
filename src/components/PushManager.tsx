@@ -1,10 +1,16 @@
 'use client';
 
 import { useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { toast } from 'sonner';
 
 export default function PushManager() {
+  const pathname = usePathname();
+
   useEffect(() => {
+    // Bio link hub: keep the page focused (no notification toast)
+    if (pathname === '/links' || pathname.startsWith('/links/')) return;
+
     // No login required — guests and signed-in users both get the prompt.
     const hasPrompted = localStorage.getItem('push_prompted');
 
@@ -50,7 +56,7 @@ export default function PushManager() {
         /* non-blocking */
       });
     }
-  }, []);
+  }, [pathname]);
 
   return null;
 }
