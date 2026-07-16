@@ -1,13 +1,27 @@
 /* ── Admin shell: mobile-first ─────────────────────────────────────────── */
 
+/*
+ * Site root wraps pages in main.container (max-width 1200px). That fits the
+ * public site, but dashboard tabs (posts table, videos, links, etc.) need the
+ * full viewport. The post editor already breaks out for its sidebar — make
+ * every admin tab match that full-width behavior.
+ */
+body:has(.dashboard-shell) .site-shell > main.container {
+  max-width: none;
+  width: 100%;
+  padding-left: 0;
+  padding-right: 0;
+}
+
 .dashboard-shell {
   min-height: 60vh;
+  width: 100%;
   padding-bottom: calc(2rem + env(safe-area-inset-bottom, 0px));
 }
 
 .dashboard-shell > .container {
   width: 100%;
-  max-width: 1200px;
+  max-width: none;
   margin-left: auto;
   margin-right: auto;
   padding-left: 1rem;
@@ -19,6 +33,13 @@
   .dashboard-shell > .container {
     padding-left: 1.5rem;
     padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .dashboard-shell > .container {
+    padding-left: 2rem;
+    padding-right: 2rem;
   }
 }
 
