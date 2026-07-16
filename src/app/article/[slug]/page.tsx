@@ -18,6 +18,7 @@ import { getRelatedPosts } from '@/lib/related';
 import { buildNewsArticleJsonLdWithVideos } from '@/lib/article-videos';
 import { enhanceArticleVideoEmbeds } from '@/lib/embed-utils';
 import { rewriteMediaUrl } from '@/lib/media-url';
+import { isBreakingStillActive } from '@/lib/breaking';
 export async function generateMetadata(
   { params }: { params: Promise<{ slug: string }> },
   parent: ResolvingMetadata
@@ -207,7 +208,7 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
                     🇺🇸 America 250
                   </Link>
                 )}
-                {post.isBreaking && (!post.breakingUntil || post.breakingUntil > new Date()) && (
+                {isBreakingStillActive(post) && (
                   <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: 800, backgroundColor: '#b91c1c', color: 'white', padding: '0.15rem 0.4rem', borderRadius: '0.25rem', letterSpacing: '0.06em' }}>
                     Breaking
                   </span>

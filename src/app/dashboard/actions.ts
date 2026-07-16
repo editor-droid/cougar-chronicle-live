@@ -9,6 +9,7 @@ import { getArticleUrl } from '@/lib/routes';
 import { broadcastPostPublication } from '@/lib/publish-utils';
 import { syncArticleVideosToLibrary } from '@/lib/article-videos';
 import { canApprovePosts, canPublishPosts } from '@/lib/roles';
+import { computeBreakingUntil, DEFAULT_BREAKING_HOURS } from '@/lib/breaking';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_fallback_key_so_build_does_not_crash');
 
@@ -83,6 +84,15 @@ export async function updatePostState(formData: FormData) {
   if (newState === 'PUBLISHED') {
     if (!post.publishedAt) {
       updateData.publishedAt = new Date();
+    }
+
+    // Start (or backfill) the breaking window at publish so the banner actually expires.
+    // Save already sets breakingUntil when possible; this covers null/legacy rows.
+    if (post.isBreaking) {
+      const until = post.breakingUntil ? new Date(post.breakingUntil) : null;
+      if (!until || until.getTime() <= Date.now()) {
+        updateData.breakingUntil = computeBreakingUntil(DEFAULT_BREAKING_HOURS);
+      }
     }
     
     // Auto-generate missing SEO and Key Insights if they weren't manually set
@@ -271,12 +281,11 @@ export async function savePost(data: any) {
         isPremium: data.isPremium !== undefined ? data.isPremium : false,
         isAmerica250: data.isAmerica250 !== undefined ? data.isAmerica250 : false,
         isBreaking: data.isBreaking !== undefined ? data.isBreaking : false,
+        // Always set an absolute expiry when Breaking is on (default 24h). Never leave null forever.
         breakingUntil:
-          data.isBreaking && data.breakingHours
-            ? new Date(Date.now() + Number(data.breakingHours) * 60 * 60 * 1000)
-            : data.isBreaking
-              ? null
-              : null,
+          data.isBreaking
+            ? computeBreakingUntil(data.breakingHours)
+            : null,
         printEditionOrder: data.printEditionOrder ? parseInt(data.printEditionOrder) : null,
         imageCaption: data.imageCaption,
         ...(data.publishedAt !== undefined && { publishedAt: data.publishedAt ? new Date(data.publishedAt) : null })
@@ -304,8 +313,8 @@ export async function savePost(data: any) {
         isAmerica250: data.isAmerica250 !== undefined ? data.isAmerica250 : false,
         isBreaking: data.isBreaking !== undefined ? data.isBreaking : false,
         breakingUntil:
-          data.isBreaking && data.breakingHours
-            ? new Date(Date.now() + Number(data.breakingHours) * 60 * 60 * 1000)
+          data.isBreaking
+            ? computeBreakingUntil(data.breakingHours)
             : null,
         printEditionOrder: data.printEditionOrder ? parseInt(data.printEditionOrder) : null,
         imageCaption: data.imageCaption,

@@ -83,12 +83,18 @@ export default async function RootLayout({
   children: React.ReactNode
 }) {
   const now = new Date();
+  // Banner only while breakingUntil is in the future (or legacy: null + published within 24h)
+  const legacyBreakingCutoff = new Date(now.getTime() - 24 * 60 * 60 * 1000);
   const breaking = await prisma.post.findFirst({
     where: {
       state: 'PUBLISHED',
       isBreaking: true,
       publishedAt: { lte: now },
-      OR: [{ breakingUntil: null }, { breakingUntil: { gt: now } }],
+      OR: [
+        { breakingUntil: { gt: now } },
+        // Legacy rows never got an expiry — treat as 24h from publish, not forever
+        { breakingUntil: null, publishedAt: { gt: legacyBreakingCutoff } },
+      ],
     },
     orderBy: { publishedAt: 'desc' },
     select: { id: true, title: true, slug: true, isPremium: true, printEditionId: true },
