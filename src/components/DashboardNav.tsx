@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
 
-type Tab = 'posts' | 'users' | 'print-editions' | 'donors' | 'subscribers' | 'videos';
+type Tab = 'posts' | 'users' | 'print-editions' | 'donors' | 'subscribers' | 'videos' | 'links';
 
 export default function DashboardNav({
   currentTab,
@@ -49,6 +49,7 @@ export default function DashboardNav({
         {role === 'ADMIN' && link('users', '/dashboard/users', 'Users')}
         {link('print-editions', '/dashboard/print-editions', 'Print')}
         {link('videos', '/dashboard/videos', 'Videos')}
+        {link('links', '/dashboard/links', 'Links')}
         {role === 'ADMIN' && link('donors', '/dashboard/donors', 'Donors')}
         {role === 'ADMIN' && link('subscribers', '/dashboard/subscribers', 'Subscribers')}
         <Link href="/dashboard/print-orders" onClick={() => setOpen(false)}>

@@ -237,6 +237,26 @@ model SiteSetting {
   value String @db.Text
 }
 
+/// Dashboard-managed Linktree-style hub (/links)
+model LinkHubItem {
+  id           String   @id @default(cuid())
+  label        String
+  url          String
+  emoji        String?
+  /// null = no image (default). Set via auto OG fetch or custom upload.
+  imageUrl     String?
+  /// When true, show imageUrl on the public page
+  showImage    Boolean  @default(false)
+  isActive     Boolean  @default(true)
+  sortOrder    Int      @default(0)
+  clickCount   Int      @default(0)
+  utmCampaign  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([isActive, sortOrder])
+}
+
 enum VideoPlatform {
   STREAM
   YOUTUBE
