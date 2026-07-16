@@ -200,6 +200,36 @@ export async function updatePostState(formData: FormData) {
   revalidatePath('/');
 }
 
+function slugifyTitle(title: string): string {
+  const base = String(title || 'post')
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80);
+  return base || 'post';
+}
+
+async function ensureUniqueSlug(desired: string, excludeId?: string): Promise<string> {
+  let base = slugifyTitle(desired);
+  if (!base) base = 'post';
+  let slug = base;
+  let n = 0;
+  while (true) {
+    const existing = await prisma.post.findFirst({
+      where: {
+        slug,
+        ...(excludeId ? { id: { not: excludeId } } : {}),
+      },
+      select: { id: true },
+    });
+    if (!existing) return slug;
+    n += 1;
+    slug = `${base}-${n}`;
+  }
+}
+
 export async function savePost(data: any) {
   const session = await auth();
   if (!session?.user) throw new Error('Unauthorized');
@@ -209,6 +239,10 @@ export async function savePost(data: any) {
     throw new Error('Unauthorized role');
   }
 
+  // Never allow empty slug — homepage links become /article/ and 404
+  const rawSlug = typeof data.slug === 'string' ? data.slug.trim() : '';
+  const slugSeed = rawSlug || data.title || 'post';
+
   if (data.id) {
     const existing = await prisma.post.findUnique({ where: { id: data.id } });
     if (!existing) throw new Error('Post not found');
@@ -217,11 +251,13 @@ export async function savePost(data: any) {
       throw new Error('You can only edit your own posts');
     }
 
+    const slug = await ensureUniqueSlug(slugSeed, data.id);
+
     const updated = await prisma.post.update({
       where: { id: data.id },
       data: {
         title: data.title,
-        slug: data.slug,
+        slug,
         category: data.category,
         content: data.content,
         imageUrl: data.imageUrl,
@@ -248,10 +284,11 @@ export async function savePost(data: any) {
     });
     await maybeSyncArticleVideos(updated);
   } else {
+    const slug = await ensureUniqueSlug(slugSeed);
     await prisma.post.create({
       data: {
         title: data.title,
-        slug: data.slug,
+        slug,
         category: data.category,
         content: data.content,
         imageUrl: data.imageUrl,
