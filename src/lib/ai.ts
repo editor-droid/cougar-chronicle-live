@@ -10,13 +10,19 @@ import { generateObject, generateText } from 'ai';
 import { google } from '@ai-sdk/google';
 import { z, type ZodTypeAny } from 'zod';
 
-/** Stable production default; override with GEMINI_MODEL if needed. */
+/**
+ * Stable production default (Gemini 3.5 Flash).
+ * Override with GEMINI_MODEL if needed.
+ */
 export const GEMINI_MODEL =
-  process.env.GEMINI_MODEL?.trim() || 'gemini-2.5-flash';
+  process.env.GEMINI_MODEL?.trim() || 'gemini-3.5-flash';
 
-/** Fast alternate if primary is rate-limited or unavailable. */
+/**
+ * Stable alternate if primary is rate-limited or unavailable.
+ * Prefer a pinned 2.5 Flash over gemini-flash-latest (alias can change).
+ */
 const GEMINI_FALLBACK_MODEL =
-  process.env.GEMINI_FALLBACK_MODEL?.trim() || 'gemini-flash-latest';
+  process.env.GEMINI_FALLBACK_MODEL?.trim() || 'gemini-2.5-flash';
 
 export function stripHtmlForPrompt(html: string, maxLen = 6000): string {
   return (html || '')

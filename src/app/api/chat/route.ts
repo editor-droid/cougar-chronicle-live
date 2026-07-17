@@ -2,6 +2,7 @@ import { google } from '@ai-sdk/google';
 import { streamText } from 'ai';
 import prisma from '@/lib/prisma';
 import { getArticleUrl } from '@/lib/routes';
+import { GEMINI_MODEL } from '@/lib/ai';
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
@@ -82,7 +83,7 @@ ${currentPageContext}
 `;
 
     const result = await streamText({
-      model: google(process.env.GEMINI_MODEL?.trim() || 'gemini-2.5-flash'),
+      model: google(GEMINI_MODEL),
       system: systemPrompt,
       messages,
     });
