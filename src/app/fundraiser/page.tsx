@@ -1,4 +1,5 @@
 import prisma from '@/lib/prisma';
+import Image from 'next/image';
 import DonateForm from './DonateForm';
 import { Target, Users, Globe } from 'lucide-react';
 
@@ -14,35 +15,61 @@ export default async function FundraiserPage() {
 
   return (
     <div style={{ paddingBottom: '3rem' }}>
-      {/* Hero Section */}
+      {/* Hero Section with campus photo */}
       <div style={{
         position: 'relative',
-        background: 'linear-gradient(135deg, rgba(var(--primary-rgb, 0,0,0), 0.05) 0%, rgba(var(--accent-rgb, 0,112,243), 0.1) 100%)',
-        padding: '3rem 1rem 4rem',
+        padding: '3.5rem 1rem 5rem',
         textAlign: 'center',
         borderBottom: '1px solid var(--border)',
         overflow: 'hidden'
       }}>
-        {/* Background decorative elements */}
-        <div style={{ position: 'absolute', top: '-10%', left: '-5%', width: '30%', height: '50%', background: 'radial-gradient(circle, rgba(var(--primary-rgb,0,0,0),0.03) 0%, transparent 70%)', borderRadius: '50%' }} />
-        <div style={{ position: 'absolute', bottom: '-10%', right: '-5%', width: '40%', height: '60%', background: 'radial-gradient(circle, rgba(var(--accent-rgb,0,112,243),0.05) 0%, transparent 70%)', borderRadius: '50%' }} />
-        
+        <Image
+          src="/images/campus/byu-mountain-view-wide.jpg"
+          alt="BYU campus and mountains in Provo"
+          fill
+          priority
+          sizes="100vw"
+          style={{ objectFit: 'cover', objectPosition: 'center 35%' }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background:
+              'linear-gradient(180deg, rgba(27, 34, 83, 0.72) 0%, rgba(27, 34, 83, 0.78) 55%, rgba(27, 34, 83, 0.88) 100%)',
+          }}
+        />
+
         <div className="container animate-fade-in" style={{ position: 'relative', zIndex: 1, maxWidth: '800px', margin: '0 auto' }}>
-          <h1 className="font-serif" style={{ fontSize: '3rem', fontWeight: 700, color: 'var(--foreground)', marginBottom: '1rem', lineHeight: 1.1 }}>
+          <p
+            className="font-sans"
+            style={{
+              color: 'rgba(255,255,255,0.8)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.14em',
+              fontSize: '0.75rem',
+              fontWeight: 700,
+              marginBottom: '1rem',
+            }}
+          >
+            Independent · Provo · Reader-funded
+          </p>
+          <h1 className="font-serif" style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', fontWeight: 700, color: 'white', marginBottom: '1rem', lineHeight: 1.15 }}>
             Fuel the Future of Independent Conservative Journalism
           </h1>
-          <p className="font-sans" style={{ fontSize: '1.15rem', color: 'var(--muted)', marginBottom: '2rem', lineHeight: 1.6 }}>
+          <p className="font-sans" style={{ fontSize: '1.1rem', color: 'rgba(255,255,255,0.9)', marginBottom: '2rem', lineHeight: 1.6 }}>
             The Cougar Chronicle relies entirely on the generosity of readers like you. We&apos;re an independent student publication—not funded by BYU administration—and we don&apos;t run ads, so our reporting stays free to pursue the stories that matter.
           </p>
 
           {/* Progress Tracker inside Hero */}
-          <div style={{ 
-            background: 'var(--surface)', 
-            padding: '1.5rem', 
-            borderRadius: '0.75rem', 
-            boxShadow: '0 10px 25px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.03)',
-            border: '1px solid rgba(var(--border-rgb, 0,0,0), 0.05)',
-            transform: 'translateY(1rem)'
+          <div style={{
+            background: 'var(--surface)',
+            padding: '1.5rem',
+            borderRadius: '0.75rem',
+            boxShadow: '0 16px 40px rgba(0,0,0,0.2)',
+            border: '1px solid rgba(255,255,255,0.2)',
+            transform: 'translateY(1rem)',
+            textAlign: 'left',
           }}>
             <h3 className="font-serif" style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: 'var(--primary)' }}>
               August Fundraising Drive · America 250
@@ -57,12 +84,12 @@ export default async function FundraiserPage() {
               </span>
               <span className="font-sans text-muted" style={{ fontSize: '1rem', fontWeight: 600 }}>Goal: ${goal.toLocaleString()}</span>
             </div>
-            
+
             <div style={{ width: '100%', height: '1.25rem', backgroundColor: 'var(--background)', borderRadius: '1rem', overflow: 'hidden', border: '1px solid var(--border)', position: 'relative' }}>
-              <div style={{ 
-                width: `${progressPercentage}%`, 
-                height: '100%', 
-                background: 'linear-gradient(90deg, var(--primary), var(--accent))', 
+              <div style={{
+                width: `${progressPercentage}%`,
+                height: '100%',
+                background: 'linear-gradient(90deg, var(--primary), var(--accent))',
                 transition: 'width 1.5s cubic-bezier(0.4, 0, 0.2, 1)',
                 position: 'relative'
               }}>
@@ -78,9 +105,47 @@ export default async function FundraiserPage() {
         </div>
       </div>
 
+      {/* Campus photo strip */}
+      <div className="container" style={{ marginTop: '3.5rem', marginBottom: '1rem' }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+            gap: '0.65rem',
+            borderRadius: '0.75rem',
+            overflow: 'hidden',
+          }}
+        >
+          {[
+            { src: '/images/campus/byu-maeser.jpg', alt: 'Maeser Building on BYU campus' },
+            { src: '/images/campus/y-mountain-blossoms.jpg', alt: 'Y Mountain from campus' },
+            { src: '/images/campus/provo-city-center-temple.jpg', alt: 'Provo City Center Temple' },
+          ].map((img) => (
+            <div
+              key={img.src}
+              style={{
+                position: 'relative',
+                aspectRatio: '5 / 3',
+                overflow: 'hidden',
+                borderRadius: '0.5rem',
+                border: '1px solid var(--border)',
+              }}
+            >
+              <Image src={img.src} alt={img.alt} fill sizes="33vw" style={{ objectFit: 'cover' }} />
+            </div>
+          ))}
+        </div>
+        <p
+          className="font-sans text-muted text-center"
+          style={{ fontSize: '0.9rem', marginTop: '0.85rem', fontStyle: 'italic' }}
+        >
+          Supporting independent coverage of campus, faith, and Utah — from Provo to the nation.
+        </p>
+      </div>
+
       {/* Main Content Area */}
-      <div className="container" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '3rem', marginTop: '4rem' }}>
-        
+      <div className="container" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '3rem', marginTop: '2.5rem' }}>
+
         {/* Left Column: Impact Details */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
           <div>
@@ -119,6 +184,43 @@ export default async function FundraiserPage() {
                 <h3 className="font-serif" style={{ fontSize: '1.35rem', marginBottom: '0.25rem', color: 'var(--foreground)' }}>Print & Digital Reach</h3>
                 <p className="font-sans text-muted" style={{ lineHeight: 1.6 }}>Help us expand our physical footprint across campus and the state of Utah by funding our physical print runs, along with maintaining our digital web infrastructure.</p>
               </div>
+            </div>
+          </div>
+
+          {/* Side campus photo under impact list */}
+          <div
+            style={{
+              position: 'relative',
+              width: '100%',
+              aspectRatio: '16 / 9',
+              borderRadius: '0.75rem',
+              overflow: 'hidden',
+              border: '1px solid var(--border)',
+              marginTop: '0.5rem',
+            }}
+          >
+            <Image
+              src="/images/campus/byu-y-mountain-stadium.jpg"
+              alt="Y Mountain and BYU campus from LaVell Edwards Stadium"
+              fill
+              sizes="(max-width: 768px) 100vw, 50vw"
+              style={{ objectFit: 'cover' }}
+            />
+            <div
+              className="font-sans"
+              style={{
+                position: 'absolute',
+                left: 0,
+                right: 0,
+                bottom: 0,
+                padding: '2rem 1rem 0.75rem',
+                background: 'linear-gradient(transparent, rgba(0,0,0,0.65))',
+                color: 'white',
+                fontSize: '0.85rem',
+                fontWeight: 600,
+              }}
+            >
+              Y Mountain · LaVell Edwards Stadium · Provo
             </div>
           </div>
         </div>
