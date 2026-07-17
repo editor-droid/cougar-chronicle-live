@@ -31,11 +31,14 @@ export function AiSpellcheckPanel({ content, onApplySuggestion }: AiSpellcheckPa
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content })
       });
-      if (!res.ok) throw new Error('Failed to generate suggestions');
-      const result = await res.json();
+      const result = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(result.error || result.details || 'Failed to generate suggestions');
+      }
       setSuggestions(result.suggestions || []);
       setExpanded(true);
-      toast.success("Spellcheck complete!");
+      const n = (result.suggestions || []).length;
+      toast.success(n ? `Spellcheck complete — ${n} suggestion${n === 1 ? '' : 's'}` : 'Spellcheck complete — no issues found');
     } catch (e: any) {
       toast.error(e.message || "Failed to generate suggestions");
     } finally {

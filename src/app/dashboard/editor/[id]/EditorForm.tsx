@@ -161,8 +161,13 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
         body: JSON.stringify({ title, content })
       });
       const data = await res.json();
-      if (data.slug) setSlug(data.slug);
-    } catch(err) {
+      if (data.slug) {
+        setSlug(data.slug);
+      } else {
+        alert(data.error || 'Failed to generate slug');
+      }
+    } catch (err) {
+      console.error(err);
       alert('Failed to generate slug');
     } finally {
       setIsGeneratingSlug(false);
@@ -181,15 +186,22 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title, content })
       });
-      if (!response.ok) throw new Error('Failed to generate SEO');
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error || data.details || 'Failed to generate SEO');
+      }
       setSeoTitle(data.seoTitle || '');
       setSeoDescription(data.seoDescription || '');
       setSeoKeywords(data.seoKeywords || '');
       setFeaturedImageAlt(data.featuredImageAlt || '');
+      if (data.keyInsights) setKeyInsights(data.keyInsights);
     } catch (err) {
       console.error(err);
-      alert('Failed to generate SEO metadata. Please try again.');
+      alert(
+        err instanceof Error
+          ? err.message
+          : 'Failed to generate SEO metadata. Please try again.'
+      );
     } finally {
       setIsGeneratingSEO(false);
     }
@@ -486,38 +498,52 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
 
             {activeTab === 'seo' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                {(userRole === 'ADMIN' || userRole === 'EDITOR') && (
-                  <div style={{ padding: '1.25rem', backgroundColor: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <div>
-                        <h3 className="font-serif" style={{ fontSize: '1.125rem', fontWeight: 700, color: '#0369a1' }}>AI SEO Assistant</h3>
-                        <p style={{ fontSize: '0.75rem', color: '#0284c7', marginTop: '0.25rem' }}>Generate optimized metadata</p>
-                      </div>
-                      <button type="button" onClick={generateSEO} disabled={isGeneratingSEO} className="btn font-sans" style={{ backgroundColor: '#0284c7', color: 'white', padding: '0.5rem' }}>
-                        {isGeneratingSEO ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Settings size={16} />}
-                      </button>
+                <div style={{ padding: '1.25rem', backgroundColor: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
+                    <div>
+                      <h3 className="font-serif" style={{ fontSize: '1.125rem', fontWeight: 700, color: '#0369a1' }}>AI SEO Assistant</h3>
+                      <p style={{ fontSize: '0.75rem', color: '#0284c7', marginTop: '0.25rem' }}>
+                        Fills SEO title, description, keywords, image alt, and key takeaways from your draft
+                      </p>
                     </div>
-                    
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                      <div className={styles.inputGroup}>
-                        <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#075985' }}>SEO Title</label>
-                        <input type="text" value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} className={styles.textInput} style={{ borderColor: '#bae6fd' }} />
-                      </div>
-                      <div className={styles.inputGroup}>
-                        <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#075985' }}>SEO Description</label>
-                        <textarea value={seoDescription} onChange={(e) => setSeoDescription(e.target.value)} rows={3} className={styles.textInput} style={{ borderColor: '#bae6fd', resize: 'vertical' }} />
-                      </div>
-                      <div className={styles.inputGroup}>
-                        <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#075985' }}>Keywords</label>
-                        <input type="text" value={seoKeywords} onChange={(e) => setSeoKeywords(e.target.value)} className={styles.textInput} style={{ borderColor: '#bae6fd' }} />
-                      </div>
-                      <div className={styles.inputGroup}>
-                        <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#075985' }}>Image Alt Text</label>
-                        <input type="text" value={featuredImageAlt} onChange={(e) => setFeaturedImageAlt(e.target.value)} className={styles.textInput} style={{ borderColor: '#bae6fd' }} />
-                      </div>
+                    <button
+                      type="button"
+                      onClick={generateSEO}
+                      disabled={isGeneratingSEO}
+                      className="btn font-sans"
+                      style={{ backgroundColor: '#0284c7', color: 'white', padding: '0.5rem 0.85rem', whiteSpace: 'nowrap' }}
+                    >
+                      {isGeneratingSEO ? (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                          <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Generating…
+                        </span>
+                      ) : (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                          <Settings size={16} /> Generate
+                        </span>
+                      )}
+                    </button>
+                  </div>
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    <div className={styles.inputGroup}>
+                      <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#075985' }}>SEO Title</label>
+                      <input type="text" value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} className={styles.textInput} style={{ borderColor: '#bae6fd' }} />
+                    </div>
+                    <div className={styles.inputGroup}>
+                      <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#075985' }}>SEO Description</label>
+                      <textarea value={seoDescription} onChange={(e) => setSeoDescription(e.target.value)} rows={3} className={styles.textInput} style={{ borderColor: '#bae6fd', resize: 'vertical' }} />
+                    </div>
+                    <div className={styles.inputGroup}>
+                      <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#075985' }}>Keywords</label>
+                      <input type="text" value={seoKeywords} onChange={(e) => setSeoKeywords(e.target.value)} className={styles.textInput} style={{ borderColor: '#bae6fd' }} />
+                    </div>
+                    <div className={styles.inputGroup}>
+                      <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#075985' }}>Image Alt Text</label>
+                      <input type="text" value={featuredImageAlt} onChange={(e) => setFeaturedImageAlt(e.target.value)} className={styles.textInput} style={{ borderColor: '#bae6fd' }} />
                     </div>
                   </div>
-                )}
+                </div>
                 
                 <SeoAnalysisPanel
                   title={title} seoTitle={seoTitle} seoDescription={seoDescription} slug={slug} content={content}

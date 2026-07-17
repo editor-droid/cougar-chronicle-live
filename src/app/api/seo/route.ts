@@ -1,8 +1,39 @@
-import { generateObject } from 'ai';
-import { google } from '@ai-sdk/google';
 import { z } from 'zod';
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
+import {
+  classifyAiError,
+  generateStructured,
+  insightsToHtml,
+  stripHtmlForPrompt,
+} from '@/lib/ai';
+
+export const maxDuration = 60;
+
+const seoSchema = z.object({
+  seoTitle: z
+    .string()
+    .describe('SEO-optimized title, max ~60 characters, no site name suffix.'),
+  seoDescription: z
+    .string()
+    .describe('Engaging meta description for search engines, max ~155 characters.'),
+  seoKeywords: z
+    .string()
+    .describe('Comma-separated list of 3-6 highly relevant SEO keywords/phrases.'),
+  featuredImageAlt: z
+    .string()
+    .describe(
+      'Descriptive accessibility alt text for the featured image based on article context.'
+    ),
+  // Array is far more reliable than asking the model for raw HTML in structured mode
+  keyInsights: z
+    .array(z.string())
+    .min(2)
+    .max(5)
+    .describe(
+      '2–4 concise takeaway bullets (plain text, no HTML, no leading bullets/dashes).'
+    ),
+});
 
 export async function POST(req: Request) {
   try {
@@ -12,49 +43,43 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { title, content } = body;
+    const { title, content } = body as { title?: string; content?: string };
 
-    if (!content) {
+    if (!content || content === '<p></p>') {
       return NextResponse.json({ error: 'Missing content' }, { status: 400 });
     }
 
-    // Strip HTML for the prompt to save tokens and improve understanding
-    const cleanContent = content.replace(/<[^>]*>?/gm, ' ');
+    const cleanContent = stripHtmlForPrompt(content, 6000);
 
-    const result = await generateObject({
-      model: google('gemini-3.5-flash'),
-      schema: z.object({
-        seoTitle: z.string().describe('An SEO-optimized title for the article, max 60 characters.'),
-        seoDescription: z.string().describe('An engaging meta description for search engines, max 155 characters.'),
-        seoKeywords: z.string().describe('A comma-separated list of 3-5 highly relevant SEO keywords.'),
-        featuredImageAlt: z.string().describe('A descriptive, accessibility-friendly alt text for the featured image based on the context of the article.'),
-        keyInsights: z.string().describe('An HTML unordered list (<ul>) with 3 concise bullet points (<li>) summarizing the most important takeaways from the article. Do NOT use markdown. Only output raw HTML tags.')
-      }),
-      prompt: `You are an expert SEO specialist with 20 years of experience in digital publishing. 
-      Analyze the following article draft and generate perfectly optimized SEO metadata to maximize click-through rates on Google search results and social media.
+    const object = await generateStructured({
+      schema: seoSchema,
+      prompt: `You are the SEO editor for The Cougar Chronicle (independent conservative student journalism at BYU: faith, campus news, opinion in Provo, Utah).
 
-      Current Headline: ${title || 'Untitled'}
-      
-      Article Content:
-      ${cleanContent.substring(0, 5000)}
-      `,
+Analyze this article draft and produce metadata that maximizes clarity and click-through on Google and social — accurate, not clickbait. Prefer concrete entities (BYU, Provo, names, bills) over vague filler.
+
+Current Headline: ${title || 'Untitled'}
+
+Article Content:
+${cleanContent}
+`,
     });
 
-    return NextResponse.json(result.object);
-
-  } catch (error: any) {
+    return NextResponse.json({
+      seoTitle: object.seoTitle.trim().slice(0, 70),
+      seoDescription: object.seoDescription.trim().slice(0, 200),
+      seoKeywords: object.seoKeywords
+        .trim()
+        .replace(/\s*,\s*/g, ', ')
+        .slice(0, 300),
+      featuredImageAlt: object.featuredImageAlt.trim().slice(0, 200),
+      keyInsights: insightsToHtml(object.keyInsights),
+    });
+  } catch (error: unknown) {
     console.error('SEO Generation Error:', error);
-    
-    // Check if it's a rate limit error from the AI provider
-    if (error?.statusCode === 429 || error?.message?.includes('429') || error?.message?.includes('quota')) {
-      return NextResponse.json({ 
-        error: 'Rate limit exceeded. Please try again later or check your API quota.' 
-      }, { status: 429 });
-    }
-
-    return NextResponse.json({ 
-      error: 'Failed to generate SEO data',
-      details: error?.message || 'Unknown error'
-    }, { status: 500 });
+    const classified = classifyAiError(error);
+    return NextResponse.json(
+      { error: classified.error, details: classified.details },
+      { status: classified.status }
+    );
   }
 }

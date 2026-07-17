@@ -1,6 +1,5 @@
-import { generateObject } from 'ai';
-import { google } from '@ai-sdk/google';
 import { z } from 'zod';
+import { generateStructured } from '@/lib/ai';
 
 export type VideoSeoResult = {
   description: string;
@@ -26,8 +25,7 @@ export async function generateVideoSeo(input: {
         : 'The Cougar Chronicle video';
   const extra = (input.context || '').trim().slice(0, 800);
 
-  const result = await generateObject({
-    model: google('gemini-3.5-flash'),
+  const object = await generateStructured({
     schema: z.object({
       description: z
         .string()
@@ -57,9 +55,9 @@ Goals: clear for Google video results and social previews; accurate; scannable; 
   });
 
   return {
-    description: result.object.description.trim().slice(0, 300),
-    seoTitle: result.object.seoTitle.trim().slice(0, 70),
-    seoKeywords: result.object.seoKeywords
+    description: object.description.trim().slice(0, 300),
+    seoTitle: object.seoTitle.trim().slice(0, 70),
+    seoKeywords: object.seoKeywords
       .trim()
       .replace(/\s*,\s*/g, ', ')
       .slice(0, 300),

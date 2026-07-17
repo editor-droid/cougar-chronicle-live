@@ -287,8 +287,10 @@ export function SeoAnalysisPanel({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title: data.title, content: data.content })
       });
-      if (!res.ok) throw new Error('Failed to generate suggestions');
-      const result = await res.json();
+      const result = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(result.error || result.details || 'Failed to generate suggestions');
+      }
       setSuggestions({
         seoTitle: result.seoTitle || '',
         seoDescription: result.seoDescription || '',

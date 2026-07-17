@@ -98,35 +98,44 @@ export async function updatePostState(formData: FormData) {
     // Auto-generate missing SEO and Key Insights if they weren't manually set
     if (!post.keyInsights || !post.seoTitle) {
       try {
-        const { generateObject } = await import('ai');
-        const { google } = await import('@ai-sdk/google');
         const { z } = await import('zod');
-        
-        const cleanContent = (post.content || '').replace(/<[^>]*>?/gm, ' ');
-        const result = await generateObject({
-          model: google('gemini-3.5-flash'),
+        const {
+          generateStructured,
+          insightsToHtml,
+          stripHtmlForPrompt,
+        } = await import('@/lib/ai');
+
+        const cleanContent = stripHtmlForPrompt(post.content || '', 6000);
+        const result = await generateStructured({
           schema: z.object({
             seoTitle: z.string(),
             seoDescription: z.string(),
             seoKeywords: z.string(),
             featuredImageAlt: z.string(),
-            keyInsights: z.string()
+            keyInsights: z.array(z.string()).min(2).max(5),
           }),
-          prompt: `You are an expert SEO specialist with 20 years of experience in digital publishing. 
-          Analyze the following article draft and generate perfectly optimized SEO metadata.
-          For keyInsights, return an HTML unordered list (<ul>) with 3 concise bullet points (<li>) summarizing the most important takeaways. Do NOT use markdown.
+          prompt: `You are the SEO editor for The Cougar Chronicle (independent conservative student journalism at BYU).
+Analyze this article and produce SEO metadata. keyInsights must be 2–4 plain-text takeaway bullets (no HTML).
 
-          Current Headline: ${post.title || 'Untitled'}
-          
-          Article Content:
-          ${cleanContent.substring(0, 5000)}`
+Current Headline: ${post.title || 'Untitled'}
+
+Article Content:
+${cleanContent}`,
         });
-        
-        if (!post.seoTitle) updateData.seoTitle = result.object.seoTitle;
-        if (!post.seoDescription) updateData.seoDescription = result.object.seoDescription;
-        if (!post.seoKeywords) updateData.seoKeywords = result.object.seoKeywords;
-        if (!post.featuredImageAlt) updateData.featuredImageAlt = result.object.featuredImageAlt;
-        if (!post.keyInsights) updateData.keyInsights = result.object.keyInsights;
+
+        if (!post.seoTitle) updateData.seoTitle = result.seoTitle.trim().slice(0, 70);
+        if (!post.seoDescription) {
+          updateData.seoDescription = result.seoDescription.trim().slice(0, 200);
+        }
+        if (!post.seoKeywords) {
+          updateData.seoKeywords = result.seoKeywords.trim().replace(/\s*,\s*/g, ', ').slice(0, 300);
+        }
+        if (!post.featuredImageAlt) {
+          updateData.featuredImageAlt = result.featuredImageAlt.trim().slice(0, 200);
+        }
+        if (!post.keyInsights) {
+          updateData.keyInsights = insightsToHtml(result.keyInsights);
+        }
       } catch (e) {
         console.error('Auto-generate SEO failed:', e);
       }
