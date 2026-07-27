@@ -46,7 +46,7 @@ export default async function EditorPage({ params }: { params: Promise<{ id: str
   }
 
   return (
-    <div className="container animate-fade-in" style={{ marginTop: '2rem' }}>
+    <div className="container editor-full-width animate-fade-in" style={{ marginTop: '2rem' }}>
       <EditorForm 
         post={post} 
         authorId={session.user.id} 

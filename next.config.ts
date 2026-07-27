@@ -87,6 +87,16 @@ const nextConfig: NextConfig = {
         destination: '/recruiting',
         permanent: false,
       },
+      {
+        source: '/dashboard/site',
+        destination: '/dashboard/team',
+        permanent: false,
+      },
+      {
+        source: '/dashboard/team-media',
+        destination: '/dashboard/team',
+        permanent: false,
+      },
     ];
   },
 };

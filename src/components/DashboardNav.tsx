@@ -4,7 +4,17 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
 
-type Tab = 'posts' | 'users' | 'print-editions' | 'donors' | 'subscribers' | 'videos' | 'links';
+type Tab =
+  | 'posts'
+  | 'users'
+  | 'print-editions'
+  | 'donors'
+  | 'subscribers'
+  | 'videos'
+  | 'links'
+  | 'team'
+  | 'media'
+  | 'team-media';
 
 export default function DashboardNav({
   currentTab,
@@ -47,13 +57,15 @@ export default function DashboardNav({
       <nav className={`dash-nav ${open ? 'open' : ''}`} aria-label="Dashboard">
         {link('posts', '/dashboard', 'Posts')}
         {role === 'ADMIN' && link('users', '/dashboard/users', 'Users')}
-        {link('print-editions', '/dashboard/print-editions', 'Print')}
+        {link('print-editions', '/dashboard/print-editions', 'Editions')}
         {link('videos', '/dashboard/videos', 'Videos')}
         {link('links', '/dashboard/links', 'Links')}
+        {role === 'ADMIN' && link('team', '/dashboard/team', 'Team')}
+        {role === 'ADMIN' && link('media', '/dashboard/media', 'Media')}
         {role === 'ADMIN' && link('donors', '/dashboard/donors', 'Donors')}
         {role === 'ADMIN' && link('subscribers', '/dashboard/subscribers', 'Subscribers')}
         <Link href="/dashboard/print-orders" onClick={() => setOpen(false)}>
-          Print Orders
+          Orders
         </Link>
       </nav>
     </div>

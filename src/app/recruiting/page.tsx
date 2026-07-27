@@ -3,6 +3,10 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Suspense } from 'react';
 import VolunteerForm from '@/components/VolunteerForm';
+import VideoHighlights from '@/components/VideoHighlights';
+import prisma from '@/lib/prisma';
+import { getMediaAppearances } from '@/lib/site-content';
+import { resolveStreamEmbedUrl, resolveStreamThumbnailUrl } from '@/lib/videos';
 import {
   PenTool,
   Video,
@@ -44,25 +48,6 @@ const editorialFocus = [
   { title: 'Utah Politics', icon: <Flag size={20} /> },
   { title: 'US Politics', icon: <Flag size={20} /> },
   { title: 'Conservative Thought', icon: <BookOpen size={20} /> },
-];
-
-const mediaAppearances = [
-  {
-    outlet: 'Fox News',
-    note: 'National coverage featuring Chronicle reporting and writers',
-  },
-  {
-    outlet: 'The Charlie Kirk Show',
-    note: 'Staff and alumni interviews on national conservative media',
-  },
-  {
-    outlet: 'Deseret News',
-    note: 'Alumni and fellows advancing faith-and-politics coverage',
-  },
-  {
-    outlet: 'The American Conservative / Post Millennial',
-    note: 'Alumni in professional opinion and political journalism',
-  },
 ];
 
 const majorOps = [
@@ -122,7 +107,16 @@ function interestHref(title: string) {
   return `/recruiting?interest=${encodeURIComponent(title)}#apply`;
 }
 
-export default function RecruitingPage() {
+export default async function RecruitingPage() {
+  const [highlightVideos, mediaAppearances] = await Promise.all([
+    prisma.video.findMany({
+      where: { isActive: true },
+      orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }],
+      take: 3,
+    }),
+    getMediaAppearances(),
+  ]);
+
   return (
     <div className="animate-fade-in" style={{ paddingBottom: '3.5rem' }}>
       {/* Hero */}
@@ -410,54 +404,75 @@ export default function RecruitingPage() {
           </div>
         </div>
 
-        {/* Media appearances */}
-        <div
-          style={{
-            marginBottom: '2.75rem',
-            padding: '1.75rem 1.5rem',
-            borderRadius: '0.75rem',
-            border: '1px solid var(--border)',
-            backgroundColor: 'var(--surface)',
-          }}
-        >
-          <h2 className="font-serif" style={{ fontSize: '1.5rem', marginBottom: '0.35rem', color: 'var(--primary)' }}>
-            See where we&apos;ve shown up
-          </h2>
-          <p className="font-sans text-muted" style={{ fontSize: '0.95rem', marginBottom: '1.15rem', lineHeight: 1.5 }}>
-            Our writers and alumni have appeared across national and regional media — a standard we train toward.
-          </p>
+        {/* Media appearances — admin-managed at /dashboard/team-media */}
+        {mediaAppearances.length > 0 && (
           <div
             style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-              gap: '0.85rem',
+              marginBottom: '2.75rem',
+              padding: '1.75rem 1.5rem',
+              borderRadius: '0.75rem',
+              border: '1px solid var(--border)',
+              backgroundColor: 'var(--surface)',
             }}
           >
-            {mediaAppearances.map((m) => (
-              <div
-                key={m.outlet}
-                style={{
+            <h2 className="font-serif" style={{ fontSize: '1.5rem', marginBottom: '0.35rem', color: 'var(--primary)' }}>
+              See where we&apos;ve shown up
+            </h2>
+            <p className="font-sans text-muted" style={{ fontSize: '0.95rem', marginBottom: '1.15rem', lineHeight: 1.5 }}>
+              Press, podcasts, and national media featuring Chronicle reporting and staff.
+            </p>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                gap: '0.85rem',
+              }}
+            >
+              {mediaAppearances.map((m) => {
+                const inner = (
+                  <>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.35rem' }}>
+                      <ExternalLink size={14} style={{ color: 'var(--primary)' }} />
+                      <span className="font-sans" style={{ fontWeight: 700, fontSize: '0.95rem' }}>
+                        {m.outlet}
+                      </span>
+                    </div>
+                    {m.title ? (
+                      <p className="font-sans" style={{ fontSize: '0.9rem', fontWeight: 600, margin: '0 0 0.25rem' }}>
+                        {m.title}
+                      </p>
+                    ) : null}
+                    {m.note ? (
+                      <p className="font-sans text-muted" style={{ fontSize: '0.85rem', lineHeight: 1.45, margin: 0 }}>
+                        {m.note}
+                      </p>
+                    ) : null}
+                  </>
+                );
+                const cardStyle = {
                   padding: '1rem',
                   borderRadius: '0.5rem',
                   border: '1px solid var(--border)',
                   backgroundColor: 'var(--background)',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.35rem' }}>
-                  <ExternalLink size={14} style={{ color: 'var(--primary)' }} />
-                  <span className="font-sans" style={{ fontWeight: 700, fontSize: '0.95rem' }}>
-                    {m.outlet}
-                  </span>
-                </div>
-                <p className="font-sans text-muted" style={{ fontSize: '0.85rem', lineHeight: 1.45, margin: 0 }}>
-                  {m.note}
-                </p>
-              </div>
-            ))}
+                  textDecoration: 'none',
+                  color: 'inherit',
+                  display: 'block',
+                } as const;
+                return m.url ? (
+                  <a key={m.id} href={m.url} target="_blank" rel="noopener noreferrer" style={cardStyle}>
+                    {inner}
+                  </a>
+                ) : (
+                  <div key={m.id} style={cardStyle}>
+                    {inner}
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Major ops + side note for videos */}
+        {/* Major ops + always the latest 3 videos */}
         <div style={{ marginBottom: '2.75rem' }}>
           <h2
             className="font-serif text-center"
@@ -473,6 +488,7 @@ export default function RecruitingPage() {
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
               gap: '1.15rem',
+              marginBottom: highlightVideos.length ? '1.75rem' : 0,
             }}
           >
             {majorOps.map((op) => (
@@ -499,9 +515,48 @@ export default function RecruitingPage() {
               </div>
             ))}
           </div>
-          <p className="font-sans text-muted text-center" style={{ fontSize: '0.85rem', marginTop: '1rem', fontStyle: 'italic' }}>
-            Video features and broadcast clips coming soon.
-          </p>
+
+          {highlightVideos.length > 0 && (
+            <div>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'baseline',
+                  justifyContent: 'space-between',
+                  gap: '1rem',
+                  marginBottom: '1rem',
+                  flexWrap: 'wrap',
+                }}
+              >
+                <h3 className="font-serif" style={{ fontSize: '1.25rem', margin: 0, color: 'var(--primary)' }}>
+                  Recent video highlights
+                </h3>
+                <Link
+                  href="/videos"
+                  className="font-sans text-sm"
+                  style={{ fontWeight: 700, color: 'var(--accent)', textDecoration: 'none' }}
+                >
+                  All videos →
+                </Link>
+              </div>
+              <VideoHighlights
+                videos={highlightVideos.map((v) => ({
+                  id: v.id,
+                  slug: v.slug,
+                  title: v.title,
+                  description: null,
+                  platform: v.platform,
+                  embedUrl: resolveStreamEmbedUrl(v),
+                  thumbnailUrl: resolveStreamThumbnailUrl(v),
+                  durationSec: v.durationSec,
+                }))}
+                title=""
+                variant="home"
+                showSeeAll={false}
+                linkToWatchPage
+              />
+            </div>
+          )}
         </div>
 
         {/* Alumni (shorter set) */}

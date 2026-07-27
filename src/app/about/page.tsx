@@ -1,5 +1,13 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
+import {
+  TEAM_GROUP_LABELS,
+  TEAM_GROUP_ORDER,
+  getPublicTeam,
+  groupTeamMembers,
+  type TeamGroup,
+  type TeamMember,
+} from '@/lib/site-content';
 
 export const metadata: Metadata = {
   title: 'About Us',
@@ -9,7 +17,7 @@ export const metadata: Metadata = {
     'Conservative student organization BYU',
     'Independent journalism Brigham Young University',
     'Daily Universe alternative',
-    'Turning Point USA BYU'
+    'Turning Point USA BYU',
   ],
   openGraph: {
     title: 'About Us | The Cougar Chronicle',
@@ -23,6 +31,8 @@ export const metadata: Metadata = {
     images: ['/images/campus/byu-mountain-view.jpg'],
   },
 };
+
+export const dynamic = 'force-dynamic';
 
 const campusGallery = [
   {
@@ -47,48 +57,13 @@ const campusGallery = [
   },
 ];
 
-export default function AboutPage() {
-  const team = {
-    editors: [
-      { name: 'Kimball Call', title: 'Editor-in-Chief' },
-      { name: 'Ethan Horde', title: 'Managing Editor' },
-      { name: 'Alex Halpren', title: 'Assistant Managing Editor' },
-      { name: 'Carter Seitz', title: 'Website Director' },
-    ],
-    staffWriters: [
-      { name: 'Jackson Gallini', title: 'Staff Writer' },
-      { name: 'Jonah Bertold', title: 'Staff Writer' },
-    ],
-    contributors: [
-      { name: 'Jonah Deforge', title: '' },
-      { name: 'Joshua Beck', title: '' },
-      { name: 'Kai Schwemmer', title: '' },
-      { name: 'Tanner Moss', title: '' },
-      { name: 'Esther Bright', title: '' },
-    ],
-    social: [
-      { name: 'Jax McKinney', title: 'Senior Contributor & Social Media Director' },
-      { name: 'Carter Waite', title: '' },
-      { name: 'Dallin Webecke', title: '' },
-    ],
-    emeritus: [
-      { name: 'Reagan Sumrall', title: 'Former Editor-in-Chief' },
-      { name: 'Jacob Christensen', title: '' },
-      { name: 'Ian Farris', title: '' },
-      { name: 'Logan Spears', title: '' },
-      { name: 'Joseph Addington', title: '' },
-      { name: 'Thomas Stevenson', title: '' },
-      { name: 'Luke Hanson', title: '' },
-    ],
-  };
-
-  const renderTeamGrid = (
-    members: { name: string; title: string }[]
-  ) => (
+function renderTeamGrid(members: TeamMember[]) {
+  if (!members.length) return null;
+  return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '1.5rem' }}>
-      {members.map((member, i) => (
+      {members.map((member) => (
         <div
-          key={i}
+          key={member.id}
           style={{
             padding: '1.5rem',
             backgroundColor: 'var(--surface)',
@@ -96,37 +71,29 @@ export default function AboutPage() {
             border: '1px solid var(--border)',
           }}
         >
-          <div className="font-serif" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--foreground)', marginBottom: '0.25rem' }}>
+          <div
+            className="font-serif"
+            style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--foreground)', marginBottom: '0.25rem' }}
+          >
             {member.name}
           </div>
-          {member.title && (
+          {member.title ? (
             <div className="font-sans text-sm text-primary" style={{ fontWeight: 600 }}>
               {member.title}
             </div>
-          )}
+          ) : null}
         </div>
       ))}
     </div>
   );
+}
 
-  const sectionHeading = (label: string) => (
-    <h3
-      className="font-sans"
-      style={{
-        fontSize: '1.5rem',
-        marginBottom: '1.5rem',
-        fontWeight: 600,
-        borderBottom: '2px solid var(--primary)',
-        paddingBottom: '0.5rem',
-      }}
-    >
-      {label}
-    </h3>
-  );
+export default async function AboutPage() {
+  const members = await getPublicTeam();
+  const grouped = groupTeamMembers(members);
 
   return (
     <div className="animate-fade-in" style={{ paddingBottom: '4rem' }}>
-      {/* Hero */}
       <div
         style={{
           position: 'relative',
@@ -201,7 +168,6 @@ export default function AboutPage() {
       </div>
 
       <div className="container">
-        {/* Mission + campus photo */}
         <div
           style={{
             display: 'grid',
@@ -212,10 +178,7 @@ export default function AboutPage() {
           }}
         >
           <div className="font-sans" style={{ fontSize: '1.15rem', lineHeight: 1.8, color: 'var(--foreground)' }}>
-            <h2
-              className="font-serif"
-              style={{ fontSize: '1.85rem', marginBottom: '1.25rem', color: 'var(--primary)' }}
-            >
+            <h2 className="font-serif" style={{ fontSize: '1.85rem', marginBottom: '1.25rem', color: 'var(--primary)' }}>
               Our Mission
             </h2>
             <p style={{ marginBottom: '1.5rem' }}>
@@ -249,20 +212,16 @@ export default function AboutPage() {
           </div>
         </div>
 
-        {/* Campus photo strip */}
         <div style={{ marginBottom: '4.5rem' }}>
-          <h2
-            className="font-serif text-center"
-            style={{ fontSize: '1.75rem', marginBottom: '0.5rem', color: 'var(--primary)' }}
-          >
-            Home on the hill
-          </h2>
-          <p
-            className="font-sans text-muted text-center"
-            style={{ marginBottom: '1.75rem', maxWidth: '32rem', marginLeft: 'auto', marginRight: 'auto' }}
-          >
-            We report from Provo and the BYU campus — the place our writers live, study, and worship.
-          </p>
+          <div style={{ marginBottom: '1.5rem', maxWidth: '40rem' }}>
+            <h2 className="font-serif" style={{ fontSize: '1.75rem', marginBottom: '0.65rem', color: 'var(--primary)' }}>
+              Campus &amp; community
+            </h2>
+            <p className="font-sans text-muted" style={{ margin: 0, fontSize: '1.05rem', lineHeight: 1.65 }}>
+              We live and write in Provo — covering Brigham Young University, local life, and the debates that shape our
+              community. Independent journalism from the place our staff study, worship, and call home.
+            </p>
+          </div>
           <div
             style={{
               display: 'grid',
@@ -315,33 +274,27 @@ export default function AboutPage() {
         </h2>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
-          <div>
-            {sectionHeading('Editors')}
-            {renderTeamGrid(team.editors)}
-          </div>
-
-          <div>
-            {sectionHeading('Staff Writers')}
-            <p className="font-sans text-muted" style={{ fontSize: '0.95rem', marginBottom: '1.25rem', lineHeight: 1.5 }}>
-              Regular assignments. Listed on the website. Eligible for writing stipends when available — distinct from occasional contributors.
-            </p>
-            {renderTeamGrid(team.staffWriters)}
-          </div>
-
-          <div>
-            {sectionHeading('Contributors')}
-            {renderTeamGrid(team.contributors)}
-          </div>
-
-          <div>
-            {sectionHeading('Social Media & Content')}
-            {renderTeamGrid(team.social)}
-          </div>
-
-          <div>
-            {sectionHeading('Editors Emeritus')}
-            {renderTeamGrid(team.emeritus)}
-          </div>
+          {TEAM_GROUP_ORDER.map((group: TeamGroup) => {
+            const list = grouped[group];
+            if (!list.length) return null;
+            return (
+              <div key={group}>
+                <h3
+                  className="font-sans"
+                  style={{
+                    fontSize: '1.5rem',
+                    marginBottom: '1.5rem',
+                    fontWeight: 600,
+                    borderBottom: '2px solid var(--primary)',
+                    paddingBottom: '0.5rem',
+                  }}
+                >
+                  {TEAM_GROUP_LABELS[group]}
+                </h3>
+                {renderTeamGrid(list)}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

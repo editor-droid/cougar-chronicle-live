@@ -18,9 +18,10 @@ export default async function PrintOrdersPage() {
 
   return (
     <div className="container animate-fade-in" style={{ marginTop: '2rem' }}>
-      <DashboardHeader currentTab="print-editions" title="Print Orders" />
-      <p className="font-sans text-sm text-muted" style={{ marginBottom: '1.5rem' }}>
-        Physical Volume fulfillment. Mark fulfilled when you ship.
+      <DashboardHeader currentTab="print-editions" title="Print orders" />
+      <p className="font-sans text-muted" style={{ marginBottom: '1.5rem', lineHeight: 1.5, maxWidth: '40rem' }}>
+        Customer purchases of physical print volumes (email, shipping address, fulfillment). Mark fulfilled when you ship.
+        To edit which articles are in an issue or change covers, use <strong>Editions</strong>.
       </p>
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '0.5rem', overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>

@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { FileText, Link2, Upload, X } from 'lucide-react';
 
 /** Open roles + beats — keep in sync with /recruiting open positions. */
 export const APPLICATION_INTERESTS = [
@@ -23,6 +24,16 @@ export const APPLICATION_INTERESTS = [
   'Conservative Thought',
 ] as const;
 
+const fieldStyle: React.CSSProperties = {
+  width: '100%',
+  padding: '0.75rem',
+  borderRadius: '0.5rem',
+  border: '1px solid var(--border)',
+  backgroundColor: 'var(--surface)',
+  color: 'var(--foreground)',
+  fontSize: '0.95rem',
+};
+
 function normalizeInterest(raw: string | null): string | null {
   if (!raw) return null;
   const decoded = decodeURIComponent(raw).trim();
@@ -35,8 +46,10 @@ function normalizeInterest(raw: string | null): string | null {
 
 export default function VolunteerForm() {
   const searchParams = useSearchParams();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
+  const [uploadBusy, setUploadBusy] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -44,13 +57,13 @@ export default function VolunteerForm() {
     phone: '',
     message: '',
     interests: [] as string[],
-    socialConsent: false,
     socialHandles: '',
-    portfolioUrl: '',
+    sampleUrl: '',
+    samplePdfUrl: '',
+    samplePdfName: '',
     website: '', // honeypot
   });
 
-  // Prefill from ?interest=Staff%20Writer (open positions / focus chips)
   useEffect(() => {
     const interest = normalizeInterest(searchParams.get('interest'));
     if (!interest) return;
@@ -67,6 +80,69 @@ export default function VolunteerForm() {
         ? prev.interests.filter((i) => i !== interest)
         : [...prev.interests, interest],
     }));
+  };
+
+  const clearPdf = () => {
+    setFormData((prev) => ({ ...prev, samplePdfUrl: '', samplePdfName: '' }));
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handlePdfSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type && file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      setErrorMessage('Please upload a PDF file.');
+      setStatus('error');
+      clearPdf();
+      return;
+    }
+    if (file.size > 12 * 1024 * 1024) {
+      setErrorMessage('PDF must be under 12 MB.');
+      setStatus('error');
+      clearPdf();
+      return;
+    }
+
+    setUploadBusy(true);
+    setErrorMessage('');
+    setStatus('idle');
+    try {
+      const presign = await fetch('/api/volunteer/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          filename: file.name,
+          contentType: file.type || 'application/pdf',
+        }),
+      });
+      const presignData = await presign.json();
+      if (!presign.ok) {
+        throw new Error(presignData.error || 'Could not start upload');
+      }
+
+      const put = await fetch(presignData.uploadUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/pdf' },
+        body: file,
+      });
+      if (!put.ok) {
+        throw new Error('PDF upload failed. Please try again.');
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        samplePdfUrl: presignData.publicUrl,
+        samplePdfName: file.name,
+      }));
+    } catch (err) {
+      console.error(err);
+      setStatus('error');
+      setErrorMessage(err instanceof Error ? err.message : 'PDF upload failed');
+      clearPdf();
+    } finally {
+      setUploadBusy(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -86,6 +162,16 @@ export default function VolunteerForm() {
       return;
     }
 
+    const sampleParts: string[] = [];
+    if (formData.sampleUrl.trim()) {
+      sampleParts.push(`Link / Google Doc: ${formData.sampleUrl.trim()}`);
+    }
+    if (formData.samplePdfUrl) {
+      sampleParts.push(
+        `PDF: ${formData.samplePdfName || 'writing-sample.pdf'} — ${formData.samplePdfUrl}`
+      );
+    }
+
     try {
       const res = await fetch('/api/volunteer', {
         method: 'POST',
@@ -96,12 +182,10 @@ export default function VolunteerForm() {
           phone: formData.phone,
           message: [
             formData.message,
-            formData.socialConsent
-              ? `Social review: yes — handles: ${formData.socialHandles || '(none listed)'}`
-              : 'Social review: not requested',
-            formData.portfolioUrl
-              ? `Portfolio / sample: ${formData.portfolioUrl}`
+            formData.socialHandles.trim()
+              ? `Social handles (review OK): ${formData.socialHandles.trim()}`
               : '',
+            sampleParts.length ? `Writing sample:\n${sampleParts.join('\n')}` : '',
           ]
             .filter(Boolean)
             .join('\n\n'),
@@ -111,11 +195,7 @@ export default function VolunteerForm() {
       });
 
       const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Something went wrong');
-      }
-
+      if (!res.ok) throw new Error(data.error || 'Something went wrong');
       setStatus('success');
     } catch (err: unknown) {
       console.error(err);
@@ -137,10 +217,7 @@ export default function VolunteerForm() {
           textAlign: 'center',
         }}
       >
-        <h3
-          className="font-serif"
-          style={{ fontSize: '2rem', color: 'var(--primary)', marginBottom: '1rem' }}
-        >
+        <h3 className="font-serif" style={{ fontSize: '2rem', color: 'var(--primary)', marginBottom: '1rem' }}>
           Application received
         </h3>
         <p className="font-sans text-muted" style={{ fontSize: '1.1rem', lineHeight: 1.6 }}>
@@ -188,14 +265,7 @@ export default function VolunteerForm() {
           required
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          style={{
-            width: '100%',
-            padding: '0.75rem',
-            borderRadius: '0.5rem',
-            border: '1px solid var(--border)',
-            backgroundColor: 'var(--surface)',
-            color: 'var(--foreground)',
-          }}
+          style={fieldStyle}
         />
       </div>
 
@@ -216,14 +286,7 @@ export default function VolunteerForm() {
             required
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            style={{
-              width: '100%',
-              padding: '0.75rem',
-              borderRadius: '0.5rem',
-              border: '1px solid var(--border)',
-              backgroundColor: 'var(--surface)',
-              color: 'var(--foreground)',
-            }}
+            style={fieldStyle}
           />
         </div>
         <div>
@@ -235,14 +298,7 @@ export default function VolunteerForm() {
             required
             value={formData.phone}
             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            style={{
-              width: '100%',
-              padding: '0.75rem',
-              borderRadius: '0.5rem',
-              border: '1px solid var(--border)',
-              backgroundColor: 'var(--surface)',
-              color: 'var(--foreground)',
-            }}
+            style={fieldStyle}
           />
         </div>
       </div>
@@ -268,7 +324,6 @@ export default function VolunteerForm() {
                   cursor: 'pointer',
                   userSelect: 'none',
                   whiteSpace: 'nowrap',
-                  transition: 'all 0.2s ease',
                   position: 'relative',
                 }}
               >
@@ -276,7 +331,7 @@ export default function VolunteerForm() {
                   type="checkbox"
                   checked={isSelected}
                   onChange={() => handleInterestToggle(interest)}
-                  style={{ position: 'absolute', opacity: 0, cursor: 'pointer', height: 0, width: 0 }}
+                  style={{ position: 'absolute', opacity: 0, height: 0, width: 0 }}
                 />
                 <span className="font-sans text-sm" style={{ fontWeight: isSelected ? 600 : 500 }}>
                   {interest}
@@ -289,108 +344,184 @@ export default function VolunteerForm() {
 
       <div style={{ marginBottom: '1.5rem' }}>
         <label className="font-sans" style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>
-          Why do you want to join? (Optional)
+          Why do you want to join?{' '}
+          <span className="font-sans text-muted" style={{ fontWeight: 500, fontSize: '0.85rem' }}>
+            Optional
+          </span>
         </label>
         <textarea
           rows={3}
           value={formData.message}
           onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-          placeholder="Tell us about your experience or why you want to contribute..."
-          style={{
-            width: '100%',
-            padding: '0.75rem',
-            borderRadius: '0.5rem',
-            border: '1px solid var(--border)',
-            backgroundColor: 'var(--surface)',
-            color: 'var(--foreground)',
-            resize: 'vertical',
-          }}
+          placeholder="Tell us about your experience or why you want to contribute…"
+          style={{ ...fieldStyle, resize: 'vertical' }}
         />
       </div>
 
-      {/* Encouraged extras */}
+      {/* Optional extras — clean fields, no checkbox park */}
       <div
         style={{
-          marginBottom: '1.5rem',
-          padding: '1.15rem',
-          borderRadius: '0.75rem',
-          border: '1px dashed var(--border)',
-          backgroundColor: 'var(--surface)',
+          marginBottom: '1.75rem',
+          borderTop: '1px solid var(--border)',
+          paddingTop: '1.5rem',
         }}
       >
         <p
-          className="font-sans text-sm"
-          style={{ fontWeight: 700, color: 'var(--primary)', marginBottom: '0.75rem' }}
-        >
-          Encouraged (optional)
-        </p>
-
-        <label
           className="font-sans"
           style={{
-            display: 'flex',
-            gap: '0.65rem',
-            alignItems: 'flex-start',
-            marginBottom: '0.85rem',
-            cursor: 'pointer',
-            fontSize: '0.95rem',
-            lineHeight: 1.45,
+            fontSize: '0.8rem',
+            fontWeight: 700,
+            letterSpacing: '0.06em',
+            textTransform: 'uppercase',
+            color: 'var(--muted)',
+            marginBottom: '0.35rem',
           }}
         >
-          <input
-            type="checkbox"
-            checked={formData.socialConsent}
-            onChange={(e) => setFormData({ ...formData, socialConsent: e.target.checked })}
-            style={{ marginTop: '0.2rem' }}
-          />
-          <span>
-            You may review my public social pages to verify that I am genuine.
-          </span>
-        </label>
+          Strengthens your application
+        </p>
+        <p className="font-sans text-muted" style={{ fontSize: '0.9rem', marginBottom: '1.25rem', lineHeight: 1.45 }}>
+          Optional — but strongly encouraged.
+        </p>
 
-        {formData.socialConsent && (
-          <div style={{ marginBottom: '0.85rem' }}>
-            <label className="font-sans text-sm" style={{ display: 'block', fontWeight: 600, marginBottom: '0.35rem' }}>
-              Social tags / handles
-            </label>
-            <input
-              type="text"
-              value={formData.socialHandles}
-              onChange={(e) => setFormData({ ...formData, socialHandles: e.target.value })}
-              placeholder="@handle, LinkedIn, etc."
-              style={{
-                width: '100%',
-                padding: '0.65rem',
-                borderRadius: '0.5rem',
-                border: '1px solid var(--border)',
-                backgroundColor: 'var(--background)',
-                color: 'var(--foreground)',
-              }}
-            />
-          </div>
-        )}
-
-        <div>
-          <label className="font-sans text-sm" style={{ display: 'block', fontWeight: 600, marginBottom: '0.35rem' }}>
-            Writing sample or portfolio link
+        <div style={{ marginBottom: '1.35rem' }}>
+          <label className="font-sans" style={{ display: 'block', fontWeight: 600, marginBottom: '0.35rem' }}>
+            Social handles
           </label>
-          <p className="font-sans text-muted" style={{ fontSize: '0.8rem', marginBottom: '0.4rem', lineHeight: 1.4 }}>
-            A homework assignment, article draft, or portfolio is welcome — anything that shows how you write.
+          <p className="font-sans text-muted" style={{ fontSize: '0.82rem', marginBottom: '0.5rem', lineHeight: 1.4 }}>
+            Share public tags so we can confirm you&apos;re genuine (Instagram, X, LinkedIn, etc.).
           </p>
           <input
-            type="url"
-            value={formData.portfolioUrl}
-            onChange={(e) => setFormData({ ...formData, portfolioUrl: e.target.value })}
-            placeholder="https://..."
-            style={{
-              width: '100%',
-              padding: '0.65rem',
-              borderRadius: '0.5rem',
-              border: '1px solid var(--border)',
-              backgroundColor: 'var(--background)',
-              color: 'var(--foreground)',
-            }}
+            type="text"
+            value={formData.socialHandles}
+            onChange={(e) => setFormData({ ...formData, socialHandles: e.target.value })}
+            placeholder="@you · linkedin.com/in/you"
+            style={fieldStyle}
           />
+        </div>
+
+        <div>
+          <label className="font-sans" style={{ display: 'block', fontWeight: 600, marginBottom: '0.35rem' }}>
+            Writing sample
+          </label>
+          <p className="font-sans text-muted" style={{ fontSize: '0.82rem', marginBottom: '0.75rem', lineHeight: 1.4 }}>
+            Homework, a class paper, a portfolio piece — Google Doc, any public URL, or a PDF.
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <div style={{ position: 'relative' }}>
+              <Link2
+                size={16}
+                style={{
+                  position: 'absolute',
+                  left: '0.85rem',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  color: 'var(--muted)',
+                  pointerEvents: 'none',
+                }}
+              />
+              <input
+                type="url"
+                value={formData.sampleUrl}
+                onChange={(e) => setFormData({ ...formData, sampleUrl: e.target.value })}
+                placeholder="Google Doc or portfolio URL"
+                style={{ ...fieldStyle, paddingLeft: '2.5rem' }}
+              />
+            </div>
+
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                flexWrap: 'wrap',
+              }}
+            >
+              <span
+                className="font-sans text-muted"
+                style={{ fontSize: '0.8rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}
+              >
+                or
+              </span>
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="application/pdf,.pdf"
+                onChange={handlePdfSelect}
+                style={{ display: 'none' }}
+              />
+
+              {!formData.samplePdfUrl ? (
+                <button
+                  type="button"
+                  disabled={uploadBusy}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="font-sans"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.45rem',
+                    padding: '0.65rem 1rem',
+                    borderRadius: '0.5rem',
+                    border: '1px solid var(--border)',
+                    backgroundColor: 'var(--surface)',
+                    color: 'var(--foreground)',
+                    fontWeight: 600,
+                    fontSize: '0.9rem',
+                    cursor: uploadBusy ? 'wait' : 'pointer',
+                    opacity: uploadBusy ? 0.7 : 1,
+                  }}
+                >
+                  <Upload size={16} style={{ color: 'var(--primary)' }} />
+                  {uploadBusy ? 'Uploading PDF…' : 'Upload PDF'}
+                </button>
+              ) : (
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    padding: '0.55rem 0.75rem',
+                    borderRadius: '0.5rem',
+                    border: '1px solid var(--border)',
+                    backgroundColor: 'var(--surface)',
+                    maxWidth: '100%',
+                  }}
+                >
+                  <FileText size={16} style={{ color: 'var(--primary)', flexShrink: 0 }} />
+                  <span
+                    className="font-sans"
+                    style={{
+                      fontSize: '0.88rem',
+                      fontWeight: 600,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                    title={formData.samplePdfName}
+                  >
+                    {formData.samplePdfName}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={clearPdf}
+                    aria-label="Remove PDF"
+                    style={{
+                      display: 'inline-flex',
+                      border: 'none',
+                      background: 'transparent',
+                      cursor: 'pointer',
+                      color: 'var(--muted)',
+                      padding: '0.15rem',
+                    }}
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -405,7 +536,7 @@ export default function VolunteerForm() {
 
       <button
         type="submit"
-        disabled={status === 'submitting'}
+        disabled={status === 'submitting' || uploadBusy}
         className="btn btn-primary font-sans"
         style={{
           width: '100%',
@@ -415,7 +546,7 @@ export default function VolunteerForm() {
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          opacity: status === 'submitting' ? 0.7 : 1,
+          opacity: status === 'submitting' || uploadBusy ? 0.7 : 1,
         }}
       >
         {status === 'submitting' ? 'Submitting…' : 'Submit Application'}

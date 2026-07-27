@@ -25,8 +25,14 @@ export default async function PrintEditionsAdminPage() {
     <div className="container animate-fade-in" style={{ marginTop: '2rem' }}>
       <DashboardHeader currentTab="print-editions" />
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h2 className="font-serif" style={{ fontSize: '2rem', color: 'var(--primary)' }}>Print Editions</h2>
+      <div style={{ marginBottom: '1.5rem' }}>
+        <h2 className="font-serif" style={{ fontSize: '2rem', color: 'var(--primary)', marginBottom: '0.5rem' }}>
+          Print editions
+        </h2>
+        <p className="font-sans text-muted" style={{ margin: 0, lineHeight: 1.5, maxWidth: '40rem' }}>
+          Manage each print volume — title, cover, which articles are in the issue, and which edition is active for sale.
+          Customer purchases and shipping are under <strong>Orders</strong>, not here.
+        </p>
       </div>
 
       <div style={{ display: 'grid', gap: '1.5rem' }}>

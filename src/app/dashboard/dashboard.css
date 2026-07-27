@@ -19,9 +19,13 @@ body:has(.dashboard-shell) .site-shell > main.container {
   padding-bottom: calc(2rem + env(safe-area-inset-bottom, 0px));
 }
 
+/*
+ * Center admin content so forms/tables aren’t stuck on the left third of a
+ * wide monitor. Wide enough for posts tables; still readable for settings.
+ */
 .dashboard-shell > .container {
   width: 100%;
-  max-width: none;
+  max-width: 1200px;
   margin-left: auto;
   margin-right: auto;
   padding-left: 1rem;
@@ -31,16 +35,22 @@ body:has(.dashboard-shell) .site-shell > main.container {
 
 @media (min-width: 768px) {
   .dashboard-shell > .container {
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
+    padding-left: 1.75rem;
+    padding-right: 1.75rem;
   }
 }
 
 @media (min-width: 1280px) {
   .dashboard-shell > .container {
+    max-width: 1320px;
     padding-left: 2rem;
     padding-right: 2rem;
   }
+}
+
+/* Editor stays full-bleed for the dual-pane layout */
+.dashboard-shell > .container.editor-full-width {
+  max-width: none;
 }
 
 /* Touch-friendly controls */

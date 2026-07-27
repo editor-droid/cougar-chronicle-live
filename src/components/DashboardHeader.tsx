@@ -6,7 +6,17 @@ export default async function DashboardHeader({
   currentTab,
   title,
 }: {
-  currentTab: 'posts' | 'users' | 'print-editions' | 'donors' | 'subscribers' | 'videos' | 'links';
+  currentTab:
+    | 'posts'
+    | 'users'
+    | 'print-editions'
+    | 'donors'
+    | 'subscribers'
+    | 'videos'
+    | 'links'
+    | 'team'
+    | 'media'
+    | 'team-media';
   title?: string;
 }) {
   const session = await auth();
