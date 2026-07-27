@@ -1,89 +1,31 @@
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import prisma from '@/lib/prisma';
-import Link from 'next/link';
-import { updateUser, createWriter } from '../actions';
 import DashboardHeader from '@/components/DashboardHeader';
+import UsersManager from './UsersManager';
 
 export default async function UsersPage() {
   const session = await auth();
-  
+
   if (!session?.user || session.user.role !== 'ADMIN') {
     redirect('/dashboard');
   }
 
   const users = await prisma.user.findMany({
-    orderBy: { email: 'asc' }
+    orderBy: [{ archivedAt: 'asc' }, { email: 'asc' }],
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      archivedAt: true,
+    },
   });
 
   return (
-    <div className="container animate-fade-in" style={{ marginTop: '2rem' }}>
-      <DashboardHeader currentTab="users" title="User Management" />
-
-      <div style={{ marginBottom: '2rem', padding: '1.5rem', backgroundColor: 'var(--surface)', borderRadius: '0.5rem', border: '1px solid var(--border)' }}>
-        <h2 className="font-serif" style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Quick Add New Writer</h2>
-        <form action={createWriter} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-          <div style={{ flex: 1, minWidth: '200px' }}>
-            <label className="font-sans text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem' }}>Full Name</label>
-            <input type="text" name="name" required placeholder="John Doe" style={{ width: '100%', padding: '0.75rem', borderRadius: '0.25rem', border: '1px solid var(--border)', backgroundColor: 'var(--surface)' }} />
-          </div>
-          <div style={{ flex: 1, minWidth: '200px' }}>
-            <label className="font-sans text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem' }}>Email Address (Optional)</label>
-            <input type="email" name="email" placeholder="john@example.com" style={{ width: '100%', padding: '0.75rem', borderRadius: '0.25rem', border: '1px solid var(--border)', backgroundColor: 'var(--surface)' }} />
-          </div>
-          <button type="submit" className="btn btn-primary" style={{ padding: '0.75rem 1.5rem' }}>Add Writer</button>
-        </form>
-      </div>
-
-
-      <div style={{ backgroundColor: 'var(--surface)', borderRadius: '0.5rem', border: '1px solid var(--border)', overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-          <thead style={{ backgroundColor: 'var(--surface-hover)', borderBottom: '1px solid var(--border)' }}>
-            <tr>
-              <th style={{ padding: '1rem' }} className="font-sans text-sm text-muted">NAME</th>
-              <th style={{ padding: '1rem' }} className="font-sans text-sm text-muted">EMAIL</th>
-              <th style={{ padding: '1rem' }} className="font-sans text-sm text-muted">ROLE</th>
-              <th style={{ padding: '1rem' }} className="font-sans text-sm text-muted">ACTIONS</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map(user => (
-              <tr key={user.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                <td style={{ padding: '1rem' }} className="font-sans">{user.name || 'No Name'}</td>
-                <td style={{ padding: '1rem' }} className="font-sans text-muted">{user.email}</td>
-                <td style={{ padding: '1rem' }} className="font-sans">
-                  <span style={{ 
-                    padding: '0.25rem 0.5rem', 
-                    borderRadius: '1rem', 
-                    fontSize: '0.75rem',
-                    fontWeight: 600,
-                    backgroundColor: user.role === 'ADMIN' ? 'var(--accent)' : 'var(--surface-hover)',
-                    color: user.role === 'ADMIN' ? '#fff' : 'var(--muted)'
-                  }}>
-                    {user.role}
-                  </span>
-                </td>
-                <td style={{ padding: '1rem' }}>
-                  {user.id !== session.user.id && (
-                    <form action={updateUser} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                      <input type="hidden" name="userId" value={user.id} />
-                      <input type="text" name="name" defaultValue={user.name || ''} placeholder="Name" style={{ padding: '0.25rem', width: '150px', borderRadius: '0.25rem', border: '1px solid var(--border)', backgroundColor: 'var(--surface)' }} />
-                      <input type="email" name="email" defaultValue={user.email || ''} placeholder="Email address" style={{ padding: '0.25rem', width: '200px', borderRadius: '0.25rem', border: '1px solid var(--border)', backgroundColor: 'var(--surface)' }} />
-                      <select name="role" defaultValue={user.role} style={{ padding: '0.25rem', borderRadius: '0.25rem', border: '1px solid var(--border)', backgroundColor: 'var(--surface)' }}>
-                        <option value="USER">USER</option>
-                        <option value="WRITER">WRITER</option>
-                        <option value="EDITOR">EDITOR</option>
-                        <option value="ADMIN">ADMIN</option>
-                      </select>
-                      <button type="submit" className="btn btn-secondary text-sm" style={{ padding: '0.25rem 0.5rem' }}>Save</button>
-                    </form>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+    <div className="container animate-fade-in" style={{ marginTop: '2rem', marginBottom: '3rem' }}>
+      <DashboardHeader currentTab="users" title="User management" />
+      <UsersManager users={users} currentUserId={session.user.id} />
     </div>
   );
 }

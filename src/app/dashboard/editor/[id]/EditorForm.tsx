@@ -6,13 +6,42 @@ import { SeoAnalysisPanel } from '@/components/SeoAnalysisPanel';
 import { AiSpellcheckPanel } from '@/components/AiSpellcheckPanel';
 import { savePost, updatePostState, addEditorialNote } from '../../actions';
 import { useRouter } from 'next/navigation';
-import { FileDown, Loader2, X, Settings, Image as ImageIcon, CheckCircle2, PanelRightClose, PanelRightOpen, ArrowLeft, Wand2 } from 'lucide-react';
+import { FileDown, Loader2, X, Settings, Image as ImageIcon, CheckCircle2, PanelRightClose, PanelRightOpen, ArrowLeft, Wand2, ListChecks, Eye } from 'lucide-react';
 import styles from './EditorForm.module.css';
+
+type ChecklistState = {
+  spellcheck: boolean;
+  seo: boolean;
+  formatting: boolean;
+  oneWordLinks: boolean;
+  ready: boolean;
+};
+
+const DEFAULT_CHECKLIST: ChecklistState = {
+  spellcheck: false,
+  seo: false,
+  formatting: false,
+  oneWordLinks: false,
+  ready: false,
+};
+
+function parseChecklist(raw: unknown): ChecklistState {
+  if (!raw) return { ...DEFAULT_CHECKLIST };
+  try {
+    const o = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    return { ...DEFAULT_CHECKLIST, ...o };
+  } catch {
+    return { ...DEFAULT_CHECKLIST };
+  }
+}
 
 export default function EditorForm({ post, authorId, userRole, availableAuthors = [], customAuthorsList = [], isNew = false }: { post: any, authorId: string, userRole: string, availableAuthors?: any[], customAuthorsList?: string[], isNew?: boolean }) {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [activeTab, setActiveTab] = useState('settings'); 
+  const [activeTab, setActiveTab] = useState('settings');
+  const [viewMode, setViewMode] = useState<'edit' | 'preview'>('edit');
+  const [checklist, setChecklist] = useState<ChecklistState>(() => parseChecklist(post?.editorChecklist));
+  const galleryInputRef = useRef<HTMLInputElement>(null); 
 
   const [title, setTitle] = useState(post?.title || '');
   const [category, setCategory] = useState(post?.category || 'news');
@@ -217,6 +246,7 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
         keyInsights, featuredImageAlt, customAuthor, isPremium,
         isAmerica250, isBreaking, breakingHours: isBreaking ? breakingHours || 24 : null,
         printEditionOrder, imageCaption,
+        editorChecklist: checklist,
         publishedAt: publishedAt || undefined
       });
 
@@ -382,12 +412,75 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
               />
 
               <div>
+                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.65rem' }}>
+                  <button
+                    type="button"
+                    className="btn btn-secondary font-sans text-sm"
+                    onClick={() => setViewMode('edit')}
+                    style={{
+                      opacity: viewMode === 'edit' ? 1 : 0.7,
+                      borderColor: viewMode === 'edit' ? 'var(--primary)' : undefined,
+                    }}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-secondary font-sans text-sm"
+                    onClick={() => setViewMode('preview')}
+                    style={{
+                      opacity: viewMode === 'preview' ? 1 : 0.7,
+                      borderColor: viewMode === 'preview' ? 'var(--primary)' : undefined,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.35rem',
+                    }}
+                  >
+                    <Eye size={14} /> Preview
+                  </button>
+                </div>
                 <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" style={{ display: 'none' }} />
+                <input
+                  type="file"
+                  ref={galleryInputRef}
+                  multiple
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={async (e) => {
+                    const files = e.target.files;
+                    if (!files?.length) return;
+                    const images: { src: string; alt: string }[] = [];
+                    for (const file of Array.from(files)) {
+                      const res = await fetch('/api/upload', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ filename: file.name, contentType: file.type }),
+                      });
+                      const data = await res.json();
+                      if (!res.ok) continue;
+                      await fetch(data.uploadUrl, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': file.type },
+                        body: file,
+                      });
+                      images.push({ src: data.publicUrl, alt: file.name });
+                    }
+                    if (images.length) {
+                      const ed = editorRef.current?.getEditor();
+                      // Gallery extension command
+                      (ed?.commands as { insertGallery?: (imgs: typeof images, cols: number) => boolean })
+                        ?.insertGallery?.(images, 2);
+                    }
+                    e.target.value = '';
+                  }}
+                />
                 <RichTextEditor
                   ref={editorRef}
                   value={content}
                   onChange={setContent}
                   onImageInsert={() => fileInputRef.current?.click()}
+                  onGalleryInsert={() => galleryInputRef.current?.click()}
+                  viewMode={viewMode}
                 />
               </div>
           </form>
@@ -402,6 +495,7 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
               { id: 'settings', label: 'Settings', icon: <Settings size={16} /> },
               { id: 'seo', label: 'SEO', icon: <CheckCircle2 size={16} /> },
               { id: 'spellcheck', label: 'AI Edits', icon: <Wand2 size={16} /> },
+              { id: 'checklist', label: 'Checklist', icon: <ListChecks size={16} /> },
               { id: 'notes', label: 'Notes', icon: <FileDown size={16} /> }
             ].map(tab => (
               <button
@@ -564,6 +658,50 @@ export default function EditorForm({ post, authorId, userRole, availableAuthors 
                     editorRef.current?.getEditor()?.commands.setContent(newContent, { emitUpdate: false });
                   }}
                 />
+              </div>
+            )}
+
+            {activeTab === 'checklist' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                <p className="font-sans text-muted" style={{ fontSize: '0.85rem', lineHeight: 1.45, marginBottom: '0.25rem' }}>
+                  Pre-publish checklist. Saved with the draft when you hit Save.
+                </p>
+                {(
+                  [
+                    ['spellcheck', 'Spellchecked / AI edits reviewed'],
+                    ['seo', 'SEO title, description, keywords filled'],
+                    ['formatting', 'Formatting looks professional'],
+                    ['oneWordLinks', 'Hyperlinks are concise (ideally one clear phrase)'],
+                    ['ready', 'Ready for editor / publish'],
+                  ] as const
+                ).map(([key, label]) => (
+                  <label
+                    key={key}
+                    className="font-sans"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: '0.65rem',
+                      padding: '0.75rem',
+                      borderRadius: '0.5rem',
+                      border: '1px solid var(--border)',
+                      background: checklist[key] ? 'rgba(27, 34, 83, 0.04)' : 'var(--surface)',
+                      cursor: 'pointer',
+                      fontSize: '0.9rem',
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checklist[key]}
+                      onChange={(e) =>
+                        setChecklist((prev) => ({ ...prev, [key]: e.target.checked }))
+                      }
+                      style={{ marginTop: '0.15rem' }}
+                    />
+                    <span>{label}</span>
+                  </label>
+                ))}
               </div>
             )}
 

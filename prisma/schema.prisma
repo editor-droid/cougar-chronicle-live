@@ -28,6 +28,8 @@ model User {
   password          String?
   image             String?
   role              Role               @default(USER)
+  /// Soft-archive: hidden from default user lists, cannot log in as staff
+  archivedAt            DateTime?
   stripeId              String?            @unique
   isSubscribed          Boolean            @default(false)
   membershipExpiresAt   DateTime?
@@ -70,6 +72,8 @@ model Post {
   printEditionId    String?
   printEditionOrder Int?
   imageCaption      String?
+  /// JSON checklist: { spellcheck, seo, formatting, oneWordLinks, ready }
+  editorChecklist   String?        @db.Text
   printEdition      PrintEdition?  @relation(fields: [printEditionId], references: [id])
   articleTokens     ArticleToken[]
   favorites         Favorite[]

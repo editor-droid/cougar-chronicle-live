@@ -46,8 +46,9 @@
 }
 
 .leftColumn {
-  flex: 1;
-  max-width: 900px;
+  flex: 1 1 auto;
+  max-width: none;
+  width: 100%;
   display: flex;
   flex-direction: column;
   min-width: 0;

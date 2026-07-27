@@ -297,6 +297,12 @@ export async function savePost(data: any) {
             : null,
         printEditionOrder: data.printEditionOrder ? parseInt(data.printEditionOrder) : null,
         imageCaption: data.imageCaption,
+        ...(data.editorChecklist !== undefined && {
+          editorChecklist:
+            typeof data.editorChecklist === 'string'
+              ? data.editorChecklist
+              : JSON.stringify(data.editorChecklist ?? {}),
+        }),
         ...(data.publishedAt !== undefined && { publishedAt: data.publishedAt ? new Date(data.publishedAt) : null })
       }
     });
@@ -327,6 +333,12 @@ export async function savePost(data: any) {
             : null,
         printEditionOrder: data.printEditionOrder ? parseInt(data.printEditionOrder) : null,
         imageCaption: data.imageCaption,
+        editorChecklist:
+          typeof data.editorChecklist === 'string'
+            ? data.editorChecklist
+            : data.editorChecklist
+              ? JSON.stringify(data.editorChecklist)
+              : null,
         ...(data.publishedAt && { publishedAt: new Date(data.publishedAt) })
       }
     });
@@ -345,19 +357,55 @@ export async function updateUser(formData: FormData) {
   const newRole = formData.get('role') as Role;
   const newEmail = formData.get('email') as string;
   const newName = formData.get('name') as string;
+  const archive = formData.get('archive') as string | null;
+  const unarchive = formData.get('unarchive') as string | null;
 
   if (!userId) throw new Error('Missing fields');
 
   await prisma.user.update({
     where: { id: userId },
-    data: { 
+    data: {
       ...(newRole && { role: newRole }),
-      ...(newEmail && { email: newEmail }),
-      ...(newName && { name: newName })
-    }
+      ...(newEmail !== null && newEmail !== undefined && { email: newEmail || null }),
+      ...(newName !== null && newName !== undefined && { name: newName || null }),
+      ...(archive === 'true' && { archivedAt: new Date() }),
+      ...(unarchive === 'true' && { archivedAt: null }),
+    },
   });
 
   revalidatePath('/dashboard/users');
+}
+
+/** Client-friendly user update with instant feedback. */
+export async function updateUserFields(data: {
+  userId: string;
+  name?: string;
+  email?: string | null;
+  role?: Role;
+  archive?: boolean;
+  unarchive?: boolean;
+}) {
+  const session = await auth();
+  if (!session?.user || session.user.role !== 'ADMIN') {
+    throw new Error('Unauthorized');
+  }
+  if (!data.userId) throw new Error('Missing userId');
+  if (data.userId === session.user.id && data.archive) {
+    throw new Error('You cannot archive yourself');
+  }
+
+  await prisma.user.update({
+    where: { id: data.userId },
+    data: {
+      ...(data.name !== undefined && { name: data.name || null }),
+      ...(data.email !== undefined && { email: data.email || null }),
+      ...(data.role && { role: data.role }),
+      ...(data.archive && { archivedAt: new Date() }),
+      ...(data.unarchive && { archivedAt: null }),
+    },
+  });
+  revalidatePath('/dashboard/users');
+  return { ok: true as const };
 }
 
 export async function addEditorialNote(formData: FormData) {
@@ -434,14 +482,21 @@ export async function addEditorialNote(formData: FormData) {
   revalidatePath(`/dashboard/editor/${postId}`);
 }
 
-export async function createWriter(formData: FormData) {
+export async function createStaffUser(data: {
+  name: string;
+  email?: string | null;
+  role?: Role;
+}) {
   const session = await auth();
   if (!session?.user || session.user.role !== 'ADMIN') throw new Error('Unauthorized');
 
-  const name = formData.get('name') as string;
-  const rawEmail = formData.get('email') as string;
-  const email = rawEmail && rawEmail.trim() !== '' ? rawEmail.trim() : null;
-  
+  const name = (data.name || '').trim();
+  const email = data.email?.trim() ? data.email.trim().toLowerCase() : null;
+  const role: Role =
+    data.role === 'EDITOR' || data.role === 'ADMIN' || data.role === 'WRITER'
+      ? data.role
+      : 'WRITER';
+
   if (!name) throw new Error('Name is required');
 
   if (email) {
@@ -450,56 +505,55 @@ export async function createWriter(formData: FormData) {
   }
 
   const bcrypt = await import('bcryptjs');
-  // Generate random dummy password 
   const randomPassword = Math.random().toString(36).slice(-8) + 'A1!';
   const hashedPassword = await bcrypt.hash(randomPassword, 10);
 
-  await prisma.user.create({
+  const user = await prisma.user.create({
     data: {
       name,
       email,
       password: hashedPassword,
-      role: 'WRITER'
-    }
+      role,
+    },
   });
 
+  let emailSent = false;
   if (email) {
     try {
-      // 1. Generate Reset Token
       const token = crypto.randomUUID();
-      
-      // 2. Save to VerificationToken (expires in 24 hours)
       const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
       await prisma.verificationToken.create({
-        data: {
-          identifier: email,
-          token,
-          expires
-        }
+        data: { identifier: email, token, expires },
       });
 
-      // 3. Send email using Resend
-      const origin = process.env.NEXTAUTH_URL || process.env.AUTH_URL || 'https://thecougarchronicle.com';
+      const origin =
+        process.env.NEXTAUTH_URL ||
+        process.env.AUTH_URL ||
+        'https://thecougarchronicle.com';
       const resetLink = `${origin}/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
-      
-      const isMock = !process.env.RESEND_API_KEY || process.env.RESEND_API_KEY.includes('fallback');
-      
-      const subject = `You've been added as a Writer for The Cougar Chronicle!`;
-      const html = `<p>Hi ${name},</p>
-      <p>An administrator has created a writer account for you at The Cougar Chronicle.</p>
-      <p>Please click the link below to set your password and log into your dashboard:</p>
-      <p><a href="${resetLink}" style="display: inline-block; background-color: #1B2253; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 4px; font-weight: bold;">Set My Password</a></p>
-      <p>If the button doesn't work, copy and paste this link into your browser: <br/>${resetLink}</p>`;
+      const isMock =
+        !process.env.RESEND_API_KEY || process.env.RESEND_API_KEY.includes('fallback');
 
-      console.log(`\n=========================================\n[EMAIL NOTIFICATION] Set Password\nTo: ${email}\nLink: ${resetLink}\n=========================================\n`);
+      const roleLabel =
+        role === 'ADMIN' ? 'an administrator' : role === 'EDITOR' ? 'an editor' : 'a writer';
+      const subject = `Welcome to The Cougar Chronicle — set your password`;
+      const html = `<p>Hi ${name},</p>
+      <p>You've been added as <strong>${roleLabel}</strong> at The Cougar Chronicle.</p>
+      <p>Set your password to access the dashboard:</p>
+      <p><a href="${resetLink}" style="display: inline-block; background-color: #1B2253; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 4px; font-weight: bold;">Set My Password</a></p>
+      <p>If the button doesn't work, copy this link:<br/>${resetLink}</p>
+      <p>This link expires in 24 hours.</p>`;
+
+      console.log(`[EMAIL] Welcome ${role} → ${email} ${resetLink}`);
 
       if (!isMock) {
         await resend.emails.send({
-          from: 'notifications@thecougarchronicle.com',
+          from: 'The Cougar Chronicle <notifications@updates.thecougarchronicle.com>',
           to: email,
           subject,
-          html
+          html,
         });
+        emailSent = true;
       }
     } catch (e) {
       console.error('Failed to generate or send password set email:', e);
@@ -507,5 +561,14 @@ export async function createWriter(formData: FormData) {
   }
 
   revalidatePath('/dashboard/users');
-  revalidatePath('/dashboard/editor/[id]', 'page');
+  return { ok: true as const, userId: user.id, emailSent };
+}
+
+/** @deprecated use createStaffUser */
+export async function createWriter(formData: FormData) {
+  await createStaffUser({
+    name: formData.get('name') as string,
+    email: (formData.get('email') as string) || null,
+    role: 'WRITER',
+  });
 }

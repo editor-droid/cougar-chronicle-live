@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import prisma from '@/lib/prisma';
 import DashboardHeader from '@/components/DashboardHeader';
 import { updateFundraiserGoal } from './actions';
+import ManualDonationForm from './ManualDonationForm';
 
 export default async function DonorsPage() {
   const session = await auth();
@@ -24,9 +25,9 @@ export default async function DonorsPage() {
     <div className="container animate-fade-in" style={{ marginTop: '2rem' }}>
       <DashboardHeader currentTab="donors" title="Donor Management" />
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '2rem', marginBottom: '3rem' }}>
-        <div style={{ backgroundColor: 'var(--surface)', padding: '2rem', borderRadius: '0.5rem', border: '1px solid var(--border)' }}>
-          <h2 className="font-serif" style={{ fontSize: '1.75rem', marginBottom: '1rem', color: 'var(--primary)' }}>Fundraiser Status</h2>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>
+        <div style={{ backgroundColor: 'var(--surface)', padding: '1.5rem', borderRadius: '0.5rem', border: '1px solid var(--border)' }}>
+          <h2 className="font-serif" style={{ fontSize: '1.5rem', marginBottom: '1rem', color: 'var(--primary)' }}>Fundraiser status</h2>
           
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
             <span className="font-sans text-muted">Raised: ${totalRaised.toLocaleString()}</span>
@@ -38,8 +39,8 @@ export default async function DonorsPage() {
           </div>
         </div>
 
-        <div style={{ backgroundColor: 'var(--surface)', padding: '2rem', borderRadius: '0.5rem', border: '1px solid var(--border)' }}>
-          <h2 className="font-serif" style={{ fontSize: '1.25rem', marginBottom: '1rem', color: 'var(--primary)' }}>Settings</h2>
+        <div style={{ backgroundColor: 'var(--surface)', padding: '1.5rem', borderRadius: '0.5rem', border: '1px solid var(--border)' }}>
+          <h2 className="font-serif" style={{ fontSize: '1.25rem', marginBottom: '1rem', color: 'var(--primary)' }}>Goal settings</h2>
           <form action={updateFundraiserGoal} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div>
               <label className="font-sans text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem' }}>Fundraiser Goal ($)</label>
@@ -49,6 +50,8 @@ export default async function DonorsPage() {
           </form>
         </div>
       </div>
+
+      <ManualDonationForm />
 
       <div style={{ backgroundColor: 'var(--surface)', borderRadius: '0.5rem', border: '1px solid var(--border)', overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
