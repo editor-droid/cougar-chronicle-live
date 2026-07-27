@@ -55,7 +55,7 @@ export default function DonateForm() {
       return (
         <>
           <strong>America 250 Founding Member</strong> — one year of membership after you donate (premium digital
-          stories, Print Volume PDF, gift unlocks). We’ll email you at checkout how to access everything — no account
+          articles, Print Volume PDF access, gift unlocks). We&apos;ll email you at checkout how to access everything — no account
           needed up front.
         </>
       );
@@ -63,8 +63,8 @@ export default function DonateForm() {
     if (isNamedSupporter) {
       return (
         <>
-          <strong>America 250 Patriot</strong> — thank you for celebrating the founding with us. (Named gift —
-          membership perks begin at <strong>${AUGUST_MEMBERSHIP_MIN}</strong>.)
+          <strong>America 250 Patriot</strong> — thank you. We&apos;ll recognize you as a supporter.
+          Membership perks (premium digital articles) begin at <strong>${AUGUST_MEMBERSHIP_MIN}</strong>.
         </>
       );
     }
@@ -82,10 +82,10 @@ export default function DonateForm() {
         className="font-serif"
         style={{ fontSize: '1.75rem', marginBottom: '0.25rem', color: 'var(--foreground)', textAlign: 'center' }}
       >
-        America 250 · August Drive
+        Support the Chronicle
       </h2>
       <p className="font-sans text-muted" style={{ textAlign: 'center', marginBottom: '1rem', fontSize: '0.95rem' }}>
-        Celebrate the founding — and fund independent campus journalism.
+        $8,000 goal by Thanksgiving — fund independent campus journalism.
       </p>
 
       <div

@@ -10,7 +10,7 @@ export default async function FundraiserPage() {
   const goalSetting = await prisma.siteSetting.findUnique({
     where: { key: 'fundraiserGoal' }
   });
-  const goal = goalSetting ? parseInt(goalSetting.value, 10) : 10000;
+  const goal = goalSetting ? parseInt(goalSetting.value, 10) : 8000;
   const progressPercentage = Math.min(100, (totalRaised / Math.max(goal, 1)) * 100);
 
   return (
@@ -72,11 +72,12 @@ export default async function FundraiserPage() {
             textAlign: 'left',
           }}>
             <h3 className="font-serif" style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: 'var(--primary)' }}>
-              August Fundraising Drive · America 250
+              Fall Drive · $8,000 by Thanksgiving
             </h3>
             <p className="font-sans text-sm text-muted" style={{ marginBottom: '1rem', lineHeight: 1.45 }}>
-              <strong>$25</strong> — America 250 Patriot (named gift).{' '}
-              <strong>$48+</strong> — Founding Member for a year (we activate membership after checkout and email you).
+              Help us raise <strong>$8,000 by Thanksgiving</strong> (Nov 26, 2026).{' '}
+              <strong>$25</strong> — America 250 Patriot (we&apos;ll thank you as a recognized supporter).{' '}
+              <strong>$48+</strong> — Founding Member for a year: premium digital articles, Print Volume PDF access, and gift unlocks.
             </p>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', alignItems: 'flex-end' }}>
               <span className="font-sans" style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--accent)', lineHeight: 1 }}>

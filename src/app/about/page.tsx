@@ -36,9 +36,9 @@ const campusGallery = [
     caption: 'Y Mountain · Provo',
   },
   {
-    src: '/images/campus/provo-city-center-temple.jpg',
-    alt: 'Provo City Center Temple in downtown Provo, Utah',
-    caption: 'Provo City Center Temple',
+    src: '/images/campus/byu-y-mountain-stadium.jpg',
+    alt: 'Y Mountain and BYU campus from LaVell Edwards Stadium',
+    caption: 'Y Mountain · Stadium view',
   },
   {
     src: '/images/campus/byu-campus-winter.jpg',
@@ -50,32 +50,79 @@ const campusGallery = [
 export default function AboutPage() {
   const team = {
     editors: [
-      { name: 'Reagan Sumrall', title: 'Editor-in-Chief' },
-      { name: 'Kimball Call', title: 'Lead Editor & Senior Contributor' },
-      { name: 'James Haymore', title: 'Senior Contributor' },
-      { name: 'Alexander Halpren', title: '' }
+      { name: 'Kimball Call', title: 'Editor-in-Chief' },
+      { name: 'Ethan Horde', title: 'Managing Editor' },
+      { name: 'Alex Halpren', title: 'Assistant Managing Editor' },
+      { name: 'Carter Seitz', title: 'Website Director' },
+    ],
+    staffWriters: [
+      { name: 'Jackson Gallini', title: 'Staff Writer' },
+      { name: 'Jonah Bertold', title: 'Staff Writer' },
     ],
     contributors: [
       { name: 'Jonah Deforge', title: '' },
       { name: 'Joshua Beck', title: '' },
       { name: 'Kai Schwemmer', title: '' },
-      { name: 'Tanner Moss', title: '' }
+      { name: 'Tanner Moss', title: '' },
+      { name: 'Esther Bright', title: '' },
     ],
     social: [
       { name: 'Jax McKinney', title: 'Senior Contributor & Social Media Director' },
       { name: 'Carter Waite', title: '' },
-      { name: 'Joshua Beck', title: '' },
-      { name: 'Dallin Webecke', title: '' }
+      { name: 'Dallin Webecke', title: '' },
     ],
     emeritus: [
+      { name: 'Reagan Sumrall', title: 'Former Editor-in-Chief' },
       { name: 'Jacob Christensen', title: '' },
       { name: 'Ian Farris', title: '' },
       { name: 'Logan Spears', title: '' },
       { name: 'Joseph Addington', title: '' },
       { name: 'Thomas Stevenson', title: '' },
-      { name: 'Luke Hanson', title: '' }
-    ]
+      { name: 'Luke Hanson', title: '' },
+    ],
   };
+
+  const renderTeamGrid = (
+    members: { name: string; title: string }[]
+  ) => (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '1.5rem' }}>
+      {members.map((member, i) => (
+        <div
+          key={i}
+          style={{
+            padding: '1.5rem',
+            backgroundColor: 'var(--surface)',
+            borderRadius: '0.5rem',
+            border: '1px solid var(--border)',
+          }}
+        >
+          <div className="font-serif" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--foreground)', marginBottom: '0.25rem' }}>
+            {member.name}
+          </div>
+          {member.title && (
+            <div className="font-sans text-sm text-primary" style={{ fontWeight: 600 }}>
+              {member.title}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+
+  const sectionHeading = (label: string) => (
+    <h3
+      className="font-sans"
+      style={{
+        fontSize: '1.5rem',
+        marginBottom: '1.5rem',
+        fontWeight: 600,
+        borderBottom: '2px solid var(--primary)',
+        paddingBottom: '0.5rem',
+      }}
+    >
+      {label}
+    </h3>
+  );
 
   return (
     <div className="animate-fade-in" style={{ paddingBottom: '4rem' }}>
@@ -269,141 +316,31 @@ export default function AboutPage() {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
           <div>
-            <h3
-              className="font-sans"
-              style={{
-                fontSize: '1.5rem',
-                marginBottom: '1.5rem',
-                fontWeight: 600,
-                borderBottom: '2px solid var(--primary)',
-                paddingBottom: '0.5rem',
-              }}
-            >
-              Editors
-            </h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '1.5rem' }}>
-              {team.editors.map((member, i) => (
-                <div
-                  key={i}
-                  style={{
-                    padding: '1.5rem',
-                    backgroundColor: 'var(--surface)',
-                    borderRadius: '0.5rem',
-                    border: '1px solid var(--border)',
-                  }}
-                >
-                  <div className="font-serif" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--foreground)', marginBottom: '0.25rem' }}>
-                    {member.name}
-                  </div>
-                  {member.title && (
-                    <div className="font-sans text-sm text-primary" style={{ fontWeight: 600 }}>
-                      {member.title}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
+            {sectionHeading('Editors')}
+            {renderTeamGrid(team.editors)}
           </div>
 
           <div>
-            <h3
-              className="font-sans"
-              style={{
-                fontSize: '1.5rem',
-                marginBottom: '1.5rem',
-                fontWeight: 600,
-                borderBottom: '2px solid var(--primary)',
-                paddingBottom: '0.5rem',
-              }}
-            >
-              Contributors
-            </h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '1.5rem' }}>
-              {team.contributors.map((member, i) => (
-                <div
-                  key={i}
-                  style={{
-                    padding: '1.5rem',
-                    backgroundColor: 'var(--surface)',
-                    borderRadius: '0.5rem',
-                    border: '1px solid var(--border)',
-                  }}
-                >
-                  <div className="font-serif" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--foreground)', marginBottom: '0.25rem' }}>
-                    {member.name}
-                  </div>
-                </div>
-              ))}
-            </div>
+            {sectionHeading('Staff Writers')}
+            <p className="font-sans text-muted" style={{ fontSize: '0.95rem', marginBottom: '1.25rem', lineHeight: 1.5 }}>
+              Regular assignments. Listed on the website. Eligible for writing stipends when available — distinct from occasional contributors.
+            </p>
+            {renderTeamGrid(team.staffWriters)}
           </div>
 
           <div>
-            <h3
-              className="font-sans"
-              style={{
-                fontSize: '1.5rem',
-                marginBottom: '1.5rem',
-                fontWeight: 600,
-                borderBottom: '2px solid var(--primary)',
-                paddingBottom: '0.5rem',
-              }}
-            >
-              Social Media & Content
-            </h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '1.5rem' }}>
-              {team.social.map((member, i) => (
-                <div
-                  key={i}
-                  style={{
-                    padding: '1.5rem',
-                    backgroundColor: 'var(--surface)',
-                    borderRadius: '0.5rem',
-                    border: '1px solid var(--border)',
-                  }}
-                >
-                  <div className="font-serif" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--foreground)', marginBottom: '0.25rem' }}>
-                    {member.name}
-                  </div>
-                  {member.title && (
-                    <div className="font-sans text-sm text-primary" style={{ fontWeight: 600 }}>
-                      {member.title}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
+            {sectionHeading('Contributors')}
+            {renderTeamGrid(team.contributors)}
           </div>
 
           <div>
-            <h3
-              className="font-sans"
-              style={{
-                fontSize: '1.5rem',
-                marginBottom: '1.5rem',
-                fontWeight: 600,
-                borderBottom: '2px solid var(--primary)',
-                paddingBottom: '0.5rem',
-              }}
-            >
-              Editors Emeritus
-            </h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '1.5rem' }}>
-              {team.emeritus.map((member, i) => (
-                <div
-                  key={i}
-                  style={{
-                    padding: '1.5rem',
-                    backgroundColor: 'var(--surface)',
-                    borderRadius: '0.5rem',
-                    border: '1px solid var(--border)',
-                  }}
-                >
-                  <div className="font-serif" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--foreground)', marginBottom: '0.25rem' }}>
-                    {member.name}
-                  </div>
-                </div>
-              ))}
-            </div>
+            {sectionHeading('Social Media & Content')}
+            {renderTeamGrid(team.social)}
+          </div>
+
+          <div>
+            {sectionHeading('Editors Emeritus')}
+            {renderTeamGrid(team.emeritus)}
           </div>
         </div>
       </div>

@@ -11,7 +11,7 @@ export async function GET(req: Request) {
     { title: 'Home', url: '/' },
     { title: 'About Us', url: '/about' },
     { title: 'Contact', url: '/contact' },
-    { title: 'Recruiting', url: '/recruiting' },
+    { title: 'Apply to Join', url: '/recruiting' },
     { title: 'Staff Directory', url: '/staff' },
   ].filter(p => p.title.toLowerCase().includes(query.toLowerCase()) || p.url.toLowerCase().includes(query.toLowerCase()));
 

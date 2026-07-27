@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
-import VolunteerForm from '@/components/VolunteerForm';
+import Link from 'next/link';
 import ContactForm from '@/components/ContactForm';
 
 export const metadata: Metadata = {
@@ -153,11 +153,11 @@ export default function ContactPage() {
               }}
             >
               <Image
-                src="/images/campus/provo-utah-temple.jpg"
-                alt="Provo Utah Temple"
+                src="/images/campus/byu-maeser.jpg"
+                alt="Karl G. Maeser Building on BYU campus"
                 fill
                 sizes="(max-width: 768px) 100vw, 40vw"
-                style={{ objectFit: 'cover', objectPosition: 'center top' }}
+                style={{ objectFit: 'cover', objectPosition: 'center 30%' }}
               />
             </div>
             <p className="font-sans text-muted" style={{ fontSize: '0.9rem', lineHeight: 1.5, textAlign: 'center' }}>
@@ -166,7 +166,7 @@ export default function ContactPage() {
           </div>
         </div>
 
-        {/* Volunteer band with photo backdrop */}
+        {/* Apply CTA — full form lives on /recruiting */}
         <div
           style={{
             position: 'relative',
@@ -178,11 +178,11 @@ export default function ContactPage() {
         >
           <div style={{ position: 'absolute', inset: 0 }}>
             <Image
-              src="/images/campus/byu-maeser.jpg"
+              src="/images/campus/byu-mountain-view.jpg"
               alt=""
               fill
               sizes="100vw"
-              style={{ objectFit: 'cover', objectPosition: 'center 30%' }}
+              style={{ objectFit: 'cover', objectPosition: 'center 40%' }}
               aria-hidden
             />
             <div
@@ -195,22 +195,33 @@ export default function ContactPage() {
           </div>
           <div style={{ position: 'relative', zIndex: 1, padding: '2.25rem 1.5rem 2.5rem', textAlign: 'center' }}>
             <h2 className="font-serif" style={{ fontSize: '2rem', marginBottom: '0.75rem', color: 'var(--primary)' }}>
-              Work with the Cougar Chronicle
+              Apply to join our team
             </h2>
             <p
               className="font-sans text-foreground"
               style={{
                 fontSize: '1rem',
-                marginBottom: '1.25rem',
                 lineHeight: 1.6,
-                maxWidth: '700px',
+                maxWidth: '640px',
                 margin: '0 auto 1.5rem',
               }}
             >
-              Looking for students interested in writing, editing, video, design, or copywriting. Contributing has opened
-              doors to internships and opportunities unlike any other campus journalism.
+              We are accepting applications for staff writers, editors, photographers, and more. Selective process —
+              professional newsroom standards.
             </p>
-            <VolunteerForm />
+            <Link
+              href="/recruiting#apply"
+              className="btn btn-primary font-sans"
+              style={{
+                display: 'inline-block',
+                padding: '0.75rem 1.75rem',
+                fontWeight: 700,
+                borderRadius: '2rem',
+                textDecoration: 'none',
+              }}
+            >
+              Go to applications →
+            </Link>
           </div>
         </div>
       </div>

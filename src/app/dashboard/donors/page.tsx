@@ -18,7 +18,7 @@ export default async function DonorsPage() {
     where: { key: 'fundraiserGoal' }
   });
   
-  const goal = goalSetting ? parseInt(goalSetting.value, 10) : 10000;
+  const goal = goalSetting ? parseInt(goalSetting.value, 10) : 8000;
 
   return (
     <div className="container animate-fade-in" style={{ marginTop: '2rem' }}>

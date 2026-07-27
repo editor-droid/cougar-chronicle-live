@@ -19,4 +19,5 @@ export async function updateFundraiserGoal(formData: FormData) {
 
   revalidatePath('/dashboard/donors');
   revalidatePath('/donate');
+  revalidatePath('/fundraiser');
 }

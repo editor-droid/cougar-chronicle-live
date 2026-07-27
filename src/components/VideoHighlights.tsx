@@ -154,18 +154,39 @@ export default function VideoHighlights({
           >
             {v.title}
           </span>
-          {!isSidebar && v.description && (
+          {/* Homepage: title only + Watch CTA (no excerpt). Other variants keep description. */}
+          {variant === 'home' ? (
             <span
-              className="font-sans text-muted"
+              className="font-sans"
               style={{
-                display: 'block',
-                marginTop: '0.35rem',
-                fontSize: '0.85rem',
-                lineHeight: 1.4,
+                display: 'inline-block',
+                marginTop: '0.55rem',
+                fontSize: '0.8rem',
+                fontWeight: 700,
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+                color: 'var(--primary)',
+                borderBottom: '1.5px solid var(--primary)',
+                paddingBottom: '0.1rem',
               }}
             >
-              {v.description}
+              Watch
             </span>
+          ) : (
+            !isSidebar &&
+            v.description && (
+              <span
+                className="font-sans text-muted"
+                style={{
+                  display: 'block',
+                  marginTop: '0.35rem',
+                  fontSize: '0.85rem',
+                  lineHeight: 1.4,
+                }}
+              >
+                {v.description}
+              </span>
+            )
           )}
         </div>
       </>

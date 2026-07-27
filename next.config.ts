@@ -77,6 +77,16 @@ const nextConfig: NextConfig = {
         destination: '/recruiting',
         permanent: true,
       },
+      {
+        source: '/apply',
+        destination: '/recruiting',
+        permanent: false,
+      },
+      {
+        source: '/applications',
+        destination: '/recruiting',
+        permanent: false,
+      },
     ];
   },
 };
