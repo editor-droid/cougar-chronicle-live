@@ -13,7 +13,7 @@ export default async function MediaAppearancesPage() {
   const appearances = await getMediaAppearances();
 
   return (
-    <div className="container animate-fade-in" style={{ marginTop: '2rem', marginBottom: '3rem' }}>
+    <div className="container animate-fade-in" style={{ marginTop: '1rem', marginBottom: '3rem' }}>
       <DashboardHeader currentTab="media" title="Media appearances" />
       <MediaAppearancesManager initialAppearances={appearances} />
     </div>

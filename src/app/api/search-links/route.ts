@@ -27,7 +27,7 @@ export async function GET(req: Request) {
 
   const articleLinks = posts.map(a => ({
     title: a.title,
-    url: `/article/${a.slug}`
+    url: `/${a.slug}`
   }));
 
   return NextResponse.json([...staticPages, ...articleLinks].slice(0, 8));

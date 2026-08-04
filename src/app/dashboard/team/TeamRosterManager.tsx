@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState, useTransition } from 'react';
+import { Plus, Trash2, Users } from 'lucide-react';
 import {
   TEAM_GROUP_LABELS,
   TEAM_GROUP_ORDER,
@@ -13,16 +14,32 @@ function newId() {
   return `id_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
-const inputStyle: React.CSSProperties = {
+const field: import('react').CSSProperties = {
   width: '100%',
-  padding: '0.55rem 0.75rem',
-  borderRadius: '0.4rem',
-  border: '1px solid var(--border)',
-  background: 'var(--background)',
-  fontSize: '0.95rem',
+  padding: '0.45rem 0.6rem',
+  borderRadius: '0.5rem',
+  border: '1px solid #e8eaf0',
+  background: 'var(--surface-hover)',
+  fontSize: '0.88rem',
+  fontFamily: 'var(--font-sans)',
+  boxSizing: 'border-box',
 };
 
-export default function TeamRosterManager({ initialTeam }: { initialTeam: TeamMember[] }) {
+const GROUP_HINT: Record<TeamGroup, string> = {
+  editors: 'Leadership & section editors',
+  staff_writers: 'Core staff — name only is fine',
+  contributors: 'Guest & occasional writers',
+  social: 'Social & content roles',
+  emeritus: 'Editors emeritus & board',
+};
+
+export default function TeamRosterManager({
+  initialTeam,
+  compact = false,
+}: {
+  initialTeam: TeamMember[];
+  compact?: boolean;
+}) {
   const [team, setTeam] = useState(initialTeam);
   const [message, setMessage] = useState('');
   const [pending, startTransition] = useTransition();
@@ -54,110 +71,174 @@ export default function TeamRosterManager({ initialTeam }: { initialTeam: TeamMe
     });
   };
 
+  const updateMember = (id: string, patch: Partial<TeamMember>) => {
+    setTeam((prev) => prev.map((m) => (m.id === id ? { ...m, ...patch } : m)));
+  };
+
   return (
     <div style={{ width: '100%' }}>
-      <p className="font-sans text-muted" style={{ marginBottom: '1.25rem', lineHeight: 1.55, maxWidth: '40rem' }}>
-        Public About Us roster. Staff Writers can leave title blank (name only).
-      </p>
+      <div className="dash-toolbar" style={{ marginBottom: '1rem' }}>
+        <p className="font-sans text-muted" style={{ margin: 0, flex: '1 1 240px', lineHeight: 1.5, fontSize: '0.9rem' }}>
+          Public <strong>About Us</strong> roster. Staff Writers can leave title blank.
+        </p>
+        <button type="button" className="dash-btn dash-btn-primary" disabled={pending} onClick={saveTeam}>
+          {pending ? 'Saving…' : 'Save staff'}
+        </button>
+      </div>
 
       {message && (
-        <p
+        <div
           className="font-sans"
           style={{
-            marginBottom: '1rem',
-            padding: '0.75rem 1rem',
-            borderRadius: '0.5rem',
-            background: message.toLowerCase().includes('fail') ? '#fee2e2' : '#ecfdf5',
-            color: message.toLowerCase().includes('fail') ? '#991b1b' : '#065f46',
-            fontSize: '0.9rem',
+            marginBottom: '0.85rem',
+            padding: '0.65rem 0.9rem',
+            borderRadius: '0.65rem',
+            background: /fail|error/i.test(message) ? 'rgba(185,28,28,0.08)' : 'rgba(5,150,105,0.1)',
+            color: /fail|error/i.test(message) ? '#991b1b' : '#065f46',
+            fontSize: '0.88rem',
           }}
         >
           {message}
-        </p>
+        </div>
       )}
 
       {TEAM_GROUP_ORDER.map((group) => (
-        <div key={group} style={{ marginBottom: '2rem' }}>
-          <h3 className="font-serif" style={{ fontSize: '1.25rem', marginBottom: '0.75rem', color: 'var(--primary)' }}>
-            {TEAM_GROUP_LABELS[group]}
-          </h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem', marginBottom: '0.75rem' }}>
-            {teamByGroup[group].map((member) => {
-              const index = team.findIndex((t) => t.id === member.id);
-              return (
-                <div
+        <section key={group} style={{ marginBottom: compact ? '1.15rem' : '1.5rem' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '0.65rem',
+              marginBottom: '0.55rem',
+              flexWrap: 'wrap',
+            }}
+          >
+            <div>
+              <h3
+                className="font-serif"
+                style={{ fontSize: '1.1rem', margin: 0, color: '#1B2253' }}
+              >
+                {TEAM_GROUP_LABELS[group]}
+                <span className="font-sans text-muted" style={{ fontSize: '0.8rem', fontWeight: 600, marginLeft: '0.45rem' }}>
+                  {teamByGroup[group].length}
+                </span>
+              </h3>
+              {!compact && (
+                <p className="font-sans text-muted" style={{ margin: '0.15rem 0 0', fontSize: '0.78rem' }}>
+                  {GROUP_HINT[group]}
+                </p>
+              )}
+            </div>
+            <button
+              type="button"
+              className="dash-btn"
+              style={{ padding: '0.35rem 0.7rem', fontSize: '0.8rem', minHeight: 34 }}
+              onClick={() =>
+                setTeam([
+                  ...team,
+                  {
+                    id: newId(),
+                    name: '',
+                    title: '',
+                    group,
+                    sortOrder: teamByGroup[group].length,
+                  },
+                ])
+              }
+            >
+              <Plus size={14} /> Add
+            </button>
+          </div>
+
+          {teamByGroup[group].length === 0 ? (
+            <div className="dash-empty" style={{ padding: '0.85rem', border: '1px dashed #e8eaf0', borderRadius: '0.65rem' }}>
+              Empty group
+            </div>
+          ) : (
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: compact
+                  ? 'repeat(auto-fill, minmax(168px, 1fr))'
+                  : 'repeat(auto-fill, minmax(min(100%, 240px), 1fr))',
+                gap: compact ? '0.4rem' : '0.55rem',
+              }}
+            >
+              {teamByGroup[group].map((member) => (
+                <article
                   key={member.id}
+                  className="dash-card"
                   style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'minmax(0, 1.2fr) minmax(0, 1.4fr) auto',
-                    gap: '0.55rem',
-                    alignItems: 'center',
+                    display: 'flex',
+                    flexDirection: 'row',
+                    alignItems: 'stretch',
+                    overflow: 'hidden',
+                    minHeight: 0,
                   }}
                 >
-                  <input
-                    style={inputStyle}
-                    placeholder="Name"
-                    value={member.name}
-                    onChange={(e) => {
-                      const next = [...team];
-                      next[index] = { ...member, name: e.target.value };
-                      setTeam(next);
-                    }}
-                  />
-                  <input
-                    style={inputStyle}
-                    placeholder="Title (optional)"
-                    value={member.title}
-                    onChange={(e) => {
-                      const next = [...team];
-                      next[index] = { ...member, title: e.target.value };
-                      setTeam(next);
-                    }}
-                  />
-                  <button
-                    type="button"
-                    className="font-sans text-sm"
+                  <div
                     style={{
-                      padding: '0.5rem 0.75rem',
-                      borderRadius: '0.4rem',
-                      border: '1px solid var(--border)',
-                      background: 'var(--surface)',
-                      cursor: 'pointer',
-                      color: '#991b1b',
-                      whiteSpace: 'nowrap',
+                      width: compact ? 36 : 44,
+                      flexShrink: 0,
+                      background: 'linear-gradient(180deg, #1b2253 0%, #3d4a8c 100%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#fff',
                     }}
-                    onClick={() => setTeam(team.filter((t) => t.id !== member.id))}
                   >
-                    Remove
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-          <button
-            type="button"
-            className="btn btn-secondary font-sans text-sm"
-            onClick={() =>
-              setTeam([
-                ...team,
-                {
-                  id: newId(),
-                  name: '',
-                  title: '',
-                  group,
-                  sortOrder: teamByGroup[group].length,
-                },
-              ])
-            }
-          >
-            Add to {TEAM_GROUP_LABELS[group]}
-          </button>
-        </div>
+                    <Users size={compact ? 15 : 18} />
+                  </div>
+                  <div
+                    style={{
+                      padding: compact ? '0.4rem 0.45rem' : '0.55rem 0.6rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: compact ? '0.25rem' : '0.35rem',
+                      flex: 1,
+                      minWidth: 0,
+                    }}
+                  >
+                    <input
+                      style={field}
+                      placeholder="Name"
+                      value={member.name}
+                      onChange={(e) => updateMember(member.id, { name: e.target.value })}
+                    />
+                    <input
+                      style={field}
+                      placeholder={group === 'staff_writers' ? 'Title (optional)' : 'Title'}
+                      value={member.title}
+                      onChange={(e) => updateMember(member.id, { title: e.target.value })}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setTeam(team.filter((t) => t.id !== member.id))}
+                      className="font-sans"
+                      style={{
+                        alignSelf: 'flex-start',
+                        border: 'none',
+                        background: 'none',
+                        color: '#b91c1c',
+                        fontSize: '0.75rem',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        padding: 0,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.25rem',
+                      }}
+                    >
+                      <Trash2 size={12} /> Remove
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
       ))}
-
-      <button type="button" className="btn btn-primary font-sans" disabled={pending} onClick={saveTeam}>
-        {pending ? 'Saving…' : 'Save team roster'}
-      </button>
     </div>
   );
 }

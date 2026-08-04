@@ -249,7 +249,7 @@ export default async function AccountPage() {
           {tokens.length === 0 ? (
             <div style={{ backgroundColor: 'var(--surface)', padding: '2rem', borderRadius: '0.5rem', border: '1px solid var(--border)', textAlign: 'center' }}>
               <p className="font-sans text-muted" style={{ marginBottom: '1rem' }}>You haven't purchased any individual premium articles yet.</p>
-              <Link href="/category/news" className="btn btn-primary font-sans text-sm">Browse Articles</Link>
+              <Link href="/news" className="btn btn-primary font-sans text-sm">Browse Articles</Link>
             </div>
           ) : (
             <div style={{ backgroundColor: 'var(--surface)', borderRadius: '0.5rem', border: '1px solid var(--border)', overflow: 'hidden' }}>
@@ -282,7 +282,7 @@ export default async function AccountPage() {
             <div style={{ backgroundColor: 'var(--surface)', padding: '2rem', borderRadius: '0.5rem', border: '1px solid var(--border)', textAlign: 'center' }}>
               <p className="font-sans text-muted" style={{ marginBottom: '1rem' }}>You haven&apos;t favorited any articles or videos yet.</p>
               <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-                <Link href="/category/news" className="btn btn-primary font-sans text-sm">Browse Articles</Link>
+                <Link href="/news" className="btn btn-primary font-sans text-sm">Browse Articles</Link>
                 <Link href="/videos" className="btn btn-secondary font-sans text-sm">Browse Videos</Link>
               </div>
             </div>

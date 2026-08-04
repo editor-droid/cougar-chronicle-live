@@ -1,25 +1,12 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
-import Link from 'next/link';
 import { Suspense } from 'react';
 import VolunteerForm from '@/components/VolunteerForm';
-import VideoHighlights from '@/components/VideoHighlights';
-import prisma from '@/lib/prisma';
-import { getMediaAppearances } from '@/lib/site-content';
-import { resolveStreamEmbedUrl, resolveStreamThumbnailUrl } from '@/lib/videos';
-import {
-  PenTool,
-  Video,
-  Camera,
-  Search,
-  Smartphone,
-  BookOpen,
-  Users,
-  Flag,
-  FileText,
-  Podcast,
-  ExternalLink,
-} from 'lucide-react';
+import { getActiveOpenRoles, getMediaAppearances } from '@/lib/site-content';
+import { Users, Flag, FileText, Podcast, ExternalLink } from 'lucide-react';
+import { linkPreview } from '@/lib/link-preview';
+import YoutubeThumb from '@/components/YoutubeThumb';
+import ApplyInterestPicker from './ApplyInterestPicker';
 
 export const metadata: Metadata = {
   title: 'Apply to Join | The Cougar Chronicle',
@@ -32,39 +19,21 @@ export const metadata: Metadata = {
   },
 };
 
-const openPositions = [
-  { title: 'Staff Writer', icon: <PenTool size={20} /> },
-  { title: 'Print Editor', icon: <FileText size={20} /> },
-  { title: 'Video Editor', icon: <Video size={20} /> },
-  { title: 'Photographer', icon: <Camera size={20} /> },
-  { title: 'Investigative Journalist', icon: <Search size={20} /> },
-  { title: 'Content Creator', icon: <Smartphone size={20} /> },
-];
-
-const editorialFocus = [
-  { title: 'BYU News', icon: <BookOpen size={20} /> },
-  { title: 'Faith Issues', icon: <Users size={20} /> },
-  { title: 'Family Issues', icon: <Users size={20} /> },
-  { title: 'Utah Politics', icon: <Flag size={20} /> },
-  { title: 'US Politics', icon: <Flag size={20} /> },
-  { title: 'Conservative Thought', icon: <BookOpen size={20} /> },
-];
-
 const majorOps = [
   {
-    image: '/images/campus/byu-mountain-view.jpg',
+    image: '/images/campus/byu-maeser.jpg',
     title: 'Campus Coverage',
     description: 'Independent reporting from BYU and Provo.',
   },
   {
-    image: '/images/campus/y-mountain-blossoms.jpg',
+    image: '/images/campus/provo-utah-temple.jpg',
     title: 'Faith & Community',
     description: 'Stories rooted in the Gospel and campus life.',
   },
   {
-    image: '/images/campus/byu-y-mountain-stadium.jpg',
-    title: 'Big Moments',
-    description: 'Statewide debates, elections, and investigations.',
+    image: '/images/campus/provo-city-center-temple.jpg',
+    title: 'Utah & Beyond',
+    description: 'Politics, family, and investigations that matter.',
   },
 ];
 
@@ -103,35 +72,28 @@ const alumni = [
   },
 ];
 
-function interestHref(title: string) {
-  return `/recruiting?interest=${encodeURIComponent(title)}#apply`;
-}
-
 export default async function RecruitingPage() {
-  const [highlightVideos, mediaAppearances] = await Promise.all([
-    prisma.video.findMany({
-      where: { isActive: true },
-      orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }],
-      take: 3,
-    }),
+  const [mediaAppearances, openRoles] = await Promise.all([
     getMediaAppearances(),
+    getActiveOpenRoles(),
   ]);
+  const interestOptions = openRoles.map((r) => r.title);
 
   return (
-    <div className="animate-fade-in" style={{ paddingBottom: '3.5rem' }}>
-      {/* Hero */}
+    <div className="animate-fade-in" style={{ paddingBottom: '2.5rem' }}>
+      {/* Hero — shorter */}
       <div
         style={{
           position: 'relative',
           textAlign: 'center',
-          marginBottom: '2.75rem',
-          padding: 'clamp(3rem, 8vw, 4.5rem) 1.25rem',
+          marginBottom: '1.75rem',
+          padding: 'clamp(2.25rem, 5vw, 3.25rem) 1.25rem',
           overflow: 'hidden',
           color: 'white',
         }}
       >
         <Image
-          src="/images/campus/byu-campus-winter.jpg"
+          src="/images/campus/byu-mountain-view.jpg"
           alt="BYU campus and Y Mountain in Provo"
           fill
           priority
@@ -146,25 +108,25 @@ export default async function RecruitingPage() {
               'linear-gradient(135deg, rgba(27, 34, 83, 0.9) 0%, rgba(27, 34, 83, 0.78) 55%, rgba(27, 34, 83, 0.88) 100%)',
           }}
         />
-        <div className="container" style={{ position: 'relative', zIndex: 1, maxWidth: '720px' }}>
+        <div className="container" style={{ position: 'relative', zIndex: 1, maxWidth: '680px' }}>
           <p
             className="font-sans"
             style={{
               textTransform: 'uppercase',
               letterSpacing: '0.16em',
-              fontSize: '0.75rem',
+              fontSize: '0.72rem',
               fontWeight: 700,
               opacity: 0.85,
-              marginBottom: '0.75rem',
+              marginBottom: '0.55rem',
             }}
           >
-            Independent · Selective · Provo
+            We are accepting applications
           </p>
           <h1
             className="font-serif"
             style={{
-              fontSize: 'clamp(2.25rem, 5.5vw, 3.25rem)',
-              margin: '0 0 0.85rem 0',
+              fontSize: 'clamp(2rem, 5vw, 2.85rem)',
+              margin: '0 0 0.65rem 0',
               fontWeight: 700,
               color: 'white',
               lineHeight: 1.15,
@@ -174,10 +136,9 @@ export default async function RecruitingPage() {
           </h1>
           <p
             className="font-sans"
-            style={{ fontSize: '1.15rem', opacity: 0.92, marginBottom: '1.75rem', lineHeight: 1.5 }}
+            style={{ fontSize: '1.05rem', opacity: 0.92, marginBottom: '1.25rem', lineHeight: 1.45 }}
           >
-            We are accepting applications for Utah&apos;s leading independent conservative student newspaper — on the
-            cutting edge of campus journalism, rooted in faith and serious ideas.
+            Utah&apos;s premier independent conservative student newspaper — selective, professional, and rooted in faith.
           </p>
           <a
             href="#apply"
@@ -185,8 +146,8 @@ export default async function RecruitingPage() {
             style={{
               backgroundColor: 'white',
               color: 'var(--primary)',
-              fontSize: '1.05rem',
-              padding: '0.7rem 1.75rem',
+              fontSize: '1rem',
+              padding: '0.6rem 1.5rem',
               fontWeight: 700,
               borderRadius: '2rem',
               display: 'inline-block',
@@ -199,204 +160,90 @@ export default async function RecruitingPage() {
       </div>
 
       <div className="container">
-        {/* Open positions + focus — compact & clickable */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-            gap: '1.75rem',
-            marginBottom: '2.5rem',
-          }}
-        >
-          <div>
-            <h2
-              className="font-serif"
-              style={{
-                fontSize: '1.35rem',
-                borderBottom: '2px solid var(--border)',
-                paddingBottom: '0.5rem',
-                marginBottom: '0.85rem',
-                color: 'var(--primary)',
-              }}
-            >
-              Open positions
-            </h2>
-            <p className="font-sans text-muted" style={{ fontSize: '0.85rem', marginBottom: '0.75rem' }}>
-              Tap a role to apply with that interest selected.
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              {openPositions.map((pos) => (
-                <Link
-                  key={pos.title}
-                  href={interestHref(pos.title)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.75rem',
-                    padding: '0.65rem 0.85rem',
-                    backgroundColor: 'var(--surface)',
-                    borderRadius: '0.5rem',
-                    border: '1px solid var(--border)',
-                    textDecoration: 'none',
-                    color: 'inherit',
-                    transition: 'border-color 0.15s, box-shadow 0.15s',
-                  }}
-                >
-                  <span style={{ color: 'var(--primary)' }}>{pos.icon}</span>
-                  <span className="font-sans" style={{ fontSize: '0.98rem', fontWeight: 600 }}>
-                    {pos.title}
-                  </span>
-                  <span className="font-sans text-muted" style={{ marginLeft: 'auto', fontSize: '0.75rem', fontWeight: 600 }}>
-                    Apply →
-                  </span>
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <h2
-              className="font-serif"
-              style={{
-                fontSize: '1.35rem',
-                borderBottom: '2px solid var(--border)',
-                paddingBottom: '0.5rem',
-                marginBottom: '0.85rem',
-                color: 'var(--primary)',
-              }}
-            >
-              Editorial focus
-            </h2>
-            <p className="font-sans text-muted" style={{ fontSize: '0.85rem', marginBottom: '0.75rem' }}>
-              Beats we cover — select one when you apply.
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              {editorialFocus.map((focus) => (
-                <Link
-                  key={focus.title}
-                  href={interestHref(focus.title)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.75rem',
-                    padding: '0.65rem 0.85rem',
-                    backgroundColor: 'var(--surface)',
-                    borderRadius: '0.5rem',
-                    border: '1px solid var(--border)',
-                    textDecoration: 'none',
-                    color: 'inherit',
-                  }}
-                >
-                  <span style={{ color: 'var(--primary)' }}>{focus.icon}</span>
-                  <span className="font-sans" style={{ fontSize: '0.98rem', fontWeight: 600 }}>
-                    {focus.title}
-                  </span>
-                  <span className="font-sans text-muted" style={{ marginLeft: 'auto', fontSize: '0.75rem', fontWeight: 600 }}>
-                    Apply →
-                  </span>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </div>
+        <ApplyInterestPicker roles={openRoles} />
 
         {/* Quals + expect — compact */}
         <div
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-            gap: '1.25rem',
-            marginBottom: '2.75rem',
+            gap: '0.85rem',
+            marginBottom: '1.5rem',
           }}
         >
           <div
             style={{
-              padding: '1.35rem 1.5rem',
+              padding: '1.1rem 1.25rem',
               backgroundColor: 'var(--surface)',
               borderRadius: '0.75rem',
               border: '1px solid var(--border)',
             }}
           >
-            <h3 className="font-serif" style={{ fontSize: '1.25rem', marginBottom: '0.65rem', color: 'var(--primary)' }}>
+            <h3 className="font-serif" style={{ fontSize: '1.1rem', marginBottom: '0.5rem', color: 'var(--primary)' }}>
               Qualifications
             </h3>
-            <ul className="font-sans" style={{ fontSize: '0.95rem', lineHeight: 1.55, paddingLeft: '1.15rem', color: 'var(--muted)' }}>
-              <li style={{ marginBottom: '0.4rem' }}>
-                Current student at a Utah school or a school owned by The Church of Jesus Christ of Latter-day Saints.
+            <ul className="font-sans" style={{ fontSize: '0.9rem', lineHeight: 1.5, paddingLeft: '1.1rem', color: 'var(--muted)', margin: 0 }}>
+              <li style={{ marginBottom: '0.3rem' }}>
+                Current student at a Utah school or Church-owned school.
               </li>
-              <li>Politically conservative; aligned with our mission.</li>
+              <li>Conservative values; aligned with our mission.</li>
             </ul>
           </div>
           <div
             style={{
-              padding: '1.35rem 1.5rem',
+              padding: '1.1rem 1.25rem',
               backgroundColor: 'var(--primary)',
               color: 'white',
               borderRadius: '0.75rem',
             }}
           >
-            <h3 className="font-serif" style={{ fontSize: '1.25rem', marginBottom: '0.65rem', color: 'white' }}>
+            <h3 className="font-serif" style={{ fontSize: '1.1rem', marginBottom: '0.5rem', color: 'white' }}>
               What to expect
             </h3>
-            <ul className="font-sans" style={{ fontSize: '0.95rem', lineHeight: 1.55, paddingLeft: '1.15rem', opacity: 0.92 }}>
-              <li style={{ marginBottom: '0.4rem' }}>
-                <strong>Staff writers:</strong> roughly one article every 4–8 weeks.
+            <ul className="font-sans" style={{ fontSize: '0.9rem', lineHeight: 1.5, paddingLeft: '1.1rem', opacity: 0.92, margin: 0 }}>
+              <li style={{ marginBottom: '0.3rem' }}>
+                <strong>Staff writers:</strong> ~1 article every 4–8 weeks.
               </li>
-              <li style={{ marginBottom: '0.4rem' }}>
-                <strong>Editors & creators:</strong> assigned projects at a similar pace.
-              </li>
-              <li>Selective process — we build a professional newsroom, not a club flyer.</li>
+              <li>Selective process — a professional newsroom, not a club flyer.</li>
             </ul>
           </div>
         </div>
 
-        {/* Benefits — tighter */}
-        <div style={{ marginBottom: '2.75rem' }}>
+        {/* Benefits — compact row */}
+        <div style={{ marginBottom: '1.5rem' }}>
           <h2
             className="font-serif text-center"
-            style={{ fontSize: '1.75rem', marginBottom: '1.25rem', color: 'var(--primary)' }}
+            style={{ fontSize: '1.4rem', marginBottom: '0.85rem', color: 'var(--primary)' }}
           >
-            Why join
+            Why apply
           </h2>
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-              gap: '1rem',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+              gap: '0.65rem',
             }}
           >
             {[
-              {
-                icon: <Users size={26} />,
-                text: 'Network with peers, policymakers, and journalists nationwide.',
-              },
-              {
-                icon: <FileText size={26} />,
-                text: 'Real bylines and professional newsroom experience.',
-              },
-              {
-                icon: <Podcast size={26} />,
-                text: 'Top work opens doors to national shows and outlets.',
-              },
-              {
-                icon: <Flag size={26} />,
-                text: 'Shape conservative discourse in Utah and beyond.',
-              },
+              { icon: <Users size={22} />, text: 'Network nationwide' },
+              { icon: <FileText size={22} />, text: 'Real bylines & training' },
+              { icon: <Podcast size={22} />, text: 'National exposure' },
+              { icon: <Flag size={22} />, text: 'Shape the debate' },
             ].map((b, i) => (
               <div
                 key={i}
                 style={{
-                  padding: '1.25rem',
+                  padding: '0.9rem 0.75rem',
                   backgroundColor: 'var(--surface)',
                   borderRadius: '0.65rem',
                   border: '1px solid var(--border)',
                   textAlign: 'center',
                 }}
               >
-                <div style={{ color: 'var(--primary)', marginBottom: '0.65rem', display: 'flex', justifyContent: 'center' }}>
+                <div style={{ color: 'var(--primary)', marginBottom: '0.4rem', display: 'flex', justifyContent: 'center' }}>
                   {b.icon}
                 </div>
-                <p className="font-sans" style={{ fontSize: '0.92rem', color: 'var(--muted)', lineHeight: 1.5 }}>
+                <p className="font-sans" style={{ fontSize: '0.85rem', color: 'var(--muted)', lineHeight: 1.35, margin: 0, fontWeight: 600 }}>
                   {b.text}
                 </p>
               </div>
@@ -404,67 +251,138 @@ export default async function RecruitingPage() {
           </div>
         </div>
 
-        {/* Media appearances — admin-managed at /dashboard/team-media */}
+        {/* Appearances — admin at /dashboard/appearances */}
         {mediaAppearances.length > 0 && (
           <div
             style={{
-              marginBottom: '2.75rem',
-              padding: '1.75rem 1.5rem',
+              marginBottom: '1.5rem',
+              padding: '1.15rem 1.15rem',
               borderRadius: '0.75rem',
               border: '1px solid var(--border)',
               backgroundColor: 'var(--surface)',
             }}
           >
-            <h2 className="font-serif" style={{ fontSize: '1.5rem', marginBottom: '0.35rem', color: 'var(--primary)' }}>
+            <h2 className="font-serif" style={{ fontSize: '1.3rem', marginBottom: '0.25rem', color: 'var(--primary)' }}>
               See where we&apos;ve shown up
             </h2>
-            <p className="font-sans text-muted" style={{ fontSize: '0.95rem', marginBottom: '1.15rem', lineHeight: 1.5 }}>
-              Press, podcasts, and national media featuring Chronicle reporting and staff.
+            <p className="font-sans text-muted" style={{ fontSize: '0.88rem', marginBottom: '0.85rem', lineHeight: 1.45 }}>
+              Press, podcasts, and guest spots — separate from our own Videos library.
             </p>
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
                 gap: '0.85rem',
               }}
             >
               {mediaAppearances.map((m) => {
-                const inner = (
+                const preview = linkPreview(m.url || '');
+                const href = m.url
+                  ? m.url.startsWith('http')
+                    ? m.url
+                    : `https://${m.url}`
+                  : undefined;
+                // Don't surface filler notes like "featured video"
+                const note =
+                  m.note && !/featured\s*video/i.test(m.note) ? m.note : null;
+                const title =
+                  m.title && !/featured\s*video/i.test(m.title) ? m.title : null;
+
+                const card = (
                   <>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.35rem' }}>
-                      <ExternalLink size={14} style={{ color: 'var(--primary)' }} />
-                      <span className="font-sans" style={{ fontWeight: 700, fontSize: '0.95rem' }}>
-                        {m.outlet}
-                      </span>
+                    <div
+                      style={{
+                        position: 'relative',
+                        aspectRatio: '16 / 9',
+                        background: 'linear-gradient(145deg, #1b2253, #3d4a8c)',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      {preview.kind === 'youtube' && preview.videoId ? (
+                        <YoutubeThumb videoId={preview.videoId} />
+                      ) : preview.src ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={preview.src}
+                          alt=""
+                          referrerPolicy="no-referrer"
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'contain',
+                            objectPosition: 'center',
+                            padding: '1.5rem',
+                            background: '#1b2253',
+                          }}
+                        />
+                      ) : null}
+                      {preview.kind === 'youtube' && (
+                        <span
+                          style={{
+                            position: 'absolute',
+                            inset: 0,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            pointerEvents: 'none',
+                          }}
+                        >
+                          <span
+                            style={{
+                              width: 40,
+                              height: 40,
+                              borderRadius: '50%',
+                              background: 'rgba(27,34,83,0.88)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
+                              <path d="M8 5v14l11-7z" />
+                            </svg>
+                          </span>
+                        </span>
+                      )}
                     </div>
-                    {m.title ? (
-                      <p className="font-sans" style={{ fontSize: '0.9rem', fontWeight: 600, margin: '0 0 0.25rem' }}>
-                        {m.title}
-                      </p>
-                    ) : null}
-                    {m.note ? (
-                      <p className="font-sans text-muted" style={{ fontSize: '0.85rem', lineHeight: 1.45, margin: 0 }}>
-                        {m.note}
-                      </p>
-                    ) : null}
+                    <div style={{ padding: '0.75rem 0.85rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: title || note ? '0.3rem' : 0 }}>
+                        {href ? <ExternalLink size={13} style={{ color: 'var(--primary)', flexShrink: 0 }} /> : null}
+                        <span className="font-sans" style={{ fontWeight: 700, fontSize: '0.9rem' }}>
+                          {m.outlet || 'Appearance'}
+                        </span>
+                      </div>
+                      {title ? (
+                        <p className="font-sans" style={{ fontSize: '0.85rem', fontWeight: 600, margin: '0 0 0.2rem', lineHeight: 1.35 }}>
+                          {title}
+                        </p>
+                      ) : null}
+                      {note ? (
+                        <p className="font-sans text-muted" style={{ fontSize: '0.8rem', lineHeight: 1.4, margin: 0 }}>
+                          {note}
+                        </p>
+                      ) : null}
+                    </div>
                   </>
                 );
-                const cardStyle = {
-                  padding: '1rem',
-                  borderRadius: '0.5rem',
+
+                const wrapStyle = {
+                  borderRadius: '0.65rem',
                   border: '1px solid var(--border)',
                   backgroundColor: 'var(--background)',
                   textDecoration: 'none',
                   color: 'inherit',
+                  overflow: 'hidden',
                   display: 'block',
                 } as const;
-                return m.url ? (
-                  <a key={m.id} href={m.url} target="_blank" rel="noopener noreferrer" style={cardStyle}>
-                    {inner}
+
+                return href ? (
+                  <a key={m.id} href={href} target="_blank" rel="noopener noreferrer" style={wrapStyle}>
+                    {card}
                   </a>
                 ) : (
-                  <div key={m.id} style={cardStyle}>
-                    {inner}
+                  <div key={m.id} style={wrapStyle}>
+                    {card}
                   </div>
                 );
               })}
@@ -472,23 +390,22 @@ export default async function RecruitingPage() {
           </div>
         )}
 
-        {/* Major ops + always the latest 3 videos */}
-        <div style={{ marginBottom: '2.75rem' }}>
+        {/* Major operations — static cards only */}
+        <div style={{ marginBottom: '1.5rem' }}>
           <h2
             className="font-serif text-center"
-            style={{ fontSize: '1.75rem', marginBottom: '0.5rem', color: 'var(--primary)' }}
+            style={{ fontSize: '1.4rem', marginBottom: '0.35rem', color: 'var(--primary)' }}
           >
-            Major operations & highlights
+            What we cover
           </h2>
-          <p className="font-sans text-center text-muted" style={{ fontSize: '0.95rem', marginBottom: '1.5rem' }}>
-            Campus, faith, and the stories that define our newsroom.
+          <p className="font-sans text-center text-muted" style={{ fontSize: '0.88rem', marginBottom: '0.85rem' }}>
+            Campus, faith, family, and politics — serious work.
           </p>
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-              gap: '1.15rem',
-              marginBottom: highlightVideos.length ? '1.75rem' : 0,
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: '0.75rem',
             }}
           >
             {majorOps.map((op) => (
@@ -501,87 +418,45 @@ export default async function RecruitingPage() {
                   border: '1px solid var(--border)',
                 }}
               >
-                <div style={{ position: 'relative', width: '100%', height: '160px' }}>
+                <div style={{ position: 'relative', width: '100%', height: '120px' }}>
                   <Image src={op.image} alt={op.title} fill sizes="(max-width: 768px) 100vw, 33vw" style={{ objectFit: 'cover' }} />
                 </div>
-                <div style={{ padding: '1rem 1.15rem' }}>
-                  <h3 className="font-serif" style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.25rem' }}>
+                <div style={{ padding: '0.75rem 0.9rem' }}>
+                  <h3 className="font-serif" style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '0.2rem' }}>
                     {op.title}
                   </h3>
-                  <p className="font-sans text-muted" style={{ fontSize: '0.88rem', lineHeight: 1.45, margin: 0 }}>
+                  <p className="font-sans text-muted" style={{ fontSize: '0.82rem', lineHeight: 1.4, margin: 0 }}>
                     {op.description}
                   </p>
                 </div>
               </div>
             ))}
           </div>
-
-          {highlightVideos.length > 0 && (
-            <div>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'baseline',
-                  justifyContent: 'space-between',
-                  gap: '1rem',
-                  marginBottom: '1rem',
-                  flexWrap: 'wrap',
-                }}
-              >
-                <h3 className="font-serif" style={{ fontSize: '1.25rem', margin: 0, color: 'var(--primary)' }}>
-                  Recent video highlights
-                </h3>
-                <Link
-                  href="/videos"
-                  className="font-sans text-sm"
-                  style={{ fontWeight: 700, color: 'var(--accent)', textDecoration: 'none' }}
-                >
-                  All videos →
-                </Link>
-              </div>
-              <VideoHighlights
-                videos={highlightVideos.map((v) => ({
-                  id: v.id,
-                  slug: v.slug,
-                  title: v.title,
-                  description: null,
-                  platform: v.platform,
-                  embedUrl: resolveStreamEmbedUrl(v),
-                  thumbnailUrl: resolveStreamThumbnailUrl(v),
-                  durationSec: v.durationSec,
-                }))}
-                title=""
-                variant="home"
-                showSeeAll={false}
-                linkToWatchPage
-              />
-            </div>
-          )}
         </div>
 
-        {/* Alumni (shorter set) */}
-        <div style={{ marginBottom: '2.75rem' }}>
-          <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-            <h2 className="font-serif" style={{ fontSize: '1.75rem', marginBottom: '0.5rem', color: 'var(--primary)' }}>
+        {/* Alumni — three highlights only */}
+        <div style={{ marginBottom: '1.5rem' }}>
+          <div style={{ textAlign: 'center', marginBottom: '0.85rem' }}>
+            <h2 className="font-serif" style={{ fontSize: '1.4rem', marginBottom: '0.25rem', color: 'var(--primary)' }}>
               Alumni achievements
             </h2>
-            <p className="font-sans text-muted" style={{ fontSize: '0.95rem' }}>
-              From DC to national outlets — Chronicle alumni lead.
+            <p className="font-sans text-muted" style={{ fontSize: '0.88rem', margin: 0 }}>
+              From Provo to national outlets.
             </p>
           </div>
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-              gap: '1.15rem',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: '0.75rem',
             }}
           >
-            {alumni.map((alum) => (
+            {alumni.slice(0, 3).map((alum) => (
               <div
                 key={alum.name}
                 style={{
                   backgroundColor: 'var(--background)',
-                  padding: '1.35rem',
+                  padding: '1rem',
                   borderRadius: '0.65rem',
                   border: '1px solid var(--border)',
                   textAlign: 'center',
@@ -590,22 +465,22 @@ export default async function RecruitingPage() {
                 <Image
                   src={alum.image}
                   alt={alum.name}
-                  width={88}
-                  height={88}
+                  width={72}
+                  height={72}
                   style={{
                     borderRadius: '50%',
                     objectFit: 'cover',
-                    margin: '0 auto 1rem',
+                    margin: '0 auto 0.65rem',
                     border: '2px solid var(--primary)',
                   }}
                 />
-                <h3 className="font-serif" style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '0.35rem' }}>
+                <h3 className="font-serif" style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '0.25rem' }}>
                   {alum.name}
                 </h3>
-                <p className="font-sans text-primary" style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.65rem' }}>
+                <p className="font-sans text-primary" style={{ fontSize: '0.78rem', fontWeight: 600, marginBottom: '0.45rem' }}>
                   {alum.role}
                 </p>
-                <p className="font-sans text-muted" style={{ fontSize: '0.88rem', fontStyle: 'italic', lineHeight: 1.5 }}>
+                <p className="font-sans text-muted" style={{ fontSize: '0.8rem', fontStyle: 'italic', lineHeight: 1.4, margin: 0 }}>
                   &ldquo;{alum.quote}&rdquo;
                 </p>
               </div>
@@ -618,7 +493,7 @@ export default async function RecruitingPage() {
           id="apply"
           style={{
             position: 'relative',
-            padding: '2.5rem 1.25rem',
+            padding: '1.75rem 1.15rem',
             textAlign: 'center',
             borderRadius: '1rem',
             border: '1px solid var(--border)',
@@ -627,11 +502,11 @@ export default async function RecruitingPage() {
         >
           <div style={{ position: 'absolute', inset: 0 }}>
             <Image
-              src="/images/campus/byu-maeser.jpg"
+              src="/images/campus/byu-campus-winter.jpg"
               alt=""
               fill
               sizes="100vw"
-              style={{ objectFit: 'cover', objectPosition: 'center 30%' }}
+              style={{ objectFit: 'cover', objectPosition: 'center 35%' }}
               aria-hidden
             />
             <div
@@ -643,14 +518,14 @@ export default async function RecruitingPage() {
             />
           </div>
           <div style={{ position: 'relative', zIndex: 1 }}>
-            <h2 className="font-serif" style={{ fontSize: '2rem', marginBottom: '0.5rem', color: 'var(--primary)' }}>
+            <h2 className="font-serif" style={{ fontSize: '1.75rem', marginBottom: '0.35rem', color: 'var(--primary)' }}>
               We are accepting applications
             </h2>
             <p
               className="font-sans text-muted"
-              style={{ fontSize: '1rem', marginBottom: '1.5rem', maxWidth: '520px', margin: '0 auto 1.5rem' }}
+              style={{ fontSize: '0.95rem', marginBottom: '1.15rem', maxWidth: '480px', margin: '0 auto 1.15rem' }}
             >
-              Submit a thoughtful application. Leadership reviews every submission.
+              Leadership reviews every submission. Optional social handles and a writing sample strengthen your application.
             </p>
             <Suspense
               fallback={
@@ -659,7 +534,7 @@ export default async function RecruitingPage() {
                 </p>
               }
             >
-              <VolunteerForm />
+              <VolunteerForm interestOptions={interestOptions} />
             </Suspense>
           </div>
         </div>

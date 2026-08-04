@@ -54,24 +54,24 @@ export default function DonateForm() {
     if (qualifiesForMembership) {
       return (
         <>
-          <strong>America 250 Founding Member</strong> — one year of membership after you donate (premium digital
-          articles, Print Volume PDF access, gift unlocks). We&apos;ll email you at checkout how to access everything — no account
-          needed up front.
+          <strong>America 250 Founding Member</strong> — one year of membership: premium digital articles
+          (print-edition pieces online), Print Volume PDF access, and gift unlocks. We&apos;ll email access details after checkout.
         </>
       );
     }
     if (isNamedSupporter) {
       return (
         <>
-          <strong>America 250 Patriot</strong> — thank you. We&apos;ll recognize you as a supporter.
-          Membership perks (premium digital articles) begin at <strong>${AUGUST_MEMBERSHIP_MIN}</strong>.
+          <strong>America 250 Patriot</strong> — thank you. We&apos;ll list you as a recognized supporter
+          (name recognition only — not a mailed gift). Premium digital articles unlock at{' '}
+          <strong>${AUGUST_MEMBERSHIP_MIN}+</strong> as a Founding Member.
         </>
       );
     }
     return (
       <>
-        Give <strong>${AUGUST_SUPPORTER_MIN}</strong> to be recognized as an America 250 Patriot, or{' '}
-        <strong>${AUGUST_MEMBERSHIP_MIN}+</strong> for a full year as a Founding Member.
+        <strong>${AUGUST_SUPPORTER_MIN}</strong> = Patriot (recognized supporter).{' '}
+        <strong>${AUGUST_MEMBERSHIP_MIN}+</strong> = Founding Member for a year with premium digital articles.
       </>
     );
   };

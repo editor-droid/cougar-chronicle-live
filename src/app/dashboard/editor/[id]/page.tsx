@@ -32,7 +32,7 @@ export default async function EditorPage({ params }: { params: Promise<{ id: str
   
   if (session.user.role === 'ADMIN' || session.user.role === 'EDITOR') {
     authors = await prisma.user.findMany({
-      where: { role: { in: ['ADMIN', 'EDITOR', 'WRITER'] } },
+      where: { role: { in: ['ADMIN', 'EDITOR', 'WRITER'] }, archivedAt: null },
       orderBy: { name: 'asc' }
     });
 
@@ -45,6 +45,11 @@ export default async function EditorPage({ params }: { params: Promise<{ id: str
     customAuthorsList = distinctAuthors.map(a => a.customAuthor as string).filter(a => a && a.trim() !== '');
   }
 
+  const printEditions = await prisma.printEdition.findMany({
+    orderBy: { createdAt: 'desc' },
+    select: { id: true, title: true, isActive: true },
+  });
+
   return (
     <div className="container editor-full-width animate-fade-in" style={{ marginTop: '2rem' }}>
       <EditorForm 
@@ -53,6 +58,7 @@ export default async function EditorPage({ params }: { params: Promise<{ id: str
         userRole={session.user.role} 
         availableAuthors={authors} 
         customAuthorsList={customAuthorsList}
+        printEditions={printEditions}
         isNew={id === 'new'}
       />
     </div>

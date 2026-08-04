@@ -16,15 +16,47 @@ function classifyUrl(href: string): DescriptionLink {
     const u = new URL(href);
     const host = u.hostname.replace(/^www\./, '');
     if (host === 'thecougarchronicle.com' || host === 'localhost') {
-      const article = u.pathname.match(
+      const nested = u.pathname.match(
         /^\/(article|premium-article|print-edition)\/([^/]+)\/?$/
       );
-      if (article) {
-        return { href: u.pathname, kind: 'article', slug: article[2] };
+      if (nested) {
+        const kind = nested[1];
+        const slug = nested[2];
+        // Prefer flat free-article path in stored hrefs
+        const href =
+          kind === 'article' ? `/${slug}` : `/${kind}/${slug}`;
+        return { href, kind: 'article', slug };
       }
       const video = u.pathname.match(/^\/videos\/([^/]+)\/?$/);
       if (video) {
         return { href: `/videos/${video[1]}`, kind: 'video', slug: video[1] };
+      }
+      // Flat free article: /my-story-slug (single segment, not a known app route)
+      const flat = u.pathname.match(/^\/([a-z0-9]+(?:-[a-z0-9]+)*)\/?$/i);
+      if (flat) {
+        const reserved = new Set([
+          'news',
+          'opinion',
+          'campus',
+          'faith',
+          'family',
+          'politics',
+          'about',
+          'contact',
+          'videos',
+          'donate',
+          'membership',
+          'recruiting',
+          'login',
+          'account',
+          'search',
+          'links',
+          'corrections',
+          'print-edition',
+        ]);
+        if (!reserved.has(flat[1].toLowerCase())) {
+          return { href: `/${flat[1]}`, kind: 'article', slug: flat[1] };
+        }
       }
     }
     return { href, kind: 'external' };

@@ -76,17 +76,26 @@ export default async function VideosPage() {
         }}
       />
 
-      <header style={{ marginBottom: '3rem', borderBottom: '2px solid var(--border)', paddingBottom: '1.5rem' }}>
-        <h1 className="font-serif" style={{ fontSize: '3.5rem', margin: 0 }}>
+      <header
+        style={{
+          marginBottom: '2rem',
+          borderBottom: '2px solid var(--border)',
+          paddingBottom: '1.25rem',
+        }}
+      >
+        <h1
+          className="font-serif"
+          style={{ fontSize: 'clamp(2rem, 8vw, 3.5rem)', margin: 0, lineHeight: 1.1 }}
+        >
           Videos
         </h1>
         <p
           className="font-sans"
           style={{
-            fontSize: '1.25rem',
+            fontSize: 'clamp(0.95rem, 3vw, 1.25rem)',
             maxWidth: '36rem',
             color: 'var(--muted)',
-            margin: '1rem 0 0',
+            margin: '0.75rem 0 0',
             lineHeight: 1.55,
           }}
         >

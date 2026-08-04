@@ -14,7 +14,9 @@ type Tab =
   | 'links'
   | 'team'
   | 'media'
-  | 'team-media';
+  | 'appearances'
+  | 'team-media'
+  | 'analytics';
 
 export default function DashboardNav({
   currentTab,
@@ -56,12 +58,13 @@ export default function DashboardNav({
       </button>
       <nav className={`dash-nav ${open ? 'open' : ''}`} aria-label="Dashboard">
         {link('posts', '/dashboard', 'Posts')}
+        {link('analytics', '/dashboard/analytics', 'Performance')}
         {role === 'ADMIN' && link('users', '/dashboard/users', 'Users')}
         {link('print-editions', '/dashboard/print-editions', 'Editions')}
         {link('videos', '/dashboard/videos', 'Videos')}
         {link('links', '/dashboard/links', 'Links')}
         {role === 'ADMIN' && link('team', '/dashboard/team', 'Team')}
-        {role === 'ADMIN' && link('media', '/dashboard/media', 'Media')}
+        {role === 'ADMIN' && link('appearances', '/dashboard/appearances', 'Appearances')}
         {role === 'ADMIN' && link('donors', '/dashboard/donors', 'Donors')}
         {role === 'ADMIN' && link('subscribers', '/dashboard/subscribers', 'Subscribers')}
         <Link href="/dashboard/print-orders" onClick={() => setOpen(false)}>

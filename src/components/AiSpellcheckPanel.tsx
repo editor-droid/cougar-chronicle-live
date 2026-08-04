@@ -48,10 +48,10 @@ export function AiSpellcheckPanel({ content, onApplySuggestion }: AiSpellcheckPa
 
   return (
     <div
-      className="rounded-xl border overflow-hidden mt-4"
+      className="rounded-xl border overflow-hidden"
       style={{
-        borderColor: "var(--primary)",
-        background: "var(--surface)",
+        borderColor: "#e8eaf0",
+        background: "#fafbfc",
       }}
     >
       <div className="flex items-center justify-between px-4 py-3">

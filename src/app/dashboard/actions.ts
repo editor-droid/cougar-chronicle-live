@@ -10,6 +10,7 @@ import { broadcastPostPublication } from '@/lib/publish-utils';
 import { syncArticleVideosToLibrary } from '@/lib/article-videos';
 import { canApprovePosts, canPublishPosts } from '@/lib/roles';
 import { computeBreakingUntil, DEFAULT_BREAKING_HOURS } from '@/lib/breaking';
+import { slugifyTitle, sanitizeSlugInput, withUniquenessSuffix } from '@/lib/slug';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_fallback_key_so_build_does_not_crash');
 
@@ -78,6 +79,37 @@ export async function updatePostState(formData: FormData) {
   if (role !== 'EDITOR' && role !== 'ADMIN') {
     if (role !== 'WRITER') throw new Error('Unauthorized role');
     if (post.authorId !== session.user.id) throw new Error('You can only modify your own posts');
+  }
+
+  // Require full editorial checklist before submit / approve / publish
+  if (
+    newState === 'IN_REVIEW' ||
+    newState === 'APPROVED' ||
+    newState === 'PUBLISHED'
+  ) {
+    let checklist: Record<string, boolean> = {};
+    try {
+      const raw = (post as { editorChecklist?: unknown }).editorChecklist;
+      checklist =
+        typeof raw === 'string'
+          ? JSON.parse(raw || '{}')
+          : ((raw as Record<string, boolean>) || {});
+    } catch {
+      checklist = {};
+    }
+    const required = [
+      'spellcheck',
+      'seo',
+      'formatting',
+      'oneWordLinks',
+      'ready',
+    ] as const;
+    const incomplete = required.filter((k) => !checklist[k]);
+    if (incomplete.length > 0) {
+      throw new Error(
+        'Complete the editorial checklist before publishing (open the Checklist tab).'
+      );
+    }
   }
 
   const updateData: any = { state: newState };
@@ -219,23 +251,12 @@ ${cleanContent}`,
   revalidatePath('/');
 }
 
-function slugifyTitle(title: string): string {
-  const base = String(title || 'post')
-    .toLowerCase()
-    .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 80);
-  return base || 'post';
-}
-
 async function ensureUniqueSlug(desired: string, excludeId?: string): Promise<string> {
-  let base = slugifyTitle(desired);
-  if (!base) base = 'post';
-  let slug = base;
+  // Caller already auto-slugified or sanitized — never re-drop stop words here
+  // (that would rewrite intentional editor slugs on every save).
   let n = 0;
   while (true) {
+    const slug = withUniquenessSuffix(desired, n);
     const existing = await prisma.post.findFirst({
       where: {
         slug,
@@ -245,7 +266,6 @@ async function ensureUniqueSlug(desired: string, excludeId?: string): Promise<st
     });
     if (!existing) return slug;
     n += 1;
-    slug = `${base}-${n}`;
   }
 }
 
@@ -258,9 +278,10 @@ export async function savePost(data: any) {
     throw new Error('Unauthorized role');
   }
 
-  // Never allow empty slug — homepage links become /article/ and 404
+  // Never allow empty/invalid slug — homepage links become / and 404
   const rawSlug = typeof data.slug === 'string' ? data.slug.trim() : '';
-  const slugSeed = rawSlug || data.title || 'post';
+  const cleaned = rawSlug ? sanitizeSlugInput(rawSlug) : '';
+  const slugSeed = cleaned || slugifyTitle(String(data.title || 'article'), { dropStopWords: true });
 
   if (data.id) {
     const existing = await prisma.post.findUnique({ where: { id: data.id } });
@@ -295,7 +316,16 @@ export async function savePost(data: any) {
           data.isBreaking
             ? computeBreakingUntil(data.breakingHours)
             : null,
-        printEditionOrder: data.printEditionOrder ? parseInt(data.printEditionOrder) : null,
+        printEditionId:
+          data.printEditionId === undefined
+            ? undefined
+            : data.printEditionId
+              ? data.printEditionId
+              : null,
+        printEditionOrder:
+          data.printEditionOrder === '' || data.printEditionOrder == null
+            ? null
+            : parseInt(String(data.printEditionOrder), 10),
         imageCaption: data.imageCaption,
         ...(data.editorChecklist !== undefined && {
           editorChecklist:
@@ -331,7 +361,11 @@ export async function savePost(data: any) {
           data.isBreaking
             ? computeBreakingUntil(data.breakingHours)
             : null,
-        printEditionOrder: data.printEditionOrder ? parseInt(data.printEditionOrder) : null,
+        printEditionId: data.printEditionId || null,
+        printEditionOrder:
+          data.printEditionOrder === '' || data.printEditionOrder == null
+            ? null
+            : parseInt(String(data.printEditionOrder), 10),
         imageCaption: data.imageCaption,
         editorChecklist:
           typeof data.editorChecklist === 'string'

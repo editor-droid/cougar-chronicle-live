@@ -4,26 +4,6 @@ import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { FileText, Link2, Upload, X } from 'lucide-react';
 
-/** Open roles + beats — keep in sync with /recruiting open positions. */
-export const APPLICATION_INTERESTS = [
-  'Staff Writer',
-  'Print Editor',
-  'Video Editor',
-  'Photographer',
-  'Investigative Journalist',
-  'Content Creator',
-  'Editing',
-  'Copywriting',
-  'Graphic Design',
-  'Social Media',
-  'BYU News',
-  'Faith Issues',
-  'Family Issues',
-  'Utah Politics',
-  'US Politics',
-  'Conservative Thought',
-] as const;
-
 const fieldStyle: React.CSSProperties = {
   width: '100%',
   padding: '0.75rem',
@@ -34,22 +14,27 @@ const fieldStyle: React.CSSProperties = {
   fontSize: '0.95rem',
 };
 
-function normalizeInterest(raw: string | null): string | null {
+function normalizeInterest(raw: string | null, allowed: string[]): string | null {
   if (!raw) return null;
   const decoded = decodeURIComponent(raw).trim();
   if (!decoded) return null;
-  const match = APPLICATION_INTERESTS.find(
-    (i) => i.toLowerCase() === decoded.toLowerCase()
-  );
+  const match = allowed.find((i) => i.toLowerCase() === decoded.toLowerCase());
   return match || decoded;
 }
 
-export default function VolunteerForm() {
+export default function VolunteerForm({
+  interestOptions = [],
+}: {
+  /** From admin open roles — only these show on the form. */
+  interestOptions?: string[];
+}) {
   const searchParams = useSearchParams();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
   const [uploadBusy, setUploadBusy] = useState(false);
+  const options = interestOptions.filter(Boolean);
+  const optionsKey = options.join('|');
 
   const [formData, setFormData] = useState({
     name: '',
@@ -57,21 +42,38 @@ export default function VolunteerForm() {
     phone: '',
     message: '',
     interests: [] as string[],
-    socialHandles: '',
+    instagram: '',
+    xHandle: '',
+    linkedin: '',
+    facebook: '',
     sampleUrl: '',
     samplePdfUrl: '',
     samplePdfName: '',
     website: '', // honeypot
   });
 
+  const formatSocialsForSubmit = () => {
+    const lines: string[] = [];
+    if (formData.instagram.trim()) lines.push(`Instagram: ${formData.instagram.trim()}`);
+    if (formData.xHandle.trim()) lines.push(`X / Twitter: ${formData.xHandle.trim()}`);
+    if (formData.linkedin.trim()) lines.push(`LinkedIn: ${formData.linkedin.trim()}`);
+    if (formData.facebook.trim()) lines.push(`Facebook: ${formData.facebook.trim()}`);
+    return lines.join('\n');
+  };
+
   useEffect(() => {
-    const interest = normalizeInterest(searchParams.get('interest'));
+    const interest = normalizeInterest(searchParams.get('interest'), options);
     if (!interest) return;
+    // Only auto-select if it's currently open (or still allow free-text match from link)
+    const allowed =
+      options.length === 0 ||
+      options.some((o) => o.toLowerCase() === interest.toLowerCase());
+    if (!allowed) return;
     setFormData((prev) => {
       if (prev.interests.includes(interest)) return prev;
       return { ...prev, interests: [...prev.interests, interest] };
     });
-  }, [searchParams]);
+  }, [searchParams, optionsKey]);
 
   const handleInterestToggle = (interest: string) => {
     setFormData((prev) => ({
@@ -182,8 +184,8 @@ export default function VolunteerForm() {
           phone: formData.phone,
           message: [
             formData.message,
-            formData.socialHandles.trim()
-              ? `Social handles (review OK): ${formData.socialHandles.trim()}`
+            formatSocialsForSubmit()
+              ? `Social handles (review OK):\n${formatSocialsForSubmit()}`
               : '',
             sampleParts.length ? `Writing sample:\n${sampleParts.join('\n')}` : '',
           ]
@@ -305,41 +307,47 @@ export default function VolunteerForm() {
 
       <div style={{ marginBottom: '1.5rem' }}>
         <label className="font-sans" style={{ display: 'block', fontWeight: 600, marginBottom: '0.75rem' }}>
-          Areas of Interest *
+          Open positions / interests *
         </label>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-          {APPLICATION_INTERESTS.map((interest) => {
-            const isSelected = formData.interests.includes(interest);
-            return (
-              <label
-                key={interest}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  backgroundColor: isSelected ? 'var(--primary)' : 'var(--surface)',
-                  color: isSelected ? 'white' : 'var(--foreground)',
-                  padding: '0.4rem 0.9rem',
-                  borderRadius: '2rem',
-                  border: `1px solid ${isSelected ? 'var(--primary)' : 'var(--border)'}`,
-                  cursor: 'pointer',
-                  userSelect: 'none',
-                  whiteSpace: 'nowrap',
-                  position: 'relative',
-                }}
-              >
-                <input
-                  type="checkbox"
-                  checked={isSelected}
-                  onChange={() => handleInterestToggle(interest)}
-                  style={{ position: 'absolute', opacity: 0, height: 0, width: 0 }}
-                />
-                <span className="font-sans text-sm" style={{ fontWeight: isSelected ? 600 : 500 }}>
-                  {interest}
-                </span>
-              </label>
-            );
-          })}
-        </div>
+        {options.length === 0 ? (
+          <p className="font-sans text-muted" style={{ fontSize: '0.9rem', margin: 0 }}>
+            No open positions are listed right now. Email editor@thecougarchronicle.com.
+          </p>
+        ) : (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+            {options.map((interest) => {
+              const isSelected = formData.interests.includes(interest);
+              return (
+                <label
+                  key={interest}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    backgroundColor: isSelected ? 'var(--primary)' : 'var(--surface)',
+                    color: isSelected ? 'white' : 'var(--foreground)',
+                    padding: '0.4rem 0.9rem',
+                    borderRadius: '2rem',
+                    border: `1px solid ${isSelected ? 'var(--primary)' : 'var(--border)'}`,
+                    cursor: 'pointer',
+                    userSelect: 'none',
+                    whiteSpace: 'nowrap',
+                    position: 'relative',
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => handleInterestToggle(interest)}
+                    style={{ position: 'absolute', opacity: 0, height: 0, width: 0 }}
+                  />
+                  <span className="font-sans text-sm" style={{ fontWeight: isSelected ? 600 : 500 }}>
+                    {interest}
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <div style={{ marginBottom: '1.5rem' }}>
@@ -387,16 +395,65 @@ export default function VolunteerForm() {
           <label className="font-sans" style={{ display: 'block', fontWeight: 600, marginBottom: '0.35rem' }}>
             Social handles
           </label>
-          <p className="font-sans text-muted" style={{ fontSize: '0.82rem', marginBottom: '0.5rem', lineHeight: 1.4 }}>
-            Share public tags so we can confirm you&apos;re genuine (Instagram, X, LinkedIn, etc.).
+          <p className="font-sans text-muted" style={{ fontSize: '0.82rem', marginBottom: '0.65rem', lineHeight: 1.4 }}>
+            Optional — public tags help us confirm you&apos;re genuine. Fill any you use.
           </p>
-          <input
-            type="text"
-            value={formData.socialHandles}
-            onChange={(e) => setFormData({ ...formData, socialHandles: e.target.value })}
-            placeholder="@you · linkedin.com/in/you"
-            style={fieldStyle}
-          />
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+              gap: '0.65rem',
+            }}
+          >
+            <div>
+              <span className="font-sans text-muted" style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                Instagram
+              </span>
+              <input
+                type="text"
+                value={formData.instagram}
+                onChange={(e) => setFormData({ ...formData, instagram: e.target.value })}
+                placeholder="@username"
+                style={{ ...fieldStyle, marginTop: '0.3rem' }}
+              />
+            </div>
+            <div>
+              <span className="font-sans text-muted" style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                X / Twitter
+              </span>
+              <input
+                type="text"
+                value={formData.xHandle}
+                onChange={(e) => setFormData({ ...formData, xHandle: e.target.value })}
+                placeholder="@username"
+                style={{ ...fieldStyle, marginTop: '0.3rem' }}
+              />
+            </div>
+            <div>
+              <span className="font-sans text-muted" style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                LinkedIn
+              </span>
+              <input
+                type="text"
+                value={formData.linkedin}
+                onChange={(e) => setFormData({ ...formData, linkedin: e.target.value })}
+                placeholder="linkedin.com/in/…"
+                style={{ ...fieldStyle, marginTop: '0.3rem' }}
+              />
+            </div>
+            <div>
+              <span className="font-sans text-muted" style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                Facebook
+              </span>
+              <input
+                type="text"
+                value={formData.facebook}
+                onChange={(e) => setFormData({ ...formData, facebook: e.target.value })}
+                placeholder="Profile or page URL"
+                style={{ ...fieldStyle, marginTop: '0.3rem' }}
+              />
+            </div>
+          </div>
         </div>
 
         <div>

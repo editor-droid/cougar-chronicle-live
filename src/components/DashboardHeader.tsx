@@ -16,7 +16,9 @@ export default async function DashboardHeader({
     | 'links'
     | 'team'
     | 'media'
-    | 'team-media';
+    | 'appearances'
+    | 'team-media'
+    | 'analytics';
   title?: string;
 }) {
   const session = await auth();

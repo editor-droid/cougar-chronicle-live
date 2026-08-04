@@ -1,8 +1,8 @@
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import DashboardHeader from '@/components/DashboardHeader';
-import { getPublicTeam } from '@/lib/site-content';
-import TeamRosterManager from './TeamRosterManager';
+import { getOpenRoles, getPublicTeam } from '@/lib/site-content';
+import TeamAdmin from './TeamAdmin';
 
 export default async function TeamPage() {
   const session = await auth();
@@ -10,12 +10,12 @@ export default async function TeamPage() {
     redirect('/dashboard');
   }
 
-  const team = await getPublicTeam();
+  const [team, openRoles] = await Promise.all([getPublicTeam(), getOpenRoles()]);
 
   return (
-    <div className="container animate-fade-in" style={{ marginTop: '2rem', marginBottom: '3rem' }}>
-      <DashboardHeader currentTab="team" title="Team roster" />
-      <TeamRosterManager initialTeam={team} />
+    <div className="container animate-fade-in" style={{ marginTop: '1rem', marginBottom: '3rem' }}>
+      <DashboardHeader currentTab="team" title="Team" />
+      <TeamAdmin team={team} openRoles={openRoles} />
     </div>
   );
 }

@@ -11,12 +11,8 @@ export default async function DashboardLinksPage() {
   }
 
   return (
-    <div className="container animate-fade-in" style={{ marginTop: '1rem', marginBottom: '4rem' }}>
+    <div className="container animate-fade-in" style={{ marginTop: '1rem', marginBottom: '3rem' }}>
       <DashboardHeader currentTab="links" title="Link Hub" />
-      <p className="font-sans text-muted" style={{ margin: '0 0 1.5rem', maxWidth: 560 }}>
-        Branded Linktree for Instagram bios and social profiles. Images stay off unless you enable them;
-        auto-thumbnail pulls the page&apos;s preview image into R2.
-      </p>
       <LinksManager />
     </div>
   );

@@ -20,8 +20,9 @@ type Props = {
 };
 
 /**
- * Watch player with portrait-friendly sizing, fullscreen-capable Stream iframe,
- * and next/prev (reels-style) nav.
+ * Watch player + prev/next.
+ * Mobile: two equal compact chips (Prev | Next) — no long titles overflowing pills.
+ * Desktop: titles ellipsized beside the labels.
  */
 export default function VideoWatchPlayer({
   title,
@@ -58,6 +59,26 @@ export default function VideoWatchPlayer({
     return () => window.removeEventListener('keydown', onKey);
   }, [goNext, goPrev]);
 
+  const chipBase: React.CSSProperties = {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '0.2rem',
+    minHeight: 48,
+    minWidth: 0,
+    maxWidth: '100%',
+    width: '100%',
+    padding: '0.65rem 0.75rem',
+    borderRadius: 9999,
+    textDecoration: 'none',
+    boxSizing: 'border-box',
+    overflow: 'hidden',
+    fontWeight: 700,
+    fontSize: '0.88rem',
+    lineHeight: 1.2,
+    WebkitTapHighlightColor: 'transparent',
+  };
+
   return (
     <div
       className="video-watch-player"
@@ -65,9 +86,10 @@ export default function VideoWatchPlayer({
         display: 'flex',
         flexDirection: 'column',
         alignItems: portrait ? 'center' : 'stretch',
-        gap: '1rem',
+        gap: '0.85rem',
         marginBottom: '1.25rem',
         width: '100%',
+        maxWidth: '100%',
       }}
     >
       <div
@@ -88,7 +110,6 @@ export default function VideoWatchPlayer({
         <iframe
           src={embedUrl}
           title={title}
-          // Fullscreen via allow= only (avoid allowfullscreen attribute conflict warning)
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
           loading="eager"
           referrerPolicy="strict-origin-when-cross-origin"
@@ -104,106 +125,101 @@ export default function VideoWatchPlayer({
       </div>
 
       {(prev || next) && (
-        <div
+        <nav
+          aria-label="Previous and next video"
           style={{
-            display: 'flex',
-            alignItems: 'stretch',
-            justifyContent: 'space-between',
-            gap: '0.65rem',
-            flexWrap: 'wrap',
+            display: 'grid',
+            gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
+            gap: '0.5rem',
             width: '100%',
+            maxWidth: portrait ? '22rem' : '100%',
+            margin: portrait ? '0 auto' : undefined,
+            boxSizing: 'border-box',
           }}
         >
           {prev ? (
             <Link
               href={`/videos/${prev.slug}`}
               className="font-sans"
+              title={prev.title}
+              aria-label={`Previous video: ${prev.title}`}
               style={{
-                flex: '1 1 140px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                minHeight: 48,
-                padding: '0.65rem 0.85rem',
-                borderRadius: '9999px',
-                border: '1px solid var(--border)',
+                ...chipBase,
+                border: '1.5px solid var(--border)',
                 background: 'var(--surface)',
                 color: 'var(--foreground)',
-                textDecoration: 'none',
-                fontWeight: 600,
-                fontSize: '0.9rem',
               }}
             >
-              <ChevronLeft size={20} style={{ flexShrink: 0 }} />
-              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>
-                <span
-                  style={{
-                    display: 'block',
-                    fontSize: '0.65rem',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.06em',
-                    color: 'var(--muted)',
-                    fontWeight: 700,
-                  }}
-                >
-                  Previous
-                </span>
-                {prev.title}
-              </span>
+              <ChevronLeft size={18} style={{ flexShrink: 0 }} aria-hidden />
+              <span style={{ flexShrink: 0 }}>Prev</span>
             </Link>
           ) : (
-            <div style={{ flex: 1, minWidth: 0 }} />
+            <span style={{ minHeight: 48 }} aria-hidden />
           )}
 
           {next ? (
             <Link
               href={`/videos/${next.slug}`}
               className="font-sans"
+              title={next.title}
+              aria-label={`Next video: ${next.title}`}
               style={{
-                flex: '1 1 140px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'flex-end',
-                gap: '0.5rem',
-                minHeight: 48,
-                padding: '0.65rem 0.85rem',
-                borderRadius: '9999px',
-                border: '1px solid var(--primary)',
+                ...chipBase,
+                border: '1.5px solid var(--primary)',
                 background: 'var(--primary)',
                 color: '#fff',
-                textDecoration: 'none',
-                fontWeight: 600,
-                fontSize: '0.9rem',
               }}
             >
-              <span
-                style={{
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  minWidth: 0,
-                  textAlign: 'right',
-                }}
-              >
-                <span
-                  style={{
-                    display: 'block',
-                    fontSize: '0.65rem',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.06em',
-                    opacity: 0.85,
-                    fontWeight: 700,
-                  }}
-                >
-                  Next
-                </span>
-                {next.title}
-              </span>
-              <ChevronRight size={20} style={{ flexShrink: 0 }} />
+              <span style={{ flexShrink: 0 }}>Next</span>
+              <ChevronRight size={18} style={{ flexShrink: 0 }} aria-hidden />
             </Link>
           ) : (
-            <div style={{ flex: 1, minWidth: 0 }} />
+            <span style={{ minHeight: 48 }} aria-hidden />
           )}
+        </nav>
+      )}
+
+      {/* Desktop-only: show which videos are next/prev under the chips */}
+      {(prev || next) && (
+        <div
+          className="vw-nav-captions font-sans"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
+            gap: '0.5rem',
+            width: '100%',
+            maxWidth: portrait ? '22rem' : '100%',
+            margin: portrait ? '0 auto' : undefined,
+            fontSize: '0.72rem',
+            lineHeight: 1.3,
+            color: 'var(--muted)',
+          }}
+        >
+          <span
+            style={{
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              minWidth: 0,
+              paddingLeft: '0.25rem',
+            }}
+            title={prev?.title}
+          >
+            {prev?.title || ''}
+          </span>
+          <span
+            style={{
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              minWidth: 0,
+              textAlign: 'right',
+              paddingRight: '0.25rem',
+            }}
+            title={next?.title}
+          >
+            {next?.title || ''}
+          </span>
         </div>
       )}
 
@@ -228,20 +244,25 @@ export default function VideoWatchPlayer({
           width: 100%;
           max-height: min(70vh, 640px);
         }
-        @media (max-width: 640px) {
+
+        /* Hide long captions under chips on phones — titles stay in title= tooltips */
+        @media (max-width: 720px) {
+          .vw-nav-captions {
+            display: none !important;
+          }
+          .vw-kb-hint {
+            display: none;
+          }
           .vw-portrait {
-            /* Mobile: larger — use most of the screen width so it feels native */
             width: min(92vw, 340px);
             max-height: min(62vh, 520px);
           }
           .vw-landscape {
             max-height: min(56vh, 480px);
           }
-          .vw-kb-hint {
-            display: none;
-          }
         }
-        @media (min-width: 641px) and (max-width: 900px) {
+
+        @media (min-width: 721px) and (max-width: 900px) {
           .vw-portrait {
             width: min(100%, 260px);
             max-height: min(48vh, 400px);
@@ -249,7 +270,6 @@ export default function VideoWatchPlayer({
         }
         @media (min-width: 901px) {
           .vw-portrait {
-            /* Desktop: compact so full page is visible */
             width: min(100%, 220px);
             max-height: min(40vh, 360px);
           }

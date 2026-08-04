@@ -76,8 +76,10 @@ export default async function FundraiserPage() {
             </h3>
             <p className="font-sans text-sm text-muted" style={{ marginBottom: '1rem', lineHeight: 1.45 }}>
               Help us raise <strong>$8,000 by Thanksgiving</strong> (Nov 26, 2026).{' '}
-              <strong>$25</strong> — America 250 Patriot (we&apos;ll thank you as a recognized supporter).{' '}
-              <strong>$48+</strong> — Founding Member for a year: premium digital articles, Print Volume PDF access, and gift unlocks.
+              <strong>$25 America 250 Patriot</strong> — you&apos;re recognized as a supporter on our donor list
+              (not a physical gift).{' '}
+              <strong>$48+ Founding Member</strong> — one year of access to{' '}
+              <strong>premium digital articles</strong> (including print-edition pieces online), Print Volume PDF access, and gift unlocks.
             </p>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', alignItems: 'flex-end' }}>
               <span className="font-sans" style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--accent)', lineHeight: 1 }}>

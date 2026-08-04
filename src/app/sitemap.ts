@@ -1,5 +1,7 @@
 import { MetadataRoute } from 'next';
 import prisma from '@/lib/prisma';
+import { PUBLIC_SECTIONS, getSectionPath } from '@/lib/categories';
+import { getArticleUrl } from '@/lib/routes';
 
 export const revalidate = 3600; // Cache for 1 hour
 
@@ -12,9 +14,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/about',
     '/contact',
     '/donate',
+    '/fundraiser',
     '/print-edition',
     '/america-250',
     '/videos',
+    '/links',
+    '/recruiting',
+    '/membership',
+    '/corrections',
   ].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: new Date(),
@@ -22,41 +29,31 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: route === '' ? 1.0 : 0.8,
   }));
 
-  // 2. Categories
-  const postsWithCategories = await prisma.post.findMany({
-    where: { state: 'PUBLISHED' },
-    select: { category: true },
-    distinct: ['category']
-  });
-  
-  const categoryRoutes = postsWithCategories.map((post) => ({
-    url: `${baseUrl}/category/${post.category.toLowerCase().replace(/\\s+/g, '-')}`,
+  // 2. Section hubs — canonical top-level URLs (not /category/…)
+  const categoryRoutes = PUBLIC_SECTIONS.map((section) => ({
+    url: `${baseUrl}${getSectionPath(section.slug)}`,
     lastModified: new Date(),
     changeFrequency: 'daily' as const,
-    priority: 0.7,
+    priority: 0.85,
   }));
 
-  // 3. Articles
+  // 3. Articles — skip empty/invalid slugs (never emit /article/)
   const posts = await prisma.post.findMany({
-    where: { state: 'PUBLISHED' },
-    select: { slug: true, updatedAt: true, printEditionId: true, isPremium: true }
+    where: {
+      state: 'PUBLISHED',
+      slug: { not: '' },
+    },
+    select: { slug: true, updatedAt: true, printEditionId: true, isPremium: true },
   });
 
-  const postRoutes = posts.map((post) => {
-    let route = `/article/${post.slug}`;
-    if (post.printEditionId) {
-      route = `/print-edition/${post.slug}`;
-    } else if (post.isPremium) {
-      route = `/premium-article/${post.slug}`;
-    }
-    
-    return {
-      url: `${baseUrl}${route}`,
+  const postRoutes = posts
+    .filter((post) => post.slug && post.slug.trim().length > 0)
+    .map((post) => ({
+      url: `${baseUrl}${getArticleUrl(post)}`,
       lastModified: post.updatedAt,
       changeFrequency: 'weekly' as const,
       priority: 0.6,
-    };
-  });
+    }));
 
   // 4. Videos (include thumbnail images for richer discovery)
   const videos = await prisma.video.findMany({

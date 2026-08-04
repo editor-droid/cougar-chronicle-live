@@ -15,15 +15,17 @@ import { injectHeadingIds } from '@/lib/toc';
 import { getArticleUrl } from '@/lib/routes';
 import { buildNewsArticleJsonLdWithVideos } from '@/lib/article-videos';
 import { enhanceArticleVideoEmbeds } from '@/lib/embed-utils';
+import { buildArticleMetadata } from '@/lib/article-metadata';
+
 export async function generateMetadata(
   { params }: { params: Promise<{ slug: string }> },
-  parent: ResolvingMetadata
+  _parent: ResolvingMetadata
 ): Promise<Metadata> {
   const { slug } = await params;
-  
+
   const post = await prisma.post.findUnique({
     where: { slug, state: 'PUBLISHED' },
-    include: { author: true }
+    include: { author: true },
   });
 
   if (!post) {
@@ -33,42 +35,7 @@ export async function generateMetadata(
     };
   }
 
-  // Use the AI-generated SEO fields if they exist, otherwise fallback
-  const title = post.seoTitle || post.title;
-  const description = post.seoDescription || 
-    (post.content 
-      ? post.content.replace(/<[^>]*>?/gm, '').substring(0, 155) + '...' 
-      : 'Read this article on The Cougar Chronicle.');
-      
-  const keywords = post.seoKeywords ? post.seoKeywords.split(',').map(k => k.trim()) : [];
-
-  return {
-    title: title,
-    description: description,
-    keywords: keywords,
-    alternates: {
-      canonical: getArticleUrl(post),
-    },
-    openGraph: {
-      title: `${title} | The Cougar Chronicle`,
-      description: description,
-      type: 'article',
-      url: getArticleUrl(post),
-      images: post.imageUrl 
-        ? [{ url: post.imageUrl, alt: post.title }] 
-        : [{ url: '/images/default-article.jpg', width: 1080, height: 720, alt: 'The Cougar Chronicle' }],
-      publishedTime: post.publishedAt?.toISOString() || post.createdAt.toISOString(),
-      authors: [post.customAuthor || post.author.name || 'The Cougar Chronicle'],
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: `${title} | The Cougar Chronicle`,
-      description: description,
-      images: post.imageUrl 
-        ? [{ url: post.imageUrl, alt: post.title }] 
-        : [{ url: '/images/default-article.jpg', width: 1080, height: 720, alt: 'The Cougar Chronicle' }],
-    }
-  };
+  return buildArticleMetadata(post);
 }
 
 export default async function ArticlePage({ params, searchParams }: { params: Promise<{ slug: string }>, searchParams: Promise<{ token?: string }> }) {

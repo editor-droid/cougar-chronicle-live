@@ -1880,11 +1880,14 @@ function LinkBubbleMenu({ editor }: { editor: Editor }) {
 function PreviewPane({ html }: { html: string }) {
   return (
     <div
-      className="rich-text-preview-pane p-6 overflow-y-auto blog-post-content"
+      className="rich-text-preview-pane blog-post-content article-content p-6 overflow-y-auto"
       style={{
-        background: "var(--primary)",
-        color: "var(--primary)",
+        background: "#fff",
+        color: "var(--foreground)",
         minHeight: "600px",
+        maxWidth: "100%",
+        overflowX: "hidden",
+        boxSizing: "border-box",
       }}
       dangerouslySetInnerHTML={{ __html: html }}
     />

@@ -216,9 +216,9 @@ export default async function VideoWatchPage({ params }: Props) {
       />
 
       <nav
-        className="font-sans text-sm text-muted"
+        className="font-sans text-sm text-muted video-watch-crumb"
         aria-label="Breadcrumb"
-        style={{ marginBottom: '1.25rem' }}
+        style={{ marginBottom: '1rem' }}
       >
         <ol
           style={{
@@ -244,10 +244,14 @@ export default async function VideoWatchPage({ params }: Props) {
               Videos
             </Link>
           </li>
-          <li aria-hidden style={{ opacity: 0.5 }}>
+          <li aria-hidden className="video-watch-crumb-tail" style={{ opacity: 0.5 }}>
             /
           </li>
-          <li style={{ color: 'var(--foreground)', fontWeight: 600 }} aria-current="page">
+          <li
+            className="video-watch-crumb-tail"
+            style={{ color: 'var(--foreground)', fontWeight: 600 }}
+            aria-current="page"
+          >
             {video.title}
           </li>
         </ol>
@@ -262,30 +266,44 @@ export default async function VideoWatchPage({ params }: Props) {
         }}
         className="video-watch-layout"
       >
-        <article style={{ minWidth: 0 }}>
-          <header style={{ marginBottom: '1.25rem', textAlign: portrait ? 'center' : 'left' }}>
+        <article style={{ minWidth: 0, width: '100%' }}>
+          <header
+            className="video-watch-header"
+            style={{
+              marginBottom: '1.15rem',
+              textAlign: portrait ? 'center' : 'left',
+            }}
+          >
             <h1
               className="font-serif"
               style={{
-                fontSize: 'clamp(1.75rem, 4vw, 2.5rem)',
-                margin: '0 0 0.5rem',
+                fontSize: 'clamp(1.45rem, 4.5vw, 2.5rem)',
+                margin: '0 0 0.65rem',
                 fontWeight: 800,
                 lineHeight: 1.2,
+                overflowWrap: 'anywhere',
               }}
             >
               {video.title}
             </h1>
             <div
-              className="font-sans text-sm text-muted"
+              className="font-sans text-sm text-muted video-watch-meta"
               style={{
                 display: 'flex',
                 flexWrap: 'wrap',
-                gap: '0.75rem',
+                gap: '0.5rem 0.75rem',
                 alignItems: 'center',
                 justifyContent: portrait ? 'center' : 'flex-start',
               }}
             >
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.65rem' }}>
+              <span
+                className="video-watch-actions"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.35rem',
+                }}
+              >
                 <FavoriteButton
                   videoId={video.id}
                   initialFavorited={initialFavorited}
@@ -297,16 +315,28 @@ export default async function VideoWatchPage({ params }: Props) {
                   campaign="video"
                 />
               </span>
-              <span>·</span>
+              <span className="video-watch-meta-sep" aria-hidden>
+                ·
+              </span>
               <time dateTime={video.publishedAt.toISOString()}>
                 {video.publishedAt.toLocaleDateString(undefined, {
                   year: 'numeric',
-                  month: 'long',
+                  month: 'short',
                   day: 'numeric',
                 })}
               </time>
-              {durationLabel && <span>· {durationLabel}</span>}
-              <span>· {video.views.toLocaleString()} views</span>
+              {durationLabel && (
+                <>
+                  <span className="video-watch-meta-sep" aria-hidden>
+                    ·
+                  </span>
+                  <span>{durationLabel}</span>
+                </>
+              )}
+              <span className="video-watch-meta-sep" aria-hidden>
+                ·
+              </span>
+              <span>{video.views.toLocaleString()} views</span>
             </div>
           </header>
 
@@ -397,9 +427,36 @@ export default async function VideoWatchPage({ params }: Props) {
         @media (max-width: 900px) {
           .video-watch-layout {
             grid-template-columns: 1fr !important;
+            gap: 1.5rem !important;
           }
           .video-watch-sidebar {
             display: none !important;
+          }
+        }
+        @media (max-width: 640px) {
+          .video-watch-header {
+            text-align: left !important;
+          }
+          .video-watch-meta {
+            justify-content: flex-start !important;
+            font-size: 0.8rem;
+            row-gap: 0.35rem;
+          }
+          .video-watch-actions {
+            width: 100%;
+            margin-bottom: 0.15rem;
+          }
+          .video-watch-actions button,
+          .video-watch-actions > * {
+            min-height: 40px;
+            min-width: 40px;
+          }
+          .video-watch-crumb-tail {
+            display: none !important;
+          }
+          .video-more-mobile {
+            margin-top: 1.75rem !important;
+            padding-top: 1.25rem !important;
           }
         }
         @media (min-width: 901px) {

@@ -5,13 +5,13 @@ import { toast } from 'sonner';
 import {
   Plus,
   Trash2,
-  GripVertical,
   Image as ImageIcon,
   Sparkles,
   ExternalLink,
   Loader2,
   ChevronUp,
   ChevronDown,
+  Link2,
 } from 'lucide-react';
 
 type Item = {
@@ -201,88 +201,76 @@ export default function LinksManager() {
   }
 
   return (
-    <div style={{ maxWidth: 720 }}>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
-          gap: '1rem',
-          marginBottom: '1.5rem',
-          flexWrap: 'wrap',
-        }}
-      >
-        <div>
-          <p className="font-sans text-sm text-muted" style={{ margin: 0 }}>
-            Public page:{' '}
-            <a href="/links" target="_blank" rel="noreferrer" style={{ color: 'var(--primary)' }}>
-              /links
-            </a>
-          </p>
-        </div>
-        <label
-          className="font-sans text-sm"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            cursor: 'pointer',
-            background: 'var(--surface)',
-            border: '1px solid var(--border)',
-            borderRadius: '0.5rem',
-            padding: '0.5rem 0.75rem',
-          }}
-        >
+    <div style={{ width: '100%' }}>
+      <div className="dash-toolbar">
+        <p className="font-sans text-muted" style={{ margin: 0, flex: '1 1 240px', lineHeight: 1.5 }}>
+          Public page:{' '}
+          <a href="/links" target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', fontWeight: 700 }}>
+            /links
+          </a>
+          {' · '}
+          Instagram / bio Linktree. Thumbnails optional.
+        </p>
+        <label className="dash-pill" style={{ cursor: 'pointer', gap: '0.45rem' }}>
           <input
             type="checkbox"
             checked={showLatestStory}
             onChange={(e) => toggleLatest(e.target.checked)}
           />
-          Auto “Latest story” card at top
+          Auto “Latest story”
         </label>
       </div>
 
-      {/* Add new */}
-      <div
-        style={{
-          background: 'var(--surface)',
-          border: '1px solid var(--border)',
-          borderRadius: '0.75rem',
-          padding: '1rem',
-          marginBottom: '1.5rem',
-        }}
-      >
-        <h2 className="font-sans" style={{ fontSize: '0.9rem', fontWeight: 700, margin: '0 0 0.75rem' }}>
-          Add link
-        </h2>
-        <div style={{ display: 'grid', gap: '0.5rem' }}>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <input
-              value={newEmoji}
-              onChange={(e) => setNewEmoji(e.target.value)}
-              placeholder="📰"
-              style={{ width: 56, padding: '0.55rem', borderRadius: 8, border: '1px solid var(--border)' }}
-              maxLength={8}
-            />
-            <input
-              value={newLabel}
-              onChange={(e) => setNewLabel(e.target.value)}
-              placeholder="Label (e.g. Membership)"
-              style={{ flex: 1, padding: '0.55rem 0.75rem', borderRadius: 8, border: '1px solid var(--border)' }}
-            />
-          </div>
+      {/* Add link */}
+      <div className="dash-card" style={{ padding: '1.15rem 1.25rem', marginBottom: '1.25rem' }}>
+        <p
+          className="font-sans"
+          style={{
+            margin: '0 0 0.35rem',
+            fontSize: '0.7rem',
+            fontWeight: 800,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            color: '#6b7280',
+          }}
+        >
+          New link
+        </p>
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '0.55rem',
+            alignItems: 'center',
+          }}
+        >
+          <input
+            value={newEmoji}
+            onChange={(e) => setNewEmoji(e.target.value)}
+            placeholder="📰"
+            maxLength={8}
+            className="font-sans"
+            style={{ ...field, width: 56, flex: '0 0 56px' }}
+          />
+          <input
+            value={newLabel}
+            onChange={(e) => setNewLabel(e.target.value)}
+            placeholder="Label (e.g. Membership)"
+            className="font-sans"
+            style={{ ...field, flex: '1 1 160px' }}
+          />
           <input
             value={newUrl}
             onChange={(e) => setNewUrl(e.target.value)}
-            placeholder="https://thecougarchronicle.com/membership"
-            style={{ width: '100%', padding: '0.55rem 0.75rem', borderRadius: 8, border: '1px solid var(--border)', boxSizing: 'border-box' }}
+            placeholder="https://…"
+            className="font-sans"
+            style={{ ...field, flex: '2 1 220px' }}
           />
           <button
             type="button"
             onClick={addItem}
             disabled={saving}
-            className="btn btn-primary font-sans"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start' }}
+            className="dash-btn dash-btn-primary"
           >
             {saving ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
             Add
@@ -290,195 +278,224 @@ export default function LinksManager() {
         </div>
       </div>
 
-      {/* List */}
-      <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      {/* Card grid */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))',
+          gap: '1.15rem',
+          width: '100%',
+        }}
+      >
         {items.map((item, index) => (
-          <li
+          <article
             key={item.id}
+            className="dash-card"
             style={{
-              background: 'var(--surface)',
-              border: '1px solid var(--border)',
-              borderRadius: '0.75rem',
-              padding: '0.85rem 1rem',
-              opacity: item.isActive ? 1 : 0.55,
+              display: 'flex',
+              flexDirection: 'column',
+              opacity: item.isActive ? 1 : 0.62,
+              overflow: 'hidden',
             }}
           >
-            <div style={{ display: 'flex', gap: '0.65rem', alignItems: 'flex-start' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 2, paddingTop: 4 }}>
-                <button type="button" onClick={() => move(index, -1)} disabled={index === 0} style={iconBtn} title="Move up">
-                  <ChevronUp size={16} />
-                </button>
-                <button type="button" onClick={() => move(index, 1)} disabled={index === items.length - 1} style={iconBtn} title="Move down">
-                  <ChevronDown size={16} />
-                </button>
-              </div>
-
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', marginBottom: 6 }}>
-                  <span style={{ fontSize: '1.1rem' }}>{item.emoji || '🔗'}</span>
-                  <input
-                    defaultValue={item.label}
-                    onBlur={(e) => {
-                      if (e.target.value.trim() !== item.label) {
-                        patch(item.id, { label: e.target.value.trim() });
-                      }
-                    }}
-                    style={{
-                      flex: 1,
-                      fontWeight: 700,
-                      border: '1px solid transparent',
-                      background: 'transparent',
-                      fontSize: '0.95rem',
-                      padding: '0.2rem 0.35rem',
-                      borderRadius: 6,
-                    }}
-                  />
-                  <span className="font-sans text-xs text-muted">{item.clickCount} clicks</span>
-                </div>
-                <input
-                  defaultValue={item.url}
-                  onBlur={(e) => {
-                    if (e.target.value.trim() !== item.url) {
-                      patch(item.id, { url: e.target.value.trim() });
-                    }
-                  }}
+            <div
+              style={{
+                position: 'relative',
+                aspectRatio: '16 / 9',
+                background: 'linear-gradient(145deg, #1b2253 0%, #2a3570 100%)',
+              }}
+            >
+              {item.imageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={item.imageUrl}
+                  alt=""
                   style={{
                     width: '100%',
-                    fontSize: '0.8rem',
-                    border: '1px solid var(--border)',
-                    borderRadius: 6,
-                    padding: '0.35rem 0.5rem',
-                    marginBottom: 8,
-                    boxSizing: 'border-box',
-                    color: 'var(--muted)',
+                    height: '100%',
+                    objectFit: 'cover',
+                    opacity: item.showImage ? 1 : 0.45,
                   }}
                 />
-
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
-                  <label className="font-sans text-xs" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <input
-                      type="checkbox"
-                      checked={item.isActive}
-                      onChange={(e) => patch(item.id, { isActive: e.target.checked })}
-                    />
-                    Active
-                  </label>
-                  <label className="font-sans text-xs" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <input
-                      type="checkbox"
-                      checked={item.showImage}
-                      disabled={!item.imageUrl}
-                      onChange={(e) => patch(item.id, { showImage: e.target.checked })}
-                    />
-                    Show image
-                  </label>
-
-                  <button
-                    type="button"
-                    disabled={busyId === item.id}
-                    onClick={() => fetchPreview(item.id)}
-                    className="font-sans text-xs"
-                    style={chipBtn}
-                    title="Pull thumbnail from linked page (OG image)"
-                  >
-                    {busyId === item.id ? <Loader2 size={12} /> : <Sparkles size={12} />}
-                    Auto thumbnail
-                  </button>
-
-                  <label className="font-sans text-xs" style={{ ...chipBtn, cursor: 'pointer' }}>
-                    <ImageIcon size={12} />
-                    Upload
-                    <input
-                      type="file"
-                      accept="image/*"
-                      style={{ display: 'none' }}
-                      onChange={(e) => {
-                        const f = e.target.files?.[0];
-                        if (f) uploadCustom(item.id, f);
-                        e.target.value = '';
-                      }}
-                    />
-                  </label>
-
-                  {(item.imageUrl || item.showImage) && (
-                    <button
-                      type="button"
-                      onClick={() => patch(item.id, { action: 'clearImage' }).then((d) => d && toast.success('Image removed'))}
-                      className="font-sans text-xs"
-                      style={chipBtn}
-                    >
-                      Remove image
-                    </button>
-                  )}
-
-                  <a
-                    href={item.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="font-sans text-xs"
-                    style={{ ...chipBtn, textDecoration: 'none', color: 'inherit' }}
-                  >
-                    <ExternalLink size={12} /> Open
-                  </a>
-
-                  <button type="button" onClick={() => remove(item.id)} style={{ ...chipBtn, color: '#b91c1c' }}>
-                    <Trash2 size={12} />
-                  </button>
+              ) : (
+                <div
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'rgba(255,255,255,0.85)',
+                    fontSize: '2.5rem',
+                  }}
+                >
+                  {item.emoji || <Link2 size={36} />}
                 </div>
+              )}
+              <span
+                className="dash-badge"
+                style={{
+                  position: 'absolute',
+                  top: 10,
+                  right: 10,
+                  background: 'rgba(255,255,255,0.95)',
+                  color: '#1B2253',
+                }}
+              >
+                {item.clickCount} clicks
+              </span>
+              {!item.isActive && (
+                <span
+                  className="dash-badge dash-badge-red"
+                  style={{ position: 'absolute', top: 10, left: 10 }}
+                >
+                  Hidden
+                </span>
+              )}
+            </div>
 
-                {item.imageUrl && (
-                  <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={item.imageUrl}
-                      alt=""
-                      width={40}
-                      height={40}
-                      style={{
-                        width: 40,
-                        height: 40,
-                        borderRadius: 8,
-                        objectFit: 'cover',
-                        border: '1px solid var(--border)',
-                        opacity: item.showImage ? 1 : 0.4,
-                      }}
-                    />
-                    <span className="font-sans text-xs text-muted">
-                      {item.showImage ? 'Visible on /links' : 'Hidden (images off by default until you enable Show image)'}
-                    </span>
-                  </div>
-                )}
+            <div style={{ padding: '0.95rem 1rem 1.05rem', display: 'flex', flexDirection: 'column', gap: '0.55rem', flex: 1 }}>
+              <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                <span style={{ fontSize: '1.1rem' }}>{item.emoji || '🔗'}</span>
+                <input
+                  defaultValue={item.label}
+                  onBlur={(e) => {
+                    if (e.target.value.trim() !== item.label) {
+                      patch(item.id, { label: e.target.value.trim() });
+                    }
+                  }}
+                  className="font-serif"
+                  style={{
+                    flex: 1,
+                    fontWeight: 700,
+                    fontSize: '1.05rem',
+                    border: '1px solid transparent',
+                    background: 'transparent',
+                    padding: '0.15rem 0.25rem',
+                    borderRadius: 6,
+                    minWidth: 0,
+                  }}
+                />
+              </div>
+              <input
+                defaultValue={item.url}
+                onBlur={(e) => {
+                  if (e.target.value.trim() !== item.url) {
+                    patch(item.id, { url: e.target.value.trim() });
+                  }
+                }}
+                className="font-sans"
+                style={{
+                  width: '100%',
+                  fontSize: '0.78rem',
+                  border: '1px solid #e8eaf0',
+                  borderRadius: 8,
+                  padding: '0.4rem 0.55rem',
+                  boxSizing: 'border-box',
+                  color: 'var(--muted)',
+                  background: '#fafbfd',
+                }}
+              />
+
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', alignItems: 'center' }}>
+                <label className="dash-pill" style={{ cursor: 'pointer', minHeight: 32, padding: '0.3rem 0.65rem' }}>
+                  <input
+                    type="checkbox"
+                    checked={item.isActive}
+                    onChange={(e) => patch(item.id, { isActive: e.target.checked })}
+                  />
+                  Active
+                </label>
+                <label className="dash-pill" style={{ cursor: 'pointer', minHeight: 32, padding: '0.3rem 0.65rem' }}>
+                  <input
+                    type="checkbox"
+                    checked={item.showImage}
+                    disabled={!item.imageUrl}
+                    onChange={(e) => patch(item.id, { showImage: e.target.checked })}
+                  />
+                  Show image
+                </label>
+              </div>
+
+              <div className="dash-row-actions" style={{ marginTop: 'auto' }}>
+                <button
+                  type="button"
+                  className="dash-btn"
+                  disabled={index === 0}
+                  onClick={() => move(index, -1)}
+                  title="Move up"
+                >
+                  <ChevronUp size={14} />
+                </button>
+                <button
+                  type="button"
+                  className="dash-btn"
+                  disabled={index === items.length - 1}
+                  onClick={() => move(index, 1)}
+                  title="Move down"
+                >
+                  <ChevronDown size={14} />
+                </button>
+                <button
+                  type="button"
+                  className="dash-btn"
+                  disabled={busyId === item.id}
+                  onClick={() => fetchPreview(item.id)}
+                >
+                  {busyId === item.id ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                  Thumb
+                </button>
+                <label className="dash-btn" style={{ cursor: 'pointer' }}>
+                  <ImageIcon size={14} />
+                  Upload
+                  <input
+                    type="file"
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) uploadCustom(item.id, f);
+                      e.target.value = '';
+                    }}
+                  />
+                </label>
+                <a
+                  href={item.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="dash-btn"
+                >
+                  <ExternalLink size={14} />
+                </a>
+                <button
+                  type="button"
+                  className="dash-btn"
+                  style={{ color: '#b91c1c' }}
+                  onClick={() => remove(item.id)}
+                >
+                  <Trash2 size={14} />
+                </button>
               </div>
             </div>
-          </li>
+          </article>
         ))}
-      </ul>
+      </div>
 
       {items.length === 0 && (
-        <p className="font-sans text-muted text-sm" style={{ marginTop: '1rem' }}>
-          No links yet — add your first above. Suggested: Membership, Donate, Videos, Print Edition, Contact.
-        </p>
+        <div className="dash-empty dash-card" style={{ marginTop: '0.5rem' }}>
+          No links yet — add Membership, Donate, Videos, Print Edition, Contact…
+        </div>
       )}
     </div>
   );
 }
 
-const iconBtn: React.CSSProperties = {
-  border: 'none',
-  background: 'transparent',
-  cursor: 'pointer',
-  padding: 2,
-  color: 'var(--muted)',
-};
-
-const chipBtn: React.CSSProperties = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: 4,
-  border: '1px solid var(--border)',
-  background: 'var(--background)',
-  borderRadius: 999,
-  padding: '0.25rem 0.55rem',
-  cursor: 'pointer',
-  fontWeight: 600,
+const field: import('react').CSSProperties = {
+  width: '100%',
+  padding: '0.65rem 0.75rem',
+  borderRadius: '0.65rem',
+  border: '1px solid #e8eaf0',
+  background: 'var(--surface-hover)',
+  fontSize: '0.95rem',
+  boxSizing: 'border-box',
 };

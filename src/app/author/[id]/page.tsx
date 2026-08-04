@@ -43,19 +43,27 @@ export default async function AuthorPage({ params }: { params: Promise<{ id: str
   
   const author = await prisma.user.findUnique({
     where: { id },
-    include: {
-      posts: {
-        where: { state: 'PUBLISHED', publishedAt: { lte: new Date() } },
-        orderBy: { publishedAt: { sort: 'desc', nulls: 'last' } },
-      }
-    }
   });
 
   if (!author) {
     notFound();
   }
 
-  const posts = author.posts;
+  // Include pieces assigned to this account and bylines that match their name
+  // (common when print / guest bylines use customAuthor).
+  const posts = await prisma.post.findMany({
+    where: {
+      state: 'PUBLISHED',
+      publishedAt: { lte: new Date() },
+      OR: [
+        { authorId: author.id },
+        ...(author.name
+          ? [{ customAuthor: { equals: author.name, mode: 'insensitive' as const } }]
+          : []),
+      ],
+    },
+    orderBy: { publishedAt: { sort: 'desc', nulls: 'last' } },
+  });
 
   return (
     <div className="container" style={{ padding: '1rem', maxWidth: '1200px', margin: '0 auto' }}>

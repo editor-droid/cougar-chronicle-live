@@ -1,3 +1,5 @@
+import { slugifyTitle } from '@/lib/slug';
+
 export type VideoPlatformName = 'STREAM' | 'YOUTUBE';
 
 const YT_ID_RE =
@@ -11,14 +13,7 @@ export function parseYoutubeId(input: string): string | null {
 }
 
 export function slugifyVideoTitle(title: string): string {
-  const base = title
-    .toLowerCase()
-    .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 80);
-  return base || 'video';
+  return slugifyTitle(title, { dropStopWords: true, maxLen: 72 }) || 'video';
 }
 
 export function videoPagePath(slug: string): string {

@@ -16,6 +16,8 @@ import {
   youtubeWatchUrl,
 } from '@/lib/videos';
 import { getArticleUrl } from '@/lib/routes';
+import { withUniquenessSuffix } from '@/lib/slug';
+import { categoryLabel, getSectionPath } from '@/lib/categories';
 
 export type ArticleVideoEmbed = {
   platform: VideoPlatformName;
@@ -97,16 +99,15 @@ export function extractArticleVideoEmbeds(
 
 async function uniqueVideoSlug(title: string): Promise<string> {
   const base = slugifyVideoTitle(title);
-  let slug = base;
   let n = 0;
   while (true) {
+    const slug = withUniquenessSuffix(base, n);
     const existing = await prisma.video.findUnique({
       where: { slug },
       select: { id: true },
     });
     if (!existing) return slug;
     n += 1;
-    slug = `${base}-${n}`;
   }
 }
 
@@ -124,6 +125,7 @@ export type ArticleLikeForVideos = {
   title: string;
   slug: string;
   content: string | null;
+  category?: string | null;
   seoDescription?: string | null;
   seoTitle?: string | null;
   seoKeywords?: string | null;
@@ -373,6 +375,14 @@ export async function buildNewsArticleJsonLdWithVideos(
   const videos = await resolveArticleVideosForSchema(post);
   const nested = buildNestedVideoObjects(videos, articleUrl);
 
+  const sectionName = post.category ? categoryLabel(post.category) : undefined;
+  const sectionPath = post.category ? getSectionPath(post.category) : undefined;
+  const origin = (
+    process.env.NEXTAUTH_URL ||
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    'https://thecougarchronicle.com'
+  ).replace(/\/$/, '');
+
   const jsonLd: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': 'NewsArticle',
@@ -403,6 +413,18 @@ export async function buildNewsArticleJsonLdWithVideos(
       '@id': articleUrl,
     },
     url: articleUrl,
+    ...(sectionName
+      ? {
+          articleSection: sectionName,
+          isPartOf: sectionPath
+            ? {
+                '@type': 'CollectionPage',
+                name: sectionName,
+                url: `${origin}${sectionPath}`,
+              }
+            : undefined,
+        }
+      : {}),
     ...extras,
   };
 

@@ -188,15 +188,7 @@ export function insightsToHtml(insights: string[] | string): string {
   return raw;
 }
 
-export function slugifyTitle(title: string): string {
-  return (title || 'untitled')
-    .toLowerCase()
-    .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 80) || 'untitled';
-}
+export { slugifyTitle } from '@/lib/slug';
 
 export function classifyAiError(err: unknown): {
   status: number;

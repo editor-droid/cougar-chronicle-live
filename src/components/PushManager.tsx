@@ -1,51 +1,98 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { toast } from 'sonner';
 
+const PROMPT_KEY = 'push_prompted';
+const PROMPT_AT_KEY = 'push_prompted_at';
+/** Don't re-prompt for 90 days after dismiss/enable */
+const COOLDOWN_MS = 90 * 24 * 60 * 60 * 1000;
+
+function hasRecentPrompt(): boolean {
+  if (typeof window === 'undefined') return true;
+  if (localStorage.getItem(PROMPT_KEY) === 'true') return true;
+  const at = Number(localStorage.getItem(PROMPT_AT_KEY) || 0);
+  if (at && Date.now() - at < COOLDOWN_MS) return true;
+  return false;
+}
+
+function markPrompted() {
+  try {
+    localStorage.setItem(PROMPT_KEY, 'true');
+    localStorage.setItem(PROMPT_AT_KEY, String(Date.now()));
+  } catch {
+    /* private mode */
+  }
+}
+
 export default function PushManager() {
   const pathname = usePathname();
+  const shownThisSession = useRef(false);
 
   useEffect(() => {
-    // Bio link hub: keep the page focused (no notification toast)
-    if (pathname === '/links' || pathname.startsWith('/links/')) return;
+    // Never prompt on admin, auth, or link hub
+    if (
+      !pathname ||
+      pathname.startsWith('/dashboard') ||
+      pathname.startsWith('/login') ||
+      pathname.startsWith('/api') ||
+      pathname === '/links' ||
+      pathname.startsWith('/links/')
+    ) {
+      return;
+    }
 
-    // No login required — guests and signed-in users both get the prompt.
-    const hasPrompted = localStorage.getItem('push_prompted');
+    // One toast per browser session max, and respect long cooldown
+    if (shownThisSession.current || hasRecentPrompt()) return;
 
     if (
-      !hasPrompted &&
-      typeof window !== 'undefined' &&
-      'Notification' in window &&
-      'serviceWorker' in navigator &&
-      Notification.permission === 'default'
+      typeof window === 'undefined' ||
+      !('Notification' in window) ||
+      !('serviceWorker' in navigator) ||
+      Notification.permission !== 'default'
     ) {
+      // Already decided or unsupported — don't keep asking
+      if (
+        typeof window !== 'undefined' &&
+        'Notification' in window &&
+        Notification.permission !== 'default'
+      ) {
+        markPrompted();
+      }
+    } else {
       const timer = setTimeout(() => {
+        if (shownThisSession.current || hasRecentPrompt()) return;
+        shownThisSession.current = true;
+        // Mark immediately so navigation / remounts don't spam
+        markPrompted();
+
         toast('Enable Notifications', {
+          id: 'push-enable-prompt',
           description: 'Get alerted when we publish new articles or videos.',
           action: {
             label: 'Enable',
             onClick: async () => {
-              localStorage.setItem('push_prompted', 'true');
               await requestPushSubscription();
             },
           },
           cancel: {
-            label: 'Maybe later',
+            label: 'Not now',
             onClick: () => {
-              localStorage.setItem('push_prompted', 'true');
+              /* already marked */
             },
           },
-          duration: 12000,
+          duration: 8000,
+          onDismiss: () => markPrompted(),
+          onAutoClose: () => markPrompted(),
         });
-      }, 3000);
+      }, 8000);
 
       return () => clearTimeout(timer);
     }
 
     // If they already allowed notifications but we never saved a push subscription
-    // (common after first iOS prompt), silently complete registration.
+    // (common after first iOS prompt), silently complete registration — no toast.
     if (
       typeof window !== 'undefined' &&
       'Notification' in window &&
@@ -134,7 +181,7 @@ export async function requestPushSubscription(): Promise<boolean> {
       return false;
     }
 
-    localStorage.setItem('push_prompted', 'true');
+    markPrompted();
     toast.success('Notifications enabled on this device!');
     return true;
   } catch (error) {

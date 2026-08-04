@@ -201,7 +201,7 @@ export default async function Home() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem', borderBottom: '3px double var(--primary)', paddingBottom: '0.5rem' }}>
                 <h2 className="font-serif" style={{ fontSize: '1.5rem', margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--primary)', fontWeight: 800 }}>News</h2>
                 <div style={{ flex: 1, height: '1px', backgroundColor: 'var(--border)' }}></div>
-                <Link href="/category/news" className="font-sans text-sm" style={{ fontWeight: 'bold', textTransform: 'uppercase', color: 'var(--accent)' }}>View All &rarr;</Link>
+                <Link href="/news" className="font-sans text-sm" style={{ fontWeight: 'bold', textTransform: 'uppercase', color: 'var(--accent)' }}>View All &rarr;</Link>
               </div>
               <div className="category-grid">
                 {newsPosts.map(post => (
@@ -224,7 +224,7 @@ export default async function Home() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem', borderBottom: '3px double var(--primary)', paddingBottom: '0.5rem' }}>
                 <h2 className="font-serif" style={{ fontSize: '1.5rem', margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--primary)', fontWeight: 800 }}>Faith</h2>
                 <div style={{ flex: 1, height: '1px', backgroundColor: 'var(--border)' }}></div>
-                <Link href="/category/faith" className="font-sans text-sm" style={{ fontWeight: 'bold', textTransform: 'uppercase', color: 'var(--accent)' }}>View All &rarr;</Link>
+                <Link href="/faith" className="font-sans text-sm" style={{ fontWeight: 'bold', textTransform: 'uppercase', color: 'var(--accent)' }}>View All &rarr;</Link>
               </div>
               <div className="category-grid">
                 {faithPosts.map(post => (
@@ -247,7 +247,7 @@ export default async function Home() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem', borderBottom: '3px double var(--primary)', paddingBottom: '0.5rem' }}>
                 <h2 className="font-serif" style={{ fontSize: '1.5rem', margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--primary)', fontWeight: 800 }}>Opinion</h2>
                 <div style={{ flex: 1, height: '1px', backgroundColor: 'var(--border)' }}></div>
-                <Link href="/category/opinion" className="font-sans text-sm" style={{ fontWeight: 'bold', textTransform: 'uppercase', color: 'var(--accent)' }}>View All &rarr;</Link>
+                <Link href="/opinion" className="font-sans text-sm" style={{ fontWeight: 'bold', textTransform: 'uppercase', color: 'var(--accent)' }}>View All &rarr;</Link>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
                 {opinionPosts.map(post => (

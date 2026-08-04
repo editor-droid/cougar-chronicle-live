@@ -6,10 +6,18 @@ import { updatePostState } from './actions';
 import { getArticleUrl } from '@/lib/routes';
 import DashboardHeader from '@/components/DashboardHeader';
 
-export default async function DashboardPage(props: { searchParams?: Promise<{ [key: string]: string | string[] | undefined }> }) {
+function statusBadgeClass(state: string) {
+  if (state === 'PUBLISHED' || state === 'APPROVED') return 'dash-badge dash-badge-green';
+  if (state === 'IN_REVIEW') return 'dash-badge dash-badge-amber';
+  return 'dash-badge';
+}
+
+export default async function DashboardPage(props: {
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
   const searchParams = await props.searchParams;
   const session = await auth();
-  
+
   if (!session?.user) {
     redirect('/login');
   }
@@ -22,22 +30,22 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ [k
   const isEditorOrAdmin = role === 'EDITOR' || role === 'ADMIN';
   const canPublish = role === 'ADMIN';
 
-  // Parse search and pagination params
   const pageParam = searchParams?.page;
   const pageNumber = parseInt(typeof pageParam === 'string' ? pageParam : '1') || 1;
   const pageSize = 20;
   const skip = (pageNumber - 1) * pageSize;
   const queryParam = searchParams?.q;
   const query = typeof queryParam === 'string' ? queryParam : '';
-  
-  // Validate sort column
+
   const validSortCols = ['title', 'publishedAt', 'views'];
   const sortParam = searchParams?.sort;
-  const sortCol = typeof sortParam === 'string' && validSortCols.includes(sortParam) ? sortParam : 'publishedAt';
+  const sortCol =
+    typeof sortParam === 'string' && validSortCols.includes(sortParam)
+      ? sortParam
+      : 'publishedAt';
   const orderParam = searchParams?.order;
   const sortOrder = orderParam === 'asc' ? 'asc' : 'desc';
 
-  // Fetch posts based on role
   let needsReviewPosts: any[] = [];
   let posts: any[] = [];
   let publishedPosts: any[] = [];
@@ -47,22 +55,24 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ [k
     needsReviewPosts = await prisma.post.findMany({
       where: { state: 'IN_REVIEW' },
       orderBy: { updatedAt: 'desc' },
-      include: { author: true }
+      include: { author: true },
     });
     posts = await prisma.post.findMany({
       where: { state: { in: ['DRAFT', 'APPROVED'] } },
       orderBy: { updatedAt: 'desc' },
-      include: { author: true }
+      include: { author: true },
     });
 
     const publishedWhere: any = {
       state: 'PUBLISHED',
-      ...(query ? {
-        OR: [
-          { title: { contains: query, mode: 'insensitive' } },
-          { customAuthor: { contains: query, mode: 'insensitive' } }
-        ]
-      } : {})
+      ...(query
+        ? {
+            OR: [
+              { title: { contains: query, mode: 'insensitive' } },
+              { customAuthor: { contains: query, mode: 'insensitive' } },
+            ],
+          }
+        : {}),
     };
 
     const publishedCount = await prisma.post.count({ where: publishedWhere });
@@ -73,229 +83,308 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ [k
       orderBy: { [sortCol]: sortOrder },
       take: pageSize,
       skip,
-      include: { author: true }
+      include: { author: true },
     });
   } else {
     posts = await prisma.post.findMany({
       where: { authorId: session.user.id },
       orderBy: { updatedAt: 'desc' },
-      include: { 
+      include: {
         author: true,
-        editorialNotes: { where: { resolved: false } }
-      }
+        editorialNotes: { where: { resolved: false } },
+      },
     });
   }
 
+  const sortHref = (col: string) => {
+    const nextOrder = sortCol === col && sortOrder === 'asc' ? 'desc' : 'asc';
+    return `/dashboard?q=${encodeURIComponent(query)}&sort=${col}&order=${nextOrder}`;
+  };
+
   return (
-    <div className="container animate-fade-in" style={{ marginTop: '1rem' }}>
+    <div className="container animate-fade-in" style={{ marginTop: '1rem', marginBottom: '3rem' }}>
       <DashboardHeader currentTab="posts" />
 
       {isEditorOrAdmin && needsReviewPosts.length > 0 && (
-        <div style={{ marginBottom: '3rem' }}>
-          <h2 className="font-serif" style={{ fontSize: '1.5rem', marginBottom: '1rem', color: 'var(--accent)' }}>Needs Review Queue</h2>
-          <div className="dashboard-table-scroll" style={{ backgroundColor: 'var(--surface)', borderRadius: '0.5rem', border: '2px solid var(--accent)' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: 520 }}>
-              <thead style={{ backgroundColor: 'var(--surface-hover)', borderBottom: '1px solid var(--border)' }}>
-                <tr>
-                  <th style={{ padding: '1rem' }} className="font-sans text-sm text-muted">TITLE</th>
-                  <th style={{ padding: '1rem' }} className="font-sans text-sm text-muted">AUTHOR</th>
-                  <th style={{ padding: '1rem' }} className="font-sans text-sm text-muted">SUBMITTED</th>
-                  <th style={{ padding: '1rem' }} className="font-sans text-sm text-muted">ACTIONS</th>
-                </tr>
-              </thead>
-              <tbody>
-                {needsReviewPosts.map(post => (
-                  <tr key={post.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                    <td style={{ padding: '1rem' }} className="font-serif">
-                      <Link href={`/dashboard/editor/${post.id}`} style={{ fontWeight: 'bold' }}>{post.title}</Link>
-                    </td>
-                    <td style={{ padding: '1rem' }} className="font-sans text-sm"><Link href={`/author/${post.authorId}`} style={{textDecoration: 'none', color: 'inherit'}}>{post.customAuthor || post.author.name}</Link></td>
-                    <td style={{ padding: '1rem' }} className="font-sans text-sm text-muted">
-                      {new Date(post.updatedAt).toLocaleDateString()}
-                    </td>
-                    <td style={{ padding: '1rem' }}>
-                      <Link href={`/dashboard/editor/${post.id}`} className="btn btn-primary text-sm" style={{ padding: '0.25rem 0.5rem' }}>Review Draft</Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      <div>
-        <h2 className="font-serif" style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>{isEditorOrAdmin ? 'All Drafts & Approvals' : 'Your Drafts'}</h2>
-        <div className="dashboard-table-scroll" style={{ backgroundColor: 'var(--surface)', borderRadius: '0.5rem', border: '1px solid var(--border)' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: 520 }}>
-            <thead style={{ backgroundColor: 'var(--surface-hover)', borderBottom: '1px solid var(--border)' }}>
-              <tr>
-                <th style={{ padding: '1rem' }} className="font-sans text-sm text-muted">TITLE</th>
-                <th style={{ padding: '1rem' }} className="font-sans text-sm text-muted">STATUS</th>
-                <th style={{ padding: '1rem' }} className="font-sans text-sm text-muted">LAST MODIFIED</th>
-                <th style={{ padding: '1rem' }} className="font-sans text-sm text-muted">ACTIONS</th>
-              </tr>
-            </thead>
-            <tbody>
-              {posts.length === 0 ? (
-                <tr>
-                  <td colSpan={4} style={{ padding: '2rem', textAlign: 'center' }} className="text-muted font-sans">No drafts found.</td>
-                </tr>
-              ) : (
-                posts.map(post => (
-                  <tr key={post.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                    <td style={{ padding: '1rem' }} className="font-serif">
-                      <Link href={`/dashboard/editor/${post.id}`} style={{ fontWeight: 'bold' }}>{post.title}</Link>
-                      {!isEditorOrAdmin && post.editorialNotes?.length > 0 && (
-                        <span style={{ marginLeft: '1rem', padding: '0.1rem 0.4rem', backgroundColor: '#fee2e2', color: '#991b1b', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 'bold' }}>
-                          {post.editorialNotes.length} Note(s)
-                        </span>
-                      )}
-                    </td>
-                    <td style={{ padding: '1rem' }}>
-                      <span style={{ 
-                        padding: '0.25rem 0.5rem', 
-                        borderRadius: '1rem', 
-                        fontSize: '0.75rem',
-                        fontWeight: 600,
-                        backgroundColor: post.state === 'APPROVED' ? '#dcfce7' : 'var(--surface-hover)',
-                        color: post.state === 'APPROVED' ? '#166534' : 'var(--muted)'
-                      }}>
-                        {post.state}
-                      </span>
-                    </td>
-                    <td style={{ padding: '1rem' }} className="font-sans text-sm text-muted">
-                      {new Date(post.updatedAt).toLocaleDateString()}
-                    </td>
-                    <td style={{ padding: '1rem', display: 'flex', gap: '0.5rem' }}>
-                      <Link href={`/dashboard/editor/${post.id}`} className="btn btn-secondary text-sm" style={{ padding: '0.25rem 0.5rem' }}>Edit</Link>
-                      {/* Server Action Form */}
-                      <form action={updatePostState} style={{ display: 'inline-block' }}>
-                        <input type="hidden" name="postId" value={post.id} />
-                        {canPublish && post.state === 'APPROVED' && (
-                          <>
-                            <input type="hidden" name="newState" value="PUBLISHED" />
-                            <button type="submit" className="btn btn-primary text-sm" style={{ padding: '0.25rem 0.5rem', backgroundColor: 'green', color: 'white' }}>Publish</button>
-                          </>
-                        )}
-                        {role === 'EDITOR' && post.state === 'IN_REVIEW' && (
-                          <>
-                            <input type="hidden" name="newState" value="APPROVED" />
-                            <button type="submit" className="btn btn-primary text-sm" style={{ padding: '0.25rem 0.5rem' }}>Approve</button>
-                          </>
-                        )}
-                        {!isEditorOrAdmin && post.state === 'DRAFT' && (
-                          <>
-                            <input type="hidden" name="newState" value="IN_REVIEW" />
-                            <button type="submit" className="btn btn-primary text-sm" style={{ padding: '0.25rem 0.5rem' }}>Submit for Review</button>
-                          </>
-                        )}
-                      </form>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {isEditorOrAdmin && (
-        <div style={{ marginTop: '3rem', marginBottom: '3rem' }}>
-          <h2 className="font-serif" style={{ fontSize: '1.5rem', marginBottom: '1rem', color: 'var(--primary)' }}>Published Posts</h2>
-          
-          <form method="GET" action="/dashboard" style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-            <input type="hidden" name="sort" value={sortCol} />
-            <input type="hidden" name="order" value={sortOrder} />
-            <input 
-              type="text" 
-              name="q" 
-              defaultValue={query} 
-              placeholder="Search published articles..." 
-              style={{ flex: 1, minWidth: '250px', padding: '0.5rem 1rem', borderRadius: '2rem', border: '1px solid var(--border)', backgroundColor: 'var(--surface)' }}
-            />
-            <button type="submit" className="btn btn-primary text-sm" style={{ padding: '0.5rem 1.5rem' }}>Search</button>
-            {query && <Link href={`/dashboard?sort=${sortCol}&order=${sortOrder}`} className="btn btn-secondary text-sm" style={{ padding: '0.5rem 1.5rem' }}>Clear</Link>}
-          </form>
-
-          <div className="dashboard-table-scroll" style={{ backgroundColor: 'var(--surface)', borderRadius: '0.5rem', border: '1px solid var(--border)' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: 640 }}>
-              <thead style={{ backgroundColor: 'var(--surface-hover)', borderBottom: '1px solid var(--border)' }}>
-                <tr>
-                  <th style={{ padding: '1rem' }} className="font-sans text-sm text-muted">
-                    <Link href={`/dashboard?q=${encodeURIComponent(query)}&sort=title&order=${sortCol === 'title' && sortOrder === 'asc' ? 'desc' : 'asc'}`} style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                      TITLE {sortCol === 'title' && (sortOrder === 'asc' ? '↑' : '↓')}
-                    </Link>
-                  </th>
-                  <th style={{ padding: '1rem' }} className="font-sans text-sm text-muted">
-                    AUTHOR
-                  </th>
-                  <th style={{ padding: '1rem' }} className="font-sans text-sm text-muted">
-                    <Link href={`/dashboard?q=${encodeURIComponent(query)}&sort=publishedAt&order=${sortCol === 'publishedAt' && sortOrder === 'asc' ? 'desc' : 'asc'}`} style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                      PUBLISHED {sortCol === 'publishedAt' && (sortOrder === 'asc' ? '↑' : '↓')}
-                    </Link>
-                  </th>
-                  <th style={{ padding: '1rem' }} className="font-sans text-sm text-muted">
-                    <Link href={`/dashboard?q=${encodeURIComponent(query)}&sort=views&order=${sortCol === 'views' && sortOrder === 'asc' ? 'desc' : 'asc'}`} style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                      VIEWS {sortCol === 'views' && (sortOrder === 'asc' ? '↑' : '↓')}
-                    </Link>
-                  </th>
-                  <th style={{ padding: '1rem' }} className="font-sans text-sm text-muted">ACTIONS</th>
-                </tr>
-              </thead>
-              <tbody>
-                {publishedPosts.length === 0 ? (
+        <section className="dash-section">
+          <div className="dash-card dash-card-accent">
+            <div className="dash-card-header">
+              <h2 className="dash-section-title">Needs review</h2>
+              <span className="dash-badge dash-badge-amber">
+                {needsReviewPosts.length} waiting
+              </span>
+            </div>
+            <div className="dashboard-table-scroll">
+              <table className="dash-table">
+                <thead>
                   <tr>
-                    <td colSpan={5} style={{ padding: '2rem', textAlign: 'center' }} className="text-muted font-sans">No published posts found.</td>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>Submitted</th>
+                    <th>Actions</th>
                   </tr>
-                ) : (
-                  publishedPosts.map(post => (
-                    <tr key={post.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                      <td style={{ padding: '1rem' }} className="font-serif">
-                        <Link href={`/dashboard/editor/${post.id}`} style={{ fontWeight: 'bold' }}>{post.title}</Link>
+                </thead>
+                <tbody>
+                  {needsReviewPosts.map((post) => (
+                    <tr key={post.id}>
+                      <td>
+                        <Link
+                          href={`/dashboard/editor/${post.id}`}
+                          className="dash-title-link"
+                        >
+                          {post.title}
+                        </Link>
                       </td>
-                      <td style={{ padding: '1rem' }} className="font-sans text-sm"><Link href={`/author/${post.authorId}`} style={{textDecoration: 'none', color: 'inherit'}}>{post.customAuthor || post.author.name}</Link></td>
-                      <td style={{ padding: '1rem' }} className="font-sans text-sm text-muted">
-                        {new Date(post.publishedAt || post.updatedAt).toLocaleDateString()}
+                      <td className="text-muted">
+                        {post.customAuthor || post.author.name}
                       </td>
-                      <td style={{ padding: '1rem' }}>
-                        <span className="font-sans" style={{ fontWeight: 'bold', color: 'var(--primary)', padding: '0.2rem 0.5rem', backgroundColor: 'var(--surface-hover)', borderRadius: '0.25rem' }}>
-                          {post.views}
-                        </span>
+                      <td className="text-muted">
+                        {new Date(post.updatedAt).toLocaleDateString()}
                       </td>
-                      <td style={{ padding: '1rem', display: 'flex', gap: '0.5rem' }}>
-                        <Link href={getArticleUrl(post)} className="btn btn-secondary text-sm" style={{ padding: '0.25rem 0.5rem' }}>View Live</Link>
-                        <Link href={`/dashboard/editor/${post.id}`} className="btn btn-primary text-sm" style={{ padding: '0.25rem 0.5rem' }}>Edit</Link>
+                      <td>
+                        <div className="dash-row-actions">
+                          <Link
+                            href={`/dashboard/editor/${post.id}`}
+                            className="dash-btn dash-btn-primary"
+                          >
+                            Review
+                          </Link>
+                        </div>
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-          
-          {totalPublishedPages > 1 && (
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', marginTop: '1.5rem' }}>
-              {pageNumber > 1 ? (
-                <Link href={`/dashboard?page=${pageNumber - 1}&q=${encodeURIComponent(query)}&sort=${sortCol}&order=${sortOrder}`} className="btn btn-secondary text-sm">
-                  &larr; Previous
-                </Link>
+        </section>
+      )}
+
+      <section className="dash-section">
+        <div className="dash-card">
+          <div className="dash-card-header">
+            <h2 className="dash-section-title">
+              {isEditorOrAdmin ? 'Drafts & approvals' : 'Your drafts'}
+            </h2>
+            <span className="dash-badge dash-badge-navy">{posts.length}</span>
+          </div>
+          <div className="dashboard-table-scroll">
+            {posts.length === 0 ? (
+              <div className="dash-empty">No drafts found.</div>
+            ) : (
+              <table className="dash-table">
+                <thead>
+                  <tr>
+                    <th>Title</th>
+                    <th>Status</th>
+                    <th>Last modified</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {posts.map((post) => (
+                    <tr key={post.id}>
+                      <td>
+                        <Link
+                          href={`/dashboard/editor/${post.id}`}
+                          className="dash-title-link"
+                        >
+                          {post.title}
+                        </Link>
+                        {!isEditorOrAdmin && post.editorialNotes?.length > 0 && (
+                          <span
+                            className="dash-badge dash-badge-red"
+                            style={{ marginLeft: '0.5rem' }}
+                          >
+                            {post.editorialNotes.length} note
+                            {post.editorialNotes.length === 1 ? '' : 's'}
+                          </span>
+                        )}
+                      </td>
+                      <td>
+                        <span className={statusBadgeClass(post.state)}>
+                          {post.state}
+                        </span>
+                      </td>
+                      <td className="text-muted">
+                        {new Date(post.updatedAt).toLocaleDateString()}
+                      </td>
+                      <td>
+                        <div className="dash-row-actions">
+                          <Link
+                            href={`/dashboard/editor/${post.id}`}
+                            className="dash-btn"
+                          >
+                            Edit
+                          </Link>
+                          <form action={updatePostState} style={{ display: 'inline' }}>
+                            <input type="hidden" name="postId" value={post.id} />
+                            {canPublish && post.state === 'APPROVED' && (
+                              <>
+                                <input type="hidden" name="newState" value="PUBLISHED" />
+                                <button type="submit" className="dash-btn dash-btn-success">
+                                  Publish
+                                </button>
+                              </>
+                            )}
+                            {role === 'EDITOR' && post.state === 'IN_REVIEW' && (
+                              <>
+                                <input type="hidden" name="newState" value="APPROVED" />
+                                <button type="submit" className="dash-btn dash-btn-primary">
+                                  Approve
+                                </button>
+                              </>
+                            )}
+                            {!isEditorOrAdmin && post.state === 'DRAFT' && (
+                              <>
+                                <input type="hidden" name="newState" value="IN_REVIEW" />
+                                <button type="submit" className="dash-btn dash-btn-primary">
+                                  Submit
+                                </button>
+                              </>
+                            )}
+                          </form>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {isEditorOrAdmin && (
+        <section className="dash-section">
+          <div className="dash-card">
+            <div className="dash-card-header">
+              <h2 className="dash-section-title">Published</h2>
+            </div>
+            <div style={{ padding: '1rem 1.15rem 0' }}>
+              <form method="GET" action="/dashboard" className="dash-toolbar">
+                <input type="hidden" name="sort" value={sortCol} />
+                <input type="hidden" name="order" value={sortOrder} />
+                <div className="dash-search">
+                  <input
+                    type="search"
+                    name="q"
+                    defaultValue={query}
+                    placeholder="Search published articles…"
+                  />
+                </div>
+                <button type="submit" className="dash-btn dash-btn-primary">
+                  Search
+                </button>
+                {query ? (
+                  <Link
+                    href={`/dashboard?sort=${sortCol}&order=${sortOrder}`}
+                    className="dash-btn"
+                  >
+                    Clear
+                  </Link>
+                ) : null}
+              </form>
+            </div>
+            <div className="dashboard-table-scroll">
+              {publishedPosts.length === 0 ? (
+                <div className="dash-empty">No published posts found.</div>
               ) : (
-                <span className="btn btn-secondary text-sm" style={{ opacity: 0.5, pointerEvents: 'none' }}>&larr; Previous</span>
+                <table className="dash-table">
+                  <thead>
+                    <tr>
+                      <th>
+                        <Link href={sortHref('title')} style={{ color: 'inherit', textDecoration: 'none' }}>
+                          Title {sortCol === 'title' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
+                        </Link>
+                      </th>
+                      <th>Author</th>
+                      <th>
+                        <Link href={sortHref('publishedAt')} style={{ color: 'inherit', textDecoration: 'none' }}>
+                          Published {sortCol === 'publishedAt' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
+                        </Link>
+                      </th>
+                      <th>
+                        <Link href={sortHref('views')} style={{ color: 'inherit', textDecoration: 'none' }}>
+                          Views {sortCol === 'views' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
+                        </Link>
+                      </th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {publishedPosts.map((post) => (
+                      <tr key={post.id}>
+                        <td>
+                          <Link
+                            href={`/dashboard/editor/${post.id}`}
+                            className="dash-title-link"
+                          >
+                            {post.title}
+                          </Link>
+                        </td>
+                        <td className="text-muted">
+                          {post.customAuthor || post.author.name}
+                        </td>
+                        <td className="text-muted">
+                          {new Date(post.publishedAt || post.updatedAt).toLocaleDateString()}
+                        </td>
+                        <td>
+                          <span className="dash-badge dash-badge-navy">{post.views}</span>
+                        </td>
+                        <td>
+                          <div className="dash-row-actions">
+                            <Link href={getArticleUrl(post)} className="dash-btn">
+                              View
+                            </Link>
+                            <Link
+                              href={`/dashboard/editor/${post.id}`}
+                              className="dash-btn dash-btn-primary"
+                            >
+                              Edit
+                            </Link>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               )}
-              
-              <span className="font-sans text-sm text-muted">Page {pageNumber} of {totalPublishedPages}</span>
-              
-              {pageNumber < totalPublishedPages ? (
-                <Link href={`/dashboard?page=${pageNumber + 1}&q=${encodeURIComponent(query)}&sort=${sortCol}&order=${sortOrder}`} className="btn btn-secondary text-sm">
-                  Next &rarr;
+            </div>
+          </div>
+
+          {totalPublishedPages > 1 && (
+            <div className="dash-pagination">
+              {pageNumber > 1 ? (
+                <Link
+                  href={`/dashboard?page=${pageNumber - 1}&q=${encodeURIComponent(query)}&sort=${sortCol}&order=${sortOrder}`}
+                  className="dash-btn"
+                >
+                  ← Previous
                 </Link>
               ) : (
-                <span className="btn btn-secondary text-sm" style={{ opacity: 0.5, pointerEvents: 'none' }}>Next &rarr;</span>
+                <span className="dash-btn" style={{ opacity: 0.45, pointerEvents: 'none' }}>
+                  ← Previous
+                </span>
+              )}
+              <span className="font-sans text-sm text-muted">
+                Page {pageNumber} of {totalPublishedPages}
+              </span>
+              {pageNumber < totalPublishedPages ? (
+                <Link
+                  href={`/dashboard?page=${pageNumber + 1}&q=${encodeURIComponent(query)}&sort=${sortCol}&order=${sortOrder}`}
+                  className="dash-btn"
+                >
+                  Next →
+                </Link>
+              ) : (
+                <span className="dash-btn" style={{ opacity: 0.45, pointerEvents: 'none' }}>
+                  Next →
+                </span>
               )}
             </div>
           )}
-        </div>
+        </section>
       )}
     </div>
   );

@@ -10,7 +10,14 @@ export async function POST(req: Request) {
     const { messages, pathname } = await req.json();
 
     let currentPageContext = '';
-    if (pathname && (pathname.startsWith('/article/') || pathname.startsWith('/premium-article/'))) {
+    if (
+      pathname &&
+      (pathname.startsWith('/article/') ||
+        pathname.startsWith('/premium-article/') ||
+        pathname.startsWith('/print-edition/') ||
+        // flat free-article URLs: /my-story-slug
+        /^\/[a-z0-9]+(?:-[a-z0-9]+)*\/?$/i.test(pathname))
+    ) {
       const slug = pathname.split('/').pop();
       const currentArticle = await prisma.post.findUnique({
         where: { slug },

@@ -1,6 +1,9 @@
 .page {
+  width: 100%;
+  max-width: none;
   margin-bottom: 4rem;
   padding-bottom: env(safe-area-inset-bottom, 0);
+  box-sizing: border-box;
 }
 
 .header {
@@ -555,8 +558,9 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
   gap: 1.25rem;
+  width: 100%;
 }
 
 .card {

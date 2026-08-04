@@ -19,15 +19,19 @@ import { buildNewsArticleJsonLdWithVideos } from '@/lib/article-videos';
 import { enhanceArticleVideoEmbeds } from '@/lib/embed-utils';
 import { rewriteMediaUrl } from '@/lib/media-url';
 import { isBreakingStillActive } from '@/lib/breaking';
+import { buildArticleMetadata } from '@/lib/article-metadata';
+import { buildArticleBreadcrumbJsonLd } from '@/lib/section-seo';
+import { categoryLabel, getSectionPath } from '@/lib/categories';
+
 export async function generateMetadata(
   { params }: { params: Promise<{ slug: string }> },
-  parent: ResolvingMetadata
+  _parent: ResolvingMetadata
 ): Promise<Metadata> {
   const { slug } = await params;
-  
+
   const post = await prisma.post.findUnique({
     where: { slug, state: 'PUBLISHED' },
-    include: { author: true }
+    include: { author: true },
   });
 
   if (!post) {
@@ -37,43 +41,7 @@ export async function generateMetadata(
     };
   }
 
-  // Use the AI-generated SEO fields if they exist, otherwise fallback
-  const title = post.seoTitle || post.title;
-  const description = post.seoDescription || 
-    (post.content 
-      ? post.content.replace(/<[^>]*>?/gm, '').substring(0, 155) + '...' 
-      : 'Read this article on The Cougar Chronicle.');
-      
-  const keywords = post.seoKeywords ? post.seoKeywords.split(',').map(k => k.trim()) : [];
-  const heroImage = rewriteMediaUrl(post.imageUrl) || null;
-
-  return {
-    title: title,
-    description: description,
-    keywords: keywords,
-    alternates: {
-      canonical: getArticleUrl(post),
-    },
-    openGraph: {
-      title: `${title} | The Cougar Chronicle`,
-      description: description,
-      type: 'article',
-      url: getArticleUrl(post),
-      images: heroImage 
-        ? [{ url: heroImage, alt: post.title }] 
-        : [{ url: '/images/default-article.jpg', width: 1080, height: 720, alt: 'The Cougar Chronicle' }],
-      publishedTime: post.publishedAt?.toISOString() || post.createdAt.toISOString(),
-      authors: [post.customAuthor || post.author.name || 'The Cougar Chronicle'],
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: `${title} | The Cougar Chronicle`,
-      description: description,
-      images: heroImage 
-        ? [{ url: heroImage, alt: post.title }] 
-        : [{ url: '/images/default-article.jpg', width: 1080, height: 720, alt: 'The Cougar Chronicle' }],
-    }
-  };
+  return buildArticleMetadata(post);
 }
 
 export default async function ArticlePage({ params, searchParams }: { params: Promise<{ slug: string }>, searchParams: Promise<{ token?: string }> }) {
@@ -182,6 +150,9 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
 
   // NewsArticle + nested VideoObject(s) for any Stream/YouTube embeds
   const jsonLd = await buildNewsArticleJsonLdWithVideos(post);
+  const breadcrumbLd = buildArticleBreadcrumbJsonLd(post);
+  const sectionPath = post.category ? getSectionPath(post.category) : '/news';
+  const sectionLabel = post.category ? categoryLabel(post.category) : 'News';
 
   return (
     <div className="article-page-layout">
@@ -189,15 +160,23 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+      />
       <ClientLightbox />
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         <article style={{ padding: '0', minHeight: '60vh' }}>
           <header style={{ marginBottom: '3rem', textAlign: 'center' }}>
             <div style={{ marginBottom: '1.5rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}>
-                <span className="font-sans text-xs text-muted" style={{ textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700 }}>
-                  {post.category}
-                </span>
+                <Link
+                  href={sectionPath}
+                  className="font-sans text-xs text-muted"
+                  style={{ textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700, textDecoration: 'none' }}
+                >
+                  {sectionLabel}
+                </Link>
                 {post.printEditionId && (
                   <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: 700, backgroundColor: 'var(--surface-hover)', padding: '0.15rem 0.4rem', borderRadius: '0.25rem', border: '1px solid var(--border)', color: 'var(--foreground)' }}>
                     🗞️ Print Edition

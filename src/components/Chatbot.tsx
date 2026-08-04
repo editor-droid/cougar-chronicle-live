@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { usePathname } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
 import Image from 'next/image';
@@ -57,9 +58,14 @@ export default function Chatbot() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
-  
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -76,6 +82,8 @@ export default function Chatbot() {
   ) {
     return null;
   }
+
+  if (!mounted) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -195,31 +203,96 @@ export default function Chatbot() {
     }
   };
 
-  if (!isOpen) {
-    return (
-      <div className="chatbot-launcher" style={{ position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 50, display: 'flex', alignItems: 'flex-end', flexDirection: 'column', gap: '1rem' }}>
-        <div 
-          className="animate-fade-in chatbot-bubble" 
-          style={{ backgroundColor: 'white', border: '1px solid var(--border)', padding: '0.75rem 1rem', borderRadius: '1rem', borderBottomRightRadius: '0.25rem', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)', cursor: 'pointer' }} 
+  const fixedChrome: React.CSSProperties = {
+    position: 'fixed',
+    // Safe areas for iOS home indicator; max() keeps desktop spacing
+    bottom: 'max(1.25rem, env(safe-area-inset-bottom, 0px))',
+    right: 'max(1.25rem, env(safe-area-inset-right, 0px))',
+    zIndex: 9999,
+    // Own compositor layer — helps fixed stick during iOS rubber-band scroll
+    transform: 'translate3d(0, 0, 0)',
+    WebkitBackfaceVisibility: 'hidden',
+    backfaceVisibility: 'hidden',
+  };
+
+  const ui = !isOpen ? (
+      <div
+        className="chatbot-launcher"
+        style={{
+          ...fixedChrome,
+          display: 'flex',
+          alignItems: 'flex-end',
+          flexDirection: 'column',
+          gap: '0.75rem',
+          pointerEvents: 'none',
+        }}
+      >
+        <div
+          className="chatbot-bubble"
+          style={{
+            backgroundColor: 'white',
+            border: '1px solid var(--border)',
+            padding: '0.75rem 1rem',
+            borderRadius: '1rem',
+            borderBottomRightRadius: '0.25rem',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+            cursor: 'pointer',
+            pointerEvents: 'auto',
+          }}
           onClick={() => setIsOpen(true)}
         >
-          <p className="font-sans text-sm" style={{ fontWeight: 600, margin: 0 }}>Have a question? Ask our AI!</p>
+          <p className="font-sans text-sm" style={{ fontWeight: 600, margin: 0 }}>
+            Have a question? Ask our AI!
+          </p>
         </div>
-        <button 
+        <button
+          type="button"
           onClick={() => setIsOpen(true)}
           aria-label="Open AI Chatbot"
-          style={{ width: '64px', height: '64px', borderRadius: '50%', backgroundColor: 'var(--primary)', color: 'var(--primary-foreground)', border: 'none', boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'transform 0.2s', overflow: 'hidden' }}
-          onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-          onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+          style={{
+            width: 56,
+            height: 56,
+            borderRadius: '50%',
+            backgroundColor: 'var(--primary)',
+            color: 'var(--primary-foreground)',
+            border: 'none',
+            boxShadow: '0 4px 18px rgba(27, 34, 83, 0.35)',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            overflow: 'hidden',
+            pointerEvents: 'auto',
+            // Avoid CSS transform on the button itself (breaks fixed on some iOS builds)
+            flexShrink: 0,
+          }}
         >
-          <Image src="/chat-icon.png" alt="Chat" width={64} height={64} priority style={{ objectFit: 'cover' }} />
+          <Image
+            src="/chat-icon.png"
+            alt="Chat"
+            width={56}
+            height={56}
+            priority
+            style={{ objectFit: 'cover', width: 56, height: 56 }}
+          />
         </button>
       </div>
-    );
-  }
-
-  return (
-    <div className="animate-fade-in" style={{ position: 'fixed', bottom: '2rem', right: '2rem', width: '380px', backgroundColor: '#e5ddd5', borderRadius: '1rem', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.2)', overflow: 'hidden', display: 'flex', flexDirection: 'column', maxHeight: '600px', zIndex: 50 }}>
+  ) : (
+    <div
+      className="chatbot-panel"
+      style={{
+        ...fixedChrome,
+        width: 'min(380px, calc(100vw - 1.5rem))',
+        backgroundColor: '#e5ddd5',
+        borderRadius: '1rem',
+        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.2)',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        maxHeight: 'min(600px, 75dvh)',
+        left: 'auto',
+      }}
+    >
       {/* Header */}
       <div style={{ backgroundColor: 'var(--primary)', color: 'white', padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', zIndex: 2 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -339,4 +412,7 @@ export default function Chatbot() {
       </form>
     </div>
   );
+
+  // Portal to <body> so no parent transform/overflow can unstick position:fixed on iOS
+  return createPortal(ui, document.body);
 }

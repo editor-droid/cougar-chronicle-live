@@ -1,18 +1,22 @@
 import prisma from '@/lib/prisma';
 import {
   DEFAULT_MEDIA_APPEARANCES,
+  DEFAULT_OPEN_ROLES,
   DEFAULT_PUBLIC_TEAM,
   TEAM_GROUP_ORDER,
   type MediaAppearance,
+  type OpenRole,
+  type OpenRoleKind,
   type TeamGroup,
   type TeamMember,
 } from '@/lib/site-content-types';
 
-export type { MediaAppearance, TeamGroup, TeamMember };
+export type { MediaAppearance, OpenRole, OpenRoleKind, TeamGroup, TeamMember };
 export {
   TEAM_GROUP_LABELS,
   TEAM_GROUP_ORDER,
   DEFAULT_MEDIA_APPEARANCES,
+  DEFAULT_OPEN_ROLES,
   DEFAULT_PUBLIC_TEAM,
 } from '@/lib/site-content-types';
 
@@ -20,6 +24,7 @@ export {
 export const SITE_KEYS = {
   mediaAppearances: 'mediaAppearances',
   publicTeam: 'publicTeam',
+  openRoles: 'openRoles',
 } as const;
 
 function newId() {
@@ -100,4 +105,26 @@ export function groupTeamMembers(members: TeamMember[]): Record<TeamGroup, TeamM
     if (out[m.group]) out[m.group].push(m);
   }
   return out;
+}
+
+export async function getOpenRoles(): Promise<OpenRole[]> {
+  const list = await readJsonSetting<OpenRole[]>(SITE_KEYS.openRoles, DEFAULT_OPEN_ROLES);
+  return [...list].sort((a, b) => a.sortOrder - b.sortOrder);
+}
+
+/** Only roles/beats marked open — used by Apply page + form. */
+export async function getActiveOpenRoles(): Promise<OpenRole[]> {
+  return (await getOpenRoles()).filter((r) => r.isOpen && r.title.trim());
+}
+
+export async function saveOpenRoles(list: OpenRole[]) {
+  const normalized = list.map((item, i) => ({
+    id: item.id || newId(),
+    title: (item.title || '').trim(),
+    kind: (item.kind === 'beat' ? 'beat' : 'role') as OpenRoleKind,
+    isOpen: item.isOpen !== false,
+    sortOrder: typeof item.sortOrder === 'number' ? item.sortOrder : i,
+  }));
+  await writeJsonSetting(SITE_KEYS.openRoles, normalized);
+  return normalized;
 }

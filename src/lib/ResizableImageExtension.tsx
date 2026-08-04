@@ -56,7 +56,9 @@ function ResizableImageView({ node, updateAttributes, selected }: any) {
     const onMouseMove = (ev: MouseEvent) => {
       const dx = ev.clientX - startX;
       const delta = isLeft ? -dx : dx;
-      const newWidth = Math.max(100, Math.min(startWidth + delta, 900));
+      const parentMax =
+        imgRef.current?.closest('.rich-text-editor-content, .ProseMirror, .tiptap')?.clientWidth || 900;
+      const newWidth = Math.max(100, Math.min(startWidth + delta, Math.min(900, parentMax - 16)));
       liveWidthRef.current = newWidth;
       setDisplayWidth(newWidth);
     };
@@ -78,10 +80,19 @@ function ResizableImageView({ node, updateAttributes, selected }: any) {
   const widthStyle = displayWidth ? `${displayWidth}px` : "auto";
 
   return (
-    <NodeViewWrapper className="inline-block relative" style={{ width: widthStyle, maxWidth: "100%" }}>
+    <NodeViewWrapper
+      className="resizable-image-node"
+      style={{
+        display: "block",
+        width: widthStyle,
+        maxWidth: "100%",
+        margin: "1.25rem auto",
+        boxSizing: "border-box",
+      }}
+    >
       <div
-        className="relative inline-block group"
-        style={{ width: "100%" }}
+        className="relative group"
+        style={{ width: "100%", maxWidth: "100%" }}
       >
         <img
           ref={imgRef}
@@ -89,26 +100,71 @@ function ResizableImageView({ node, updateAttributes, selected }: any) {
           alt={node.attrs.alt || ""}
           title={node.attrs.title || ""}
           draggable={false}
-          className={`block w-full h-auto rounded ${selected ? "ring-2 ring-[oklch(0.578_0.130_60.2)] ring-offset-2" : ""}`}
+          style={{
+            display: "block",
+            width: "100%",
+            maxWidth: "100%",
+            height: "auto",
+            objectFit: "contain",
+            borderRadius: "0.5rem",
+            boxShadow: selected || isResizing
+              ? "0 0 0 2px #1B2253"
+              : "none",
+          }}
         />
-        {/* Resize handles — visible on hover or when selected */}
+        {/* Resize handles — brand navy */}
         {(selected || isResizing) && (
           <>
-            {/* Bottom-right handle */}
             <div
               onMouseDown={(e) => handleMouseDown(e, "bottom-right")}
-              className="absolute bottom-0 right-0 w-3 h-3 bg-[oklch(0.578_0.130_60.2)] rounded-tl cursor-se-resize z-10 opacity-80 hover:opacity-100"
-              style={{ transform: "translate(25%, 25%)" }}
+              title="Drag to resize"
+              style={{
+                position: "absolute",
+                bottom: 0,
+                right: 0,
+                width: 14,
+                height: 14,
+                background: "#1B2253",
+                borderRadius: "4px 0 0.5rem 0",
+                cursor: "se-resize",
+                zIndex: 10,
+                opacity: 0.9,
+              }}
             />
-            {/* Bottom-left handle */}
             <div
               onMouseDown={(e) => handleMouseDown(e, "bottom-left")}
-              className="absolute bottom-0 left-0 w-3 h-3 bg-[oklch(0.578_0.130_60.2)] rounded-tr cursor-sw-resize z-10 opacity-80 hover:opacity-100"
-              style={{ transform: "translate(-25%, 25%)" }}
+              title="Drag to resize"
+              style={{
+                position: "absolute",
+                bottom: 0,
+                left: 0,
+                width: 14,
+                height: 14,
+                background: "#1B2253",
+                borderRadius: "0 4px 0 0.5rem",
+                cursor: "sw-resize",
+                zIndex: 10,
+                opacity: 0.9,
+              }}
             />
-            {/* Width indicator */}
-            <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 bg-[oklch(0.318_0.035_226.6)] text-white text-xs px-2 py-0.5 rounded whitespace-nowrap z-10">
-              {Math.round(displayWidth || 0)}px
+            <div
+              style={{
+                position: "absolute",
+                bottom: -28,
+                left: "50%",
+                transform: "translateX(-50%)",
+                background: "#1B2253",
+                color: "#fff",
+                fontSize: 11,
+                fontWeight: 700,
+                padding: "2px 8px",
+                borderRadius: 999,
+                whiteSpace: "nowrap",
+                zIndex: 10,
+                fontFamily: "var(--font-sans)",
+              }}
+            >
+              {Math.round(displayWidth || 0)}px · drag corners to resize
             </div>
           </>
         )}

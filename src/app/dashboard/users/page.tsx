@@ -24,7 +24,7 @@ export default async function UsersPage() {
 
   return (
     <div className="container animate-fade-in" style={{ marginTop: '2rem', marginBottom: '3rem' }}>
-      <DashboardHeader currentTab="users" title="User management" />
+      <DashboardHeader currentTab="users" title="People" />
       <UsersManager users={users} currentUserId={session.user.id} />
     </div>
   );

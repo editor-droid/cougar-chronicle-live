@@ -4,6 +4,26 @@ import { useCallback, useEffect, useState, type CSSProperties } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { formatDurationLabel, videoPagePath } from '@/lib/videos';
+import { parseVideoDescription } from '@/lib/video-description';
+
+/** Homepage card excerpt — same visual height via line-clamp. */
+const HOME_DESC_LINES = 2;
+const HOME_DESC_MAX_CHARS = 110;
+
+function homeDescriptionExcerpt(raw?: string | null): string {
+  if (!raw?.trim()) return '';
+  const { body } = parseVideoDescription(raw);
+  const plain = (body || raw)
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!plain) return '';
+  if (plain.length <= HOME_DESC_MAX_CHARS) return plain;
+  const cut = plain.slice(0, HOME_DESC_MAX_CHARS);
+  const lastSpace = cut.lastIndexOf(' ');
+  const clipped = lastSpace > 40 ? cut.slice(0, lastSpace) : cut;
+  return `${clipped.replace(/[.,;:\-–—\s]+$/, '')}…`;
+}
 
 export type VideoHighlightItem = {
   id: string;
@@ -154,37 +174,73 @@ export default function VideoHighlights({
           >
             {v.title}
           </span>
-          {/* Homepage: title only + Watch CTA (no excerpt). Other variants keep description. */}
           {variant === 'home' ? (
-            <span
-              className="font-sans"
-              style={{
-                display: 'inline-block',
-                marginTop: '0.55rem',
-                fontSize: '0.8rem',
-                fontWeight: 700,
-                letterSpacing: '0.04em',
-                textTransform: 'uppercase',
-                color: 'var(--primary)',
-                borderBottom: '1.5px solid var(--primary)',
-                paddingBottom: '0.1rem',
-              }}
-            >
-              Watch
-            </span>
+            <>
+              {(() => {
+                const excerpt = homeDescriptionExcerpt(v.description);
+                return excerpt ? (
+                  <span
+                    className="font-sans text-muted"
+                    style={{
+                      display: '-webkit-box',
+                      WebkitLineClamp: HOME_DESC_LINES,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                      marginTop: '0.4rem',
+                      fontSize: '0.82rem',
+                      lineHeight: 1.4,
+                      // Reserve 2 lines so short blurbs don’t collapse the grid
+                      minHeight: `calc(1.4em * ${HOME_DESC_LINES})`,
+                      maxHeight: `calc(1.4em * ${HOME_DESC_LINES})`,
+                    }}
+                  >
+                    {excerpt}
+                  </span>
+                ) : (
+                  <span
+                    aria-hidden
+                    style={{
+                      display: 'block',
+                      marginTop: '0.4rem',
+                      minHeight: `calc(1.4em * ${HOME_DESC_LINES})`,
+                    }}
+                  />
+                );
+              })()}
+              <span
+                className="font-sans"
+                style={{
+                  display: 'inline-block',
+                  marginTop: '0.45rem',
+                  fontSize: '0.8rem',
+                  fontWeight: 700,
+                  letterSpacing: '0.04em',
+                  textTransform: 'uppercase',
+                  color: 'var(--primary)',
+                  borderBottom: '1.5px solid var(--primary)',
+                  paddingBottom: '0.1rem',
+                }}
+              >
+                Watch
+              </span>
+            </>
           ) : (
             !isSidebar &&
             v.description && (
               <span
                 className="font-sans text-muted"
                 style={{
-                  display: 'block',
+                  display: '-webkit-box',
+                  WebkitLineClamp: 3,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
                   marginTop: '0.35rem',
                   fontSize: '0.85rem',
                   lineHeight: 1.4,
                 }}
               >
-                {v.description}
+                {parseVideoDescription(v.description).body.replace(/\s+/g, ' ').trim() ||
+                  v.description}
               </span>
             )
           )}
@@ -259,13 +315,14 @@ export default function VideoHighlights({
       )}
 
       <div
+        className={isPage ? 'video-highlights-grid-page' : undefined}
         style={{
           display: 'grid',
           gridTemplateColumns: isSidebar
             ? '1fr'
             : isPage
-              ? 'repeat(auto-fill, minmax(260px, 1fr))'
-              : 'repeat(auto-fill, minmax(200px, 1fr))',
+              ? 'repeat(auto-fill, minmax(min(100%, 260px), 1fr))'
+              : 'repeat(auto-fill, minmax(min(100%, 200px), 1fr))',
           gap: isSidebar ? '1rem' : '1.25rem',
         }}
       >
@@ -294,6 +351,15 @@ export default function VideoHighlights({
           );
         })}
       </div>
+
+      <style>{`
+        @media (max-width: 640px) {
+          .video-highlights-grid-page {
+            grid-template-columns: 1fr !important;
+            gap: 1.15rem !important;
+          }
+        }
+      `}</style>
 
       {active && (
         <div

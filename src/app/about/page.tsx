@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
+import Link from 'next/link';
+import prisma from '@/lib/prisma';
 import {
   TEAM_GROUP_LABELS,
   TEAM_GROUP_ORDER,
@@ -8,6 +10,10 @@ import {
   type TeamGroup,
   type TeamMember,
 } from '@/lib/site-content';
+
+function normalizePersonName(name: string) {
+  return name.trim().toLowerCase().replace(/\s+/g, ' ');
+}
 
 export const metadata: Metadata = {
   title: 'About Us',
@@ -36,6 +42,16 @@ export const dynamic = 'force-dynamic';
 
 const campusGallery = [
   {
+    src: '/images/campus/provo-utah-temple.jpg',
+    alt: 'Provo Utah Temple',
+    caption: 'Provo Utah Temple',
+  },
+  {
+    src: '/images/campus/provo-city-center-temple.jpg',
+    alt: 'Provo City Center Temple',
+    caption: 'Provo City Center Temple',
+  },
+  {
     src: '/images/campus/byu-maeser.jpg',
     alt: 'Karl G. Maeser Building on the BYU campus in Provo, Utah',
     caption: 'Maeser Building · BYU',
@@ -45,45 +61,68 @@ const campusGallery = [
     alt: 'The Block Y on Y Mountain overlooking BYU campus',
     caption: 'Y Mountain · Provo',
   },
-  {
-    src: '/images/campus/byu-y-mountain-stadium.jpg',
-    alt: 'Y Mountain and BYU campus from LaVell Edwards Stadium',
-    caption: 'Y Mountain · Stadium view',
-  },
-  {
-    src: '/images/campus/byu-campus-winter.jpg',
-    alt: 'BYU campus in winter with Y Mountain in the background',
-    caption: 'Campus in winter',
-  },
 ];
 
-function renderTeamGrid(members: TeamMember[]) {
+function renderTeamGrid(
+  members: TeamMember[],
+  authorByName: Map<string, string>
+) {
   if (!members.length) return null;
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '1.5rem' }}>
-      {members.map((member) => (
-        <div
-          key={member.id}
-          style={{
-            padding: '1.5rem',
-            backgroundColor: 'var(--surface)',
-            borderRadius: '0.5rem',
-            border: '1px solid var(--border)',
-          }}
-        >
-          <div
-            className="font-serif"
-            style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--foreground)', marginBottom: '0.25rem' }}
-          >
-            {member.name}
-          </div>
-          {member.title ? (
-            <div className="font-sans text-sm text-primary" style={{ fontWeight: 600 }}>
-              {member.title}
+      {members.map((member) => {
+        const authorId = authorByName.get(normalizePersonName(member.name));
+        const cardStyle = {
+          padding: '1.5rem',
+          backgroundColor: 'var(--surface)',
+          borderRadius: '0.75rem',
+          border: '1px solid var(--border)',
+          display: 'block',
+          textDecoration: 'none',
+          color: 'inherit',
+          transition: 'border-color 0.15s, box-shadow 0.15s, transform 0.15s',
+        } as const;
+
+        const inner = (
+          <>
+            <div
+              className="font-serif"
+              style={{
+                fontSize: '1.25rem',
+                fontWeight: 700,
+                color: 'var(--foreground)',
+                marginBottom: '0.25rem',
+              }}
+            >
+              {member.name}
             </div>
-          ) : null}
-        </div>
-      ))}
+            {member.title ? (
+              <div className="font-sans text-sm text-primary" style={{ fontWeight: 600 }}>
+                {member.title}
+              </div>
+            ) : null}
+          </>
+        );
+
+        if (authorId) {
+          return (
+            <Link
+              key={member.id}
+              href={`/author/${authorId}`}
+              style={cardStyle}
+              className="about-staff-card"
+            >
+              {inner}
+            </Link>
+          );
+        }
+
+        return (
+          <div key={member.id} style={cardStyle}>
+            {inner}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -91,6 +130,24 @@ function renderTeamGrid(members: TeamMember[]) {
 export default async function AboutPage() {
   const members = await getPublicTeam();
   const grouped = groupTeamMembers(members);
+
+  const users = await prisma.user.findMany({
+    where: {
+      name: { not: null },
+      role: { in: ['WRITER', 'EDITOR', 'ADMIN'] },
+      archivedAt: null,
+    },
+    select: { id: true, name: true },
+  });
+
+  const authorByName = new Map<string, string>();
+  for (const u of users) {
+    if (!u.name) continue;
+    const key = normalizePersonName(u.name);
+    if (!authorByName.has(key)) {
+      authorByName.set(key, u.id);
+    }
+  }
 
   return (
     <div className="animate-fade-in" style={{ paddingBottom: '4rem' }}>
@@ -291,7 +348,7 @@ export default async function AboutPage() {
                 >
                   {TEAM_GROUP_LABELS[group]}
                 </h3>
-                {renderTeamGrid(list)}
+                {renderTeamGrid(list, authorByName)}
               </div>
             );
           })}

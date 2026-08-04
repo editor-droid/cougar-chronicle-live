@@ -1,7 +1,6 @@
 import { auth } from '@/auth';
 import prisma from '@/lib/prisma';
 import { redirect } from 'next/navigation';
-import PrintEditionForm from './PrintEditionForm';
 import Link from 'next/link';
 import DashboardHeader from '@/components/DashboardHeader';
 import Image from 'next/image';
@@ -15,61 +14,117 @@ export default async function PrintEditionsAdminPage() {
   const editions = await prisma.printEdition.findMany({
     orderBy: { createdAt: 'desc' },
     include: {
-      _count: {
-        select: { posts: true }
-      }
-    }
+      _count: { select: { posts: true } },
+    },
   });
 
   return (
-    <div className="container animate-fade-in" style={{ marginTop: '2rem' }}>
-      <DashboardHeader currentTab="print-editions" />
+    <div className="container animate-fade-in" style={{ marginTop: '1rem', marginBottom: '3rem' }}>
+      <DashboardHeader currentTab="print-editions" title="Print editions" />
 
-      <div style={{ marginBottom: '1.5rem' }}>
-        <h2 className="font-serif" style={{ fontSize: '2rem', color: 'var(--primary)', marginBottom: '0.5rem' }}>
-          Print editions
-        </h2>
-        <p className="font-sans text-muted" style={{ margin: 0, lineHeight: 1.5, maxWidth: '40rem' }}>
-          Manage each print volume — title, cover, which articles are in the issue, and which edition is active for sale.
-          Customer purchases and shipping are under <strong>Orders</strong>, not here.
+      <div className="dash-toolbar" style={{ marginBottom: '1.25rem' }}>
+        <p className="font-sans text-muted" style={{ margin: 0, lineHeight: 1.5, maxWidth: '36rem', flex: '1 1 240px' }}>
+          Covers, PDFs, and article lineups. Open an edition to manage articles. Purchases live under{' '}
+          <strong>Orders</strong>.
         </p>
+        <Link href="/dashboard/print-editions/new" className="dash-btn dash-btn-primary">
+          + New edition
+        </Link>
       </div>
 
-      <div style={{ display: 'grid', gap: '1.5rem' }}>
-        {editions.map(edition => (
-          <div key={edition.id} style={{ display: 'flex', gap: '1.5rem', padding: '1.5rem', backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '0.5rem' }}>
-            <div style={{ width: '100px', height: '140px', backgroundColor: '#e9ecef', borderRadius: '0.25rem', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+          gap: '1.15rem',
+        }}
+      >
+        {editions.map((edition) => (
+          <Link
+            key={edition.id}
+            href={`/dashboard/print-editions/${edition.id}`}
+            className="dash-card"
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              textDecoration: 'none',
+              color: 'inherit',
+            }}
+          >
+            <div
+              style={{
+                position: 'relative',
+                width: '100%',
+                aspectRatio: '16 / 10',
+                background: 'var(--surface-hover)',
+              }}
+            >
               {edition.coverImageUrl ? (
-                <Image src={edition.coverImageUrl} alt="Cover" width={100} height={140} style={{ objectFit: 'cover' }} />
+                <Image
+                  src={edition.coverImageUrl}
+                  alt=""
+                  fill
+                  sizes="(max-width: 640px) 100vw, 33vw"
+                  style={{ objectFit: 'cover' }}
+                />
               ) : (
-                <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>No Cover</span>
+                <div
+                  className="font-sans text-muted"
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '0.85rem',
+                  }}
+                >
+                  No cover
+                </div>
+              )}
+              {edition.isActive && (
+                <span
+                  style={{
+                    position: 'absolute',
+                    top: 10,
+                    right: 10,
+                    padding: '0.25rem 0.6rem',
+                    background: 'rgba(22, 163, 74, 0.95)',
+                    color: 'white',
+                    borderRadius: '999px',
+                    fontSize: '0.7rem',
+                    fontWeight: 700,
+                  }}
+                >
+                  Active
+                </span>
               )}
             </div>
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
-                <h2 className="font-serif" style={{ fontSize: '1.5rem', margin: 0 }}>{edition.title}</h2>
-                {edition.isActive && (
-                  <span style={{ padding: '0.25rem 0.5rem', backgroundColor: '#d4edda', color: '#155724', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: 'bold' }}>Active</span>
-                )}
-              </div>
-              <p className="font-sans text-muted" style={{ margin: 0 }}>
-                {edition._count.posts} Articles Included
+            <div style={{ padding: '1.1rem 1.15rem 1.2rem' }}>
+              <h2 className="font-serif" style={{ fontSize: '1.25rem', margin: '0 0 0.35rem', lineHeight: 1.25 }}>
+                {edition.title}
+              </h2>
+              <p className="font-sans text-muted" style={{ margin: '0 0 0.85rem', fontSize: '0.9rem' }}>
+                {edition._count.posts} article{edition._count.posts === 1 ? '' : 's'}
               </p>
-              <div style={{ marginTop: 'auto', paddingTop: '1rem', display: 'flex', gap: '1rem' }}>
-                <a href={edition.pdfUrl} target="_blank" rel="noopener noreferrer" className="nav-link font-sans text-sm" style={{ fontWeight: 'bold' }}>
-                  View PDF
-                </a>
-                <Link href={`/dashboard/print-editions/${edition.id}`} className="nav-link font-sans text-sm" style={{ fontWeight: 'bold' }}>
-                  Edit Edition
-                </Link>
-              </div>
+              <span
+                className="font-sans"
+                style={{
+                  fontSize: '0.85rem',
+                  fontWeight: 700,
+                  color: 'var(--primary)',
+                }}
+              >
+                Manage volume →
+              </span>
             </div>
-          </div>
+          </Link>
         ))}
-        {editions.length === 0 && (
-          <p className="font-sans text-muted">No print editions have been uploaded yet.</p>
-        )}
       </div>
+
+      {editions.length === 0 && (
+        <p className="font-sans text-muted">No print editions yet.</p>
+      )}
     </div>
   );
 }

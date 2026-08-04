@@ -97,7 +97,75 @@ const nextConfig: NextConfig = {
         destination: '/dashboard/team',
         permanent: false,
       },
+      // Appearances (formerly “Media”) — avoid clash with Videos
+      {
+        source: '/dashboard/media',
+        destination: '/dashboard/appearances',
+        permanent: false,
+      },
+      // Canonical sections: /news /opinion /campus /politics /family /faith
+      // Legacy /category/* permanently redirects (see category/[slug] + these)
+      {
+        source: '/category/news',
+        destination: '/news',
+        permanent: true,
+      },
+      {
+        source: '/category/opinion',
+        destination: '/opinion',
+        permanent: true,
+      },
+      {
+        source: '/category/campus',
+        destination: '/campus',
+        permanent: true,
+      },
+      {
+        source: '/category/faith',
+        destination: '/faith',
+        permanent: true,
+      },
+      {
+        source: '/category/politics',
+        destination: '/politics',
+        permanent: true,
+      },
+      {
+        source: '/category/family',
+        destination: '/family',
+        permanent: true,
+      },
+      {
+        source: '/category/family-issues',
+        destination: '/family',
+        permanent: true,
+      },
+      {
+        source: '/family-issues',
+        destination: '/family',
+        permanent: true,
+      },
+      // Free articles are flat /{slug}. Keep /article/{slug} as a permanent alias → flat.
+      {
+        source: '/article/:slug',
+        destination: '/:slug',
+        permanent: true,
+      },
     ];
+  },
+  /**
+   * Serve free stories at /{slug} without a catch-all page fighting real routes.
+   * Static paths (news, about, …) win; unknown paths fall through to the article renderer.
+   */
+  async rewrites() {
+    return {
+      fallback: [
+        {
+          source: '/:slug',
+          destination: '/article/:slug',
+        },
+      ],
+    };
   },
 };
 

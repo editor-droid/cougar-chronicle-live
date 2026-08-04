@@ -13,16 +13,16 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { title, pdfUrl, coverImageUrl, isActive } = body;
 
-    if (!title || !pdfUrl) {
-      return NextResponse.json({ error: 'Title and PDF URL are required' }, { status: 400 });
+    if (!title) {
+      return NextResponse.json({ error: 'Title is required' }, { status: 400 });
     }
 
     const edition = await prisma.printEdition.create({
       data: {
         title,
-        pdfUrl,
-        coverImageUrl,
-        isActive
+        pdfUrl: pdfUrl || '',
+        coverImageUrl: coverImageUrl || null,
+        isActive: isActive !== false,
       }
     });
 

@@ -39,7 +39,7 @@ export default function ContactPage() {
         }}
       >
         <Image
-          src="/images/campus/y-mountain-blossoms.jpg"
+          src="/images/campus/provo-utah-temple.jpg"
           alt="Y Mountain and BYU campus buildings in Provo, Utah"
           fill
           priority

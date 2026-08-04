@@ -42,6 +42,44 @@ export const TEAM_GROUP_ORDER: TeamGroup[] = [
 
 export const DEFAULT_MEDIA_APPEARANCES: MediaAppearance[] = [];
 
+/** Open roles / beats on Apply — admin-managed; drives form chips + “Where you fit”. */
+export type OpenRoleKind = 'role' | 'beat';
+
+export type OpenRole = {
+  id: string;
+  title: string;
+  kind: OpenRoleKind;
+  /** When false, hidden from Apply page and form. */
+  isOpen: boolean;
+  sortOrder: number;
+};
+
+/**
+ * Defaults from org chart vacancies (Jul 2026): empty seats + general staff writer.
+ * Beats stay available so applicants can pick a section focus.
+ */
+export const DEFAULT_OPEN_ROLES: OpenRole[] = [
+  { id: 'r1', title: 'Executive Media Editor', kind: 'role', isOpen: true, sortOrder: 0 },
+  { id: 'r2', title: 'Assistant Media Editor', kind: 'role', isOpen: true, sortOrder: 1 },
+  { id: 'r3', title: 'Executive Editor, Faith', kind: 'role', isOpen: true, sortOrder: 2 },
+  { id: 'r4', title: 'Assistant Editor, Politics', kind: 'role', isOpen: true, sortOrder: 3 },
+  { id: 'r5', title: 'Assistant Editor, Print Edition', kind: 'role', isOpen: true, sortOrder: 4 },
+  { id: 'r6', title: 'Staff Writer', kind: 'role', isOpen: true, sortOrder: 5 },
+  { id: 'r7', title: 'Staff Writer, Campus News', kind: 'role', isOpen: true, sortOrder: 6 },
+  { id: 'r8', title: 'Staff Writer, Politics', kind: 'role', isOpen: true, sortOrder: 7 },
+  { id: 'r9', title: 'Staff Writer, Family', kind: 'role', isOpen: true, sortOrder: 8 },
+  { id: 'r10', title: 'Staff Writer, Faith', kind: 'role', isOpen: true, sortOrder: 9 },
+  { id: 'r11', title: 'Staff Writer, Print Edition', kind: 'role', isOpen: true, sortOrder: 10 },
+  { id: 'r12', title: 'Photographer', kind: 'role', isOpen: true, sortOrder: 11 },
+  { id: 'r13', title: 'Video Editor', kind: 'role', isOpen: true, sortOrder: 12 },
+  { id: 'r14', title: 'Content Creator', kind: 'role', isOpen: true, sortOrder: 13 },
+  { id: 'b1', title: 'Campus News', kind: 'beat', isOpen: true, sortOrder: 20 },
+  { id: 'b2', title: 'Politics', kind: 'beat', isOpen: true, sortOrder: 21 },
+  { id: 'b3', title: 'Family Issues', kind: 'beat', isOpen: true, sortOrder: 22 },
+  { id: 'b4', title: 'Faith', kind: 'beat', isOpen: true, sortOrder: 23 },
+  { id: 'b5', title: 'Print Edition', kind: 'beat', isOpen: true, sortOrder: 24 },
+];
+
 /** Matches org chart; Carter Seitz intentionally omitted. */
 export const DEFAULT_PUBLIC_TEAM: TeamMember[] = [
   { id: 'e1', name: 'Kimball Call', title: 'Editor-in-Chief', group: 'editors', sortOrder: 0 },

@@ -1,7 +1,13 @@
+import { slugifyTitle } from '@/lib/slug';
+
 export interface TocItem {
   id: string;
   text: string;
   level: number;
+}
+
+function headingId(text: string): string {
+  return slugifyTitle(text, { dropStopWords: false, maxLen: 80 });
 }
 
 /**
@@ -16,16 +22,9 @@ export function extractHeadings(html: string): TocItem[] {
   while ((match = regex.exec(html)) !== null) {
     const level = parseInt(match[1], 10);
     // Strip HTML tags from heading text
-    const text = match[2].replace(/<[^>]*>/g, "").trim();
+    const text = match[2].replace(/<[^>]*>/g, '').trim();
     if (!text) continue;
-    // Create a URL-friendly slug from the heading text
-    const id = text
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, "")
-      .replace(/\s+/g, "-")
-      .replace(/-+/g, "-")
-      .substring(0, 80);
-    headings.push({ id, text, level });
+    headings.push({ id: headingId(text), text, level });
   }
 
   return headings;
@@ -39,16 +38,11 @@ export function injectHeadingIds(html: string): string {
   if (!html) return '';
   const regex = /<h([2-4])([^>]*)>(.*?)<\/h([2-4])>/gi;
   return html.replace(regex, (_match, level, attrs, content, closeLevel) => {
-    const text = content.replace(/<[^>]*>/g, "").trim();
+    const text = content.replace(/<[^>]*>/g, '').trim();
     if (!text) return _match;
-    const id = text
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, "")
-      .replace(/\s+/g, "-")
-      .replace(/-+/g, "-")
-      .substring(0, 80);
+    const id = headingId(text);
     // Preserve existing attributes but add/replace id
-    const cleanAttrs = attrs.replace(/\s*id="[^"]*"/g, "");
+    const cleanAttrs = attrs.replace(/\s*id="[^"]*"/g, '');
     return `<h${level}${cleanAttrs} id="${id}">${content}</h${closeLevel}>`;
   });
 }

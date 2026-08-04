@@ -41,7 +41,8 @@ The Cougar Chronicle is an independent student news organization providing the l
 ## Overview
 - **Name**: The Cougar Chronicle
 - **Website**: ${baseUrl}
-- **Categories**: News, Faith, Opinion, Videos
+- **Sections**: /news, /opinion, /campus, /politics, /family, /faith, /print-edition, /videos
+- **Article URLs**: flat /{slug} (premium/print keep prefixes)
 - **Description**: We cover campus news, local events, student life, and opinion pieces with a dedication to truth and journalistic integrity. Video interviews and short features are published at ${baseUrl}/videos and playable on-site.
 
 ## Latest Articles

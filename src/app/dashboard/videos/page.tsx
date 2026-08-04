@@ -46,7 +46,7 @@ export default async function DashboardVideosPage() {
     : { byUid: {}, error: null as string | null };
 
   return (
-    <div className="container animate-fade-in" style={{ marginTop: '1rem' }}>
+    <div className="container animate-fade-in" style={{ marginTop: '1rem', marginBottom: '3rem' }}>
       <DashboardHeader currentTab="videos" />
       <VideosManager
         streamConfigured={streamConfigured}

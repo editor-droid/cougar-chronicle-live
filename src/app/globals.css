@@ -23,8 +23,17 @@
   padding: 0;
 }
 
-html, body {
-  overflow-x: hidden;
+/*
+ * Prefer overflow-x: clip over hidden on the root.
+ * overflow-x: hidden on html/body makes position:fixed act like absolute on iOS Safari
+ * (chat FAB / sticky chrome “scrolls” mid-page). clip avoids that in modern WebKit.
+ */
+html {
+  overflow-x: clip;
+  width: 100%;
+}
+body {
+  overflow-x: clip;
   width: 100%;
 }
 
@@ -791,8 +800,19 @@ body:has([data-link-hub-page]) .site-shell > main.container {
   .support-buttons-container { flex-direction: column !important; width: 100%; }
   .support-buttons-container .btn { width: 100%; text-align: center; justify-content: center; }
 
-  .chatbot-launcher { bottom: 1rem !important; right: 1rem !important; }
+  .chatbot-launcher {
+    bottom: max(1rem, env(safe-area-inset-bottom, 0px)) !important;
+    right: max(1rem, env(safe-area-inset-right, 0px)) !important;
+  }
   .chatbot-bubble { display: none !important; }
+  .chatbot-panel {
+    left: 0.75rem !important;
+    right: 0.75rem !important;
+    width: auto !important;
+    max-width: none !important;
+    bottom: max(0.75rem, env(safe-area-inset-bottom, 0px)) !important;
+    max-height: min(70dvh, 560px) !important;
+  }
   
   .newsletter-form-container { flex-direction: column !important; gap: 0.75rem !important; }
   .newsletter-form-container input { width: 100% !important; flex: none !important; }
@@ -860,6 +880,106 @@ body:has([data-link-hub-page]) .site-shell > main.container {
   border-radius: 0.5rem;
   margin: 2rem auto !important;
   display: block;
+}
+
+/* Image galleries (print / articles / editor HTML) */
+.blog-gallery,
+.wp-block-gallery {
+  display: grid !important;
+  grid-template-columns: repeat(var(--gallery-cols, 2), minmax(0, 1fr));
+  gap: 12px;
+  margin: 1.5rem auto !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
+}
+
+.blog-gallery[data-columns="2"],
+.wp-block-gallery.columns-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+.blog-gallery[data-columns="3"],
+.wp-block-gallery.columns-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+.blog-gallery[data-columns="4"],
+.wp-block-gallery.columns-4 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+
+.blog-gallery--medium { max-width: 520px !important; }
+.blog-gallery--large { max-width: 720px !important; }
+
+.blog-gallery .blog-gallery-item,
+.blog-gallery figure,
+.wp-block-gallery figure,
+.wp-block-gallery > div {
+  margin: 0 !important;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  aspect-ratio: 4 / 3;
+  background: #eef0f6;
+}
+
+.blog-gallery .blog-gallery-item img,
+.blog-gallery figure img,
+.blog-gallery img,
+.wp-block-gallery img {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 0.5rem;
+  display: block;
+}
+
+.blog-gallery[data-image-fit="contain"] .blog-gallery-item img,
+.blog-gallery[data-image-fit="contain"] img {
+  object-fit: contain !important;
+}
+
+.blog-gallery figcaption {
+  font-size: 0.75rem;
+  color: var(--muted);
+  padding: 0.35rem 0.15rem 0;
+  margin: 0 !important;
+}
+
+@media (max-width: 640px) {
+  .blog-gallery[data-columns="3"],
+  .blog-gallery[data-columns="4"],
+  .wp-block-gallery.columns-3,
+  .wp-block-gallery.columns-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+/* Editor + preview: never overflow the pane */
+.rich-text-editor-content,
+.rich-text-preview-pane,
+.blog-post-content {
+  overflow-x: hidden;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.rich-text-editor-content img,
+.rich-text-preview-pane img,
+.blog-post-content img,
+.rich-text-editor-content .blog-gallery,
+.rich-text-preview-pane .blog-gallery,
+.blog-post-content .blog-gallery,
+.rich-text-editor-content .wp-block-gallery,
+.rich-text-preview-pane .wp-block-gallery {
+  max-width: 100% !important;
+  box-sizing: border-box;
+}
+
+.rich-text-editor-content .resizable-image-node,
+.rich-text-preview-pane .resizable-image-node {
+  max-width: 100% !important;
+}
+
+.rich-text-preview-pane {
+  color: var(--foreground) !important;
+  background: var(--surface, #fff) !important;
 }
 
 .image-grid-2 {
