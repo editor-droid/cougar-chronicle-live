@@ -882,6 +882,35 @@ body:has([data-link-hub-page]) .site-shell > main.container {
   display: block;
 }
 
+/* Article multi-image galleries: side-by-side, tight, no huge gaps */
+.article-content .blog-gallery--article {
+  display: grid !important;
+  gap: 10px !important;
+  margin: 1.25rem 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.article-content .blog-gallery--article .blog-gallery-item,
+.article-content .blog-gallery--article figure {
+  margin: 0 !important;
+  aspect-ratio: auto !important;
+  min-height: 0;
+  background: #f4f5f8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.article-content .blog-gallery--article img {
+  width: 100% !important;
+  height: auto !important;
+  max-height: 420px;
+  margin: 0 !important;
+  object-fit: contain !important;
+  border-radius: 0.5rem;
+}
+
 /* Image galleries (print / articles / editor HTML) */
 .blog-gallery,
 .wp-block-gallery {
