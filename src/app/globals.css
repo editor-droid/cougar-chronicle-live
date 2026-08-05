@@ -874,12 +874,32 @@ body:has([data-link-hub-page]) .site-shell > main.container {
 .article-content .wp-block-image,
 .article-content .wp-block-embed,
 .article-content img {
-  max-width: 100% !important;
+  /* Standalone body images: medium width, not full column */
+  max-width: min(100%, 480px) !important;
+  width: auto !important;
   height: auto !important;
+  max-height: 560px;
   box-sizing: border-box;
   border-radius: 0.5rem;
-  margin: 2rem auto !important;
+  margin: 1.5rem auto !important;
   display: block;
+  object-fit: contain;
+}
+
+/* Galleries / embeds still use the full content column */
+.article-content .blog-gallery,
+.article-content .wp-block-gallery,
+.article-content .wp-block-embed,
+.article-content figure.wp-block-embed {
+  max-width: 100% !important;
+  width: 100% !important;
+}
+
+.article-content .blog-gallery img,
+.article-content .wp-block-gallery img {
+  max-width: 100% !important;
+  width: 100% !important;
+  max-height: none;
 }
 
 /* Article multi-image galleries: side-by-side, tight, no huge gaps */
