@@ -286,43 +286,47 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
         <RelatedStories posts={relatedPosts} />
 
         {/* Next and Previous Navigation */}
-        <div style={{ marginTop: '4rem', paddingTop: '2rem', borderTop: '1px solid var(--border)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '2rem' }}>
+        <nav className="article-nav" aria-label="Article navigation">
           {prevPost ? (
-            <Link href={getArticleUrl(prevPost)} className="article-nav-card" style={{ display: 'flex', gap: '1rem', alignItems: 'center', padding: '1rem', borderRadius: '0.5rem', border: '1px solid var(--border)', textDecoration: 'none', color: 'inherit' }}>
+            <Link href={getArticleUrl(prevPost)} className="article-nav-card article-nav-card--prev">
               {prevPost.imageUrl && (
-                <Image 
-                  src={prevPost.imageUrl} 
-                  alt={prevPost.title} 
-                  width={80} 
-                  height={80} 
-                  style={{ objectFit: 'cover', borderRadius: '0.25rem' }} 
+                <Image
+                  src={rewriteMediaUrl(prevPost.imageUrl)}
+                  alt=""
+                  width={80}
+                  height={80}
+                  className="article-nav-card__thumb"
                 />
               )}
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span className="font-sans text-xs text-muted" style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}>Previous Article</span>
-                <p className="font-serif" style={{ margin: '0.25rem 0 0 0', fontSize: '1.1rem', lineHeight: '1.3', fontWeight: 'bold' }}>{prevPost.title}</p>
+              <div className="article-nav-card__body">
+                <span className="article-nav-card__label">Previous Article</span>
+                <p className="article-nav-card__title">{prevPost.title}</p>
               </div>
             </Link>
-          ) : <div></div>}
-          
+          ) : (
+            <div />
+          )}
+
           {nextPost ? (
-            <Link href={getArticleUrl(nextPost)} className="article-nav-card" style={{ display: 'flex', gap: '1rem', alignItems: 'center', padding: '1rem', borderRadius: '0.5rem', border: '1px solid var(--border)', textDecoration: 'none', color: 'inherit', justifyContent: 'flex-end', textAlign: 'right' }}>
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span className="font-sans text-xs text-muted" style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}>Next Article</span>
-                <p className="font-serif" style={{ margin: '0.25rem 0 0 0', fontSize: '1.1rem', lineHeight: '1.3', fontWeight: 'bold' }}>{nextPost.title}</p>
+            <Link href={getArticleUrl(nextPost)} className="article-nav-card article-nav-card--next">
+              <div className="article-nav-card__body">
+                <span className="article-nav-card__label">Next Article</span>
+                <p className="article-nav-card__title">{nextPost.title}</p>
               </div>
               {nextPost.imageUrl && (
-                <Image 
-                  src={nextPost.imageUrl} 
-                  alt={nextPost.title} 
-                  width={80} 
-                  height={80} 
-                  style={{ objectFit: 'cover', borderRadius: '0.25rem' }} 
+                <Image
+                  src={rewriteMediaUrl(nextPost.imageUrl)}
+                  alt=""
+                  width={80}
+                  height={80}
+                  className="article-nav-card__thumb"
                 />
               )}
             </Link>
-          ) : <div></div>}
-        </div>
+          ) : (
+            <div />
+          )}
+        </nav>
 
         {/* Bottom Newsletter Signup */}
         <div className="newsletter-box" style={{ marginTop: '3rem', borderRadius: '0.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
