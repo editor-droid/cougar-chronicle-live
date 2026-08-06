@@ -89,8 +89,9 @@ export function buildArticleGalleryHtml(
     })
     .join('');
 
+  // Do NOT add blog-gallery class — its global grid CSS fights stack/carousel.
   return (
-    `<div class="article-gallery article-gallery--${layoutSafe} blog-gallery` +
+    `<div class="article-gallery article-gallery--${layoutSafe}` +
     (layoutSafe === 'grid' ? ` columns-${cols}` : '') +
     `" data-layout="${layoutSafe}" data-columns="${cols}" data-image-fit="${fit}"` +
     (layoutSafe === 'carousel'

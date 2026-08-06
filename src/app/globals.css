@@ -886,71 +886,69 @@ body:has([data-link-hub-page]) .site-shell > main.container {
   object-fit: contain;
 }
 
-/* Galleries / embeds still use the full content column */
-.article-content .blog-gallery,
-.article-content .wp-block-gallery,
-.article-content .article-gallery,
-.article-content .wp-block-embed,
-.article-content figure.wp-block-embed {
-  max-width: 100% !important;
-  width: 100% !important;
+/* ── Article multi-image layouts (stack / grid / React carousel) ── */
+
+/* Hide raw carousel HTML — React ArticleBody replaces it */
+.article-content .article-gallery--carousel {
+  display: none !important;
 }
 
-.article-content .blog-gallery img,
-.article-content .wp-block-gallery img,
-.article-content .article-gallery img {
-  max-width: 100% !important;
-  width: 100% !important;
-  max-height: none;
-}
-
-/* ── Multi-image: stack (readable) ── */
+/* STACK — vertical, readable screenshots */
 .article-content .article-gallery--stack {
   display: flex !important;
   flex-direction: column !important;
-  align-items: center;
+  align-items: center !important;
   gap: 1rem !important;
-  margin: 1.5rem 0 !important;
+  margin: 1.5rem auto !important;
   width: 100% !important;
   max-width: 100% !important;
+  padding: 0 !important;
   background: transparent !important;
   border: none !important;
+  box-shadow: none !important;
+  /* kill blog-gallery grid inheritance */
+  grid-template-columns: none !important;
 }
 
 .article-content .article-gallery--stack .article-gallery-item,
 .article-content .article-gallery--stack figure {
-  margin: 0 !important;
-  width: 100%;
-  max-width: min(100%, 520px);
+  display: block !important;
+  margin: 0 auto !important;
+  width: 100% !important;
+  max-width: min(100%, 520px) !important;
   aspect-ratio: auto !important;
   background: transparent !important;
   overflow: visible !important;
   border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
 }
 
 .article-content .article-gallery--stack img {
+  display: block !important;
   width: 100% !important;
+  max-width: 100% !important;
   height: auto !important;
   max-height: none !important;
   margin: 0 !important;
   object-fit: contain !important;
-  border-radius: 0.4rem;
+  border-radius: 0.4rem !important;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
 }
 
-/* ── Multi-image: grid ── */
+/* GRID — photo pairs only */
 .article-content .article-gallery--grid {
   display: grid !important;
-  grid-template-columns: repeat(var(--gallery-cols, 2), minmax(0, 1fr)) !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   gap: 10px !important;
   margin: 1.5rem 0 !important;
   width: 100% !important;
   max-width: 100% !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
 }
 
-.article-content .article-gallery--grid[data-columns="2"] {
-  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-}
 .article-content .article-gallery--grid[data-columns="3"] {
   grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
 }
@@ -962,14 +960,17 @@ body:has([data-link-hub-page]) .site-shell > main.container {
   overflow: hidden;
   border-radius: 0.4rem;
   background: #eef0f6;
-  display: flex;
+  display: flex !important;
   align-items: center;
   justify-content: center;
+  border: none !important;
+  padding: 0 !important;
 }
 
 .article-content .article-gallery--grid img {
   width: 100% !important;
   height: 100% !important;
+  max-height: none !important;
   margin: 0 !important;
   object-fit: cover !important;
 }
@@ -977,45 +978,45 @@ body:has([data-link-hub-page]) .site-shell > main.container {
 .article-content .article-gallery--grid[data-image-fit="contain"] img {
   object-fit: contain !important;
   height: auto !important;
-  max-height: 100%;
+  max-height: 100% !important;
 }
 
-/* Hide raw HTML carousel markup when present (React ArticleBody replaces it) */
-.article-content .article-gallery--carousel {
-  display: none !important;
-}
+/* ── React carousel ──
+   Desktop: stacked slides (.cc-carousel--desktop) — layout proven stable
+   Mobile:  horizontal track (.cc-carousel--mobile) — premium swipe only ≤768px */
 
-/* ── React carousel (ArticleBody) ── */
-.article-carousel {
+.article-content .cc-carousel,
+.cc-carousel {
   position: relative;
-  width: 100%;
-  max-width: min(100%, 420px);
-  margin: 1.5rem auto;
+  display: block !important;
+  width: 100% !important;
+  max-width: min(100%, 420px) !important;
+  margin: 1.5rem auto !important;
   border: 1px solid var(--border, #e2e4ea);
   border-radius: 0.5rem;
   background: #f6f7fa;
-  overflow: hidden;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
   outline: none;
-  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.article-carousel--landscape {
-  /* Memorial / wide screenshots — a bit larger for readable text, not full-bleed */
-  max-width: min(100%, 640px);
+.article-content .cc-carousel--wide,
+.cc-carousel--wide {
+  max-width: min(100%, 640px) !important;
 }
 
-.article-carousel-stage {
+/* Desktop stage: grid-stack all images, show active only */
+.cc-carousel--desktop .cc-carousel__stage {
   position: relative;
-  /* Stack every slide in one cell so height = tallest loaded image (no collapse) */
   display: grid;
   place-items: center;
   padding: 0.75rem 2.4rem;
-  min-height: 200px;
   box-sizing: border-box;
 }
 
-/* All slides stay mounted; only active is visible (no remount / reload flash) */
-.article-carousel-image {
+.article-content .cc-carousel--desktop .cc-carousel__img,
+.cc-carousel--desktop .cc-carousel__img {
   grid-area: 1 / 1;
   display: block !important;
   width: auto !important;
@@ -1029,26 +1030,99 @@ body:has([data-link-hub-page]) .site-shell > main.container {
   visibility: hidden;
   pointer-events: none;
   z-index: 0;
+  box-shadow: none !important;
 }
 
-.article-carousel-image.is-active {
+.article-content .cc-carousel--desktop .cc-carousel__img.is-active,
+.cc-carousel--desktop .cc-carousel__img.is-active {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
   z-index: 1;
 }
 
-.article-carousel--landscape .article-carousel-image {
+.article-content .cc-carousel--desktop.cc-carousel--wide .cc-carousel__img,
+.cc-carousel--desktop.cc-carousel--wide .cc-carousel__img {
   width: 100% !important;
   max-height: 460px !important;
 }
 
-.article-carousel-btn {
+/* Mobile viewport + track — only mounted under 768px */
+.cc-carousel--mobile .cc-carousel__viewport {
+  position: relative;
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  touch-action: pan-y;
+  cursor: grab;
+  padding: 0.5rem 0;
+  box-sizing: border-box;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.cc-carousel--mobile.is-dragging .cc-carousel__viewport {
+  cursor: grabbing;
+  touch-action: none;
+}
+
+/* Track is n×slide wide; must escape .article-content * { max-width:100% } */
+.article-content .cc-carousel--mobile .cc-carousel__track,
+.cc-carousel--mobile .cc-carousel__track {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center;
+  max-width: none !important;
+  min-width: 0;
+  will-change: transform;
+  box-sizing: border-box;
+}
+
+.article-content .cc-carousel--mobile .cc-carousel__slide,
+.cc-carousel--mobile .cc-carousel__slide {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 0 2.5rem;
+  margin: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  aspect-ratio: auto !important;
+  overflow: hidden !important;
+  max-width: none !important;
+  min-width: 0;
+}
+
+.article-content .cc-carousel--mobile .cc-carousel__img,
+.cc-carousel--mobile .cc-carousel__img {
+  display: block !important;
+  width: auto !important;
+  max-width: 100% !important;
+  height: auto !important;
+  max-height: min(55vh, 440px) !important;
+  margin: 0 auto !important;
+  object-fit: contain !important;
+  border-radius: 0.25rem !important;
+  pointer-events: none;
+  -webkit-user-drag: none;
+  box-shadow: none !important;
+}
+
+.article-content .cc-carousel--mobile.cc-carousel--wide .cc-carousel__img,
+.cc-carousel--mobile.cc-carousel--wide .cc-carousel__img {
+  width: 100% !important;
+  max-height: min(50vh, 420px) !important;
+}
+
+/* Shared chrome */
+.cc-carousel__btn {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 2rem;
-  height: 2rem;
+  width: 2.15rem;
+  height: 2.15rem;
   border-radius: 999px;
   border: 1px solid var(--border, #e2e4ea);
   background: #fff;
@@ -1062,24 +1136,41 @@ body:has([data-link-hub-page]) .site-shell > main.container {
   justify-content: center;
   padding: 0;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-  z-index: 2;
+  z-index: 3;
+  touch-action: manipulation;
 }
 
-.article-carousel-btn:hover:not(:disabled) {
+.cc-carousel__btn::before {
+  content: '';
+  position: absolute;
+  inset: -12px;
+}
+
+.cc-carousel__btn:hover:not(:disabled) {
   background: var(--primary, #1b2253);
   color: #fff;
   border-color: var(--primary, #1b2253);
 }
 
-.article-carousel-btn:disabled {
+.cc-carousel__btn:disabled {
   opacity: 0.35;
   cursor: default;
 }
 
-.article-carousel-prev { left: 0.4rem; }
-.article-carousel-next { right: 0.4rem; }
+.cc-carousel__btn--prev { left: 0.4rem; }
+.cc-carousel__btn--next { right: 0.4rem; }
 
-.article-carousel-bar {
+/* Desktop: buttons live on the stage */
+.cc-carousel--desktop .cc-carousel__stage {
+  position: relative;
+}
+
+/* Mobile: buttons live on the viewport */
+.cc-carousel--mobile .cc-carousel__viewport {
+  position: relative;
+}
+
+.cc-carousel__bar {
   position: relative;
   display: flex;
   align-items: center;
@@ -1090,7 +1181,7 @@ body:has([data-link-hub-page]) .site-shell > main.container {
   border-top: 1px solid var(--border, #e2e4ea);
 }
 
-.article-carousel-dots {
+.cc-carousel__dots {
   display: flex;
   flex-wrap: wrap;
   gap: 0.35rem;
@@ -1098,7 +1189,7 @@ body:has([data-link-hub-page]) .site-shell > main.container {
   max-width: 70%;
 }
 
-.article-carousel-dot {
+.cc-carousel__dot {
   width: 0.45rem;
   height: 0.45rem;
   border-radius: 999px;
@@ -1106,14 +1197,22 @@ body:has([data-link-hub-page]) .site-shell > main.container {
   padding: 0;
   background: #cfd3de;
   cursor: pointer;
+  position: relative;
+  touch-action: manipulation;
 }
 
-.article-carousel-dot.is-active {
+.cc-carousel__dot::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+}
+
+.cc-carousel__dot.is-active {
   background: var(--primary, #1b2253);
   width: 0.95rem;
 }
 
-.article-carousel-counter {
+.cc-carousel__count {
   position: absolute;
   right: 0.6rem;
   font-family: var(--font-sans);
@@ -1123,23 +1222,43 @@ body:has([data-link-hub-page]) .site-shell > main.container {
 }
 
 .article-html-chunk {
-  /* wrapper around static HTML segments — no extra spacing */
   display: contents;
 }
 
-@media (max-width: 480px) {
-  .article-carousel,
-  .article-carousel--landscape {
-    max-width: 100%;
+@media (max-width: 768px) {
+  .article-content .cc-carousel,
+  .cc-carousel,
+  .article-content .cc-carousel--wide,
+  .cc-carousel--wide {
+    max-width: 100% !important;
+    margin: 1.25rem 0 !important;
   }
-  .article-carousel-stage {
-    padding: 0.5rem 2.1rem;
+
+  .cc-carousel__btn {
+    width: 2.55rem;
+    height: 2.55rem;
+    font-size: 1.5rem;
   }
-  .article-carousel-image {
-    max-height: 360px !important;
+
+  .cc-carousel__btn::before {
+    inset: -14px;
   }
-  .article-carousel--landscape .article-carousel-image {
-    max-height: 400px !important;
+
+  .cc-carousel__bar {
+    min-height: 2.75rem;
+  }
+
+  .cc-carousel__dot {
+    width: 0.55rem;
+    height: 0.55rem;
+  }
+
+  .cc-carousel__dot.is-active {
+    width: 1.1rem;
+  }
+
+  .article-content .article-gallery--grid[data-columns="3"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 }
 
