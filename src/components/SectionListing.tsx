@@ -5,6 +5,7 @@ import { getArticleUrl } from '@/lib/routes';
 import {
   getSection,
   getSectionPath,
+  postsWhereForPublicHub,
   type PublicSectionSlug,
 } from '@/lib/categories';
 import { buildSectionJsonLd } from '@/lib/section-seo';
@@ -28,16 +29,24 @@ export default async function SectionListing({
   const skip = (currentPage - 1) * POSTS_PER_PAGE;
   const basePath = getSectionPath(slug);
 
+  // News/Opinion = format aggregates; Campus/Politics/Family/Faith = topic category
+  const hubWhere = postsWhereForPublicHub(slug);
+  const publishedWhere = {
+    ...hubWhere,
+    state: 'PUBLISHED' as const,
+    publishedAt: { lte: new Date() },
+  };
+
   const [posts, totalPosts] = await Promise.all([
     prisma.post.findMany({
-      where: { category: slug, state: 'PUBLISHED', publishedAt: { lte: new Date() } },
+      where: publishedWhere,
       orderBy: { publishedAt: sortOrder },
       include: { author: true },
       take: POSTS_PER_PAGE,
       skip,
     }),
     prisma.post.count({
-      where: { category: slug, state: 'PUBLISHED', publishedAt: { lte: new Date() } },
+      where: publishedWhere,
     }),
   ]);
 

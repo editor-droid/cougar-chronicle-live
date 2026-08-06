@@ -48,7 +48,10 @@ model Post {
   title          String
   slug           String          @unique
   content        String?         @db.Text
+  /// Topic hub: campus | politics | family | faith | news (etc.)
   category       String
+  /// Content type aggregate: news | opinion (Opinion hub = all opinion; News hub = all news)
+  format         String          @default("news")
   state          PostState       @default(DRAFT)
   imageUrl       String?
   authorId       String
@@ -77,6 +80,10 @@ model Post {
   printEdition      PrintEdition?  @relation(fields: [printEditionId], references: [id])
   articleTokens     ArticleToken[]
   favorites         Favorite[]
+
+  @@index([category])
+  @@index([format])
+  @@index([category, format])
 }
 
 model ArticleToken {

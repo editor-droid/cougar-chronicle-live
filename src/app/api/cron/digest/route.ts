@@ -58,9 +58,10 @@ export async function GET(request: Request) {
 
       const filtered = posts.filter((p) => {
         if (p.isAmerica250) return true;
-        if (p.category === 'news') return sub.wantsNews;
+        // News / Opinion are format aggregates; Faith is still a topic category
+        if (p.format === 'news') return sub.wantsNews;
+        if (p.format === 'opinion') return sub.wantsOpinion;
         if (p.category === 'faith') return sub.wantsFaith;
-        if (p.category === 'opinion') return sub.wantsOpinion;
         return true;
       });
       const vidList = sub.wantsVideos ? videos : [];

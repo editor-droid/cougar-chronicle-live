@@ -113,6 +113,9 @@ export default function EditorForm({
 
   const [title, setTitle] = useState(post?.title || '');
   const [category, setCategory] = useState(post?.category || 'news');
+  const [format, setFormat] = useState<'news' | 'opinion'>(
+    post?.format === 'opinion' ? 'opinion' : 'news'
+  );
   const [slug, setSlug] = useState(post?.slug || '');
   /** Once the user edits the slug field, stop auto-syncing from title. */
   const [slugLocked, setSlugLocked] = useState(Boolean(post?.slug));
@@ -177,6 +180,9 @@ export default function EditorForm({
           }
         }
         if (result.data.category) setCategory(result.data.category);
+        if (result.data.format === 'opinion' || result.data.format === 'news') {
+          setFormat(result.data.format);
+        }
         if (result.data.imageUrl) setImageUrl(result.data.imageUrl);
         if (result.data.featuredImageAlt) setFeaturedImageAlt(result.data.featuredImageAlt);
         if (result.data.seoTitle) setSeoTitle(result.data.seoTitle);
@@ -373,7 +379,7 @@ export default function EditorForm({
     try {
       await savePost({
         id: post?.id,
-        title, slug, category, content, imageUrl, authorId: assignedAuthorId,
+        title, slug, category, format, content, imageUrl, authorId: assignedAuthorId,
         seoTitle, seoDescription, seoKeywords,
         keyInsights, featuredImageAlt, customAuthor, isPremium,
         isAmerica250, isBreaking, breakingHours: isBreaking ? breakingHours || 24 : null,
@@ -765,15 +771,31 @@ export default function EditorForm({
                     )}
                   </div>
                   <div className={styles.inputGroup}>
-                    <label className={styles.inputLabel}>Section</label>
+                    <label className={styles.inputLabel}>Category (topic)</label>
                     <select value={category} onChange={(e) => setCategory(e.target.value)} className={styles.textInput}>
                       <option value="news">News</option>
-                      <option value="opinion">Opinion</option>
                       <option value="campus">Campus</option>
                       <option value="politics">Politics</option>
                       <option value="family">Family Issues</option>
                       <option value="faith">Faith</option>
                     </select>
+                    <p className={styles.panelHint} style={{ marginTop: '0.35rem' }}>
+                      Topic hub (e.g. Faith). News &amp; Opinion pages also list by format below.
+                    </p>
+                  </div>
+                  <div className={styles.inputGroup}>
+                    <label className={styles.inputLabel}>Format (News / Opinion)</label>
+                    <select
+                      value={format}
+                      onChange={(e) => setFormat(e.target.value as 'news' | 'opinion')}
+                      className={styles.textInput}
+                    >
+                      <option value="news">News</option>
+                      <option value="opinion">Opinion / Op-Ed</option>
+                    </select>
+                    <p className={styles.panelHint} style={{ marginTop: '0.35rem' }}>
+                      Opinion pieces also appear under the Opinion hub; news under the News hub.
+                    </p>
                   </div>
                   <div className={styles.inputGroup}>
                     <label className={styles.inputLabel}>Assigned author</label>

@@ -22,7 +22,7 @@ import { rewriteMediaUrl } from '@/lib/media-url';
 import { isBreakingStillActive } from '@/lib/breaking';
 import { buildArticleMetadata } from '@/lib/article-metadata';
 import { buildArticleBreadcrumbJsonLd } from '@/lib/section-seo';
-import { categoryLabel, getSectionPath } from '@/lib/categories';
+import { categoryLabel, formatLabel, getSectionPath } from '@/lib/categories';
 
 export async function generateMetadata(
   { params }: { params: Promise<{ slug: string }> },
@@ -178,6 +178,24 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
                 >
                   {sectionLabel}
                 </Link>
+                {post.format === 'opinion' && (
+                  <Link
+                    href="/opinion"
+                    className="font-sans text-xs"
+                    style={{
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.06em',
+                      fontWeight: 700,
+                      textDecoration: 'none',
+                      color: 'var(--primary)',
+                      border: '1px solid var(--border)',
+                      padding: '0.15rem 0.4rem',
+                      borderRadius: '0.25rem',
+                    }}
+                  >
+                    {formatLabel(post.format)}
+                  </Link>
+                )}
                 {post.printEditionId && (
                   <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: 700, backgroundColor: 'var(--surface-hover)', padding: '0.15rem 0.4rem', borderRadius: '0.25rem', border: '1px solid var(--border)', color: 'var(--foreground)' }}>
                     🗞️ Print Edition

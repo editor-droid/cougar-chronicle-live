@@ -125,14 +125,50 @@ export const NAV_SECTION_ORDER: readonly PublicSectionSlug[] = [
   'faith',
 ] as const;
 
-/** Editor category options (value = DB field = section slug). Same order as nav. */
-export const EDITOR_CATEGORIES = NAV_SECTION_ORDER.map((slug) => {
-  const s = PUBLIC_SECTIONS.find((x) => x.slug === slug)!;
-  return { value: s.slug, label: s.label };
-}) as ReadonlyArray<{ value: PublicSectionSlug; label: string }>;
+/**
+ * Dual taxonomy:
+ * - category = topic hub (campus, politics, family, faith, news, …)
+ * - format   = content type for aggregates: news | opinion
+ *
+ * /faith → category=faith (all formats)
+ * /opinion → format=opinion (all topics)
+ * /news → format=news (all topics)
+ */
+
+/** Content-type formats (aggregates on News + Opinion hubs). */
+export const POST_FORMATS = ['news', 'opinion'] as const;
+export type PostFormat = (typeof POST_FORMATS)[number];
+
+/** Topic categories editors can assign (includes news for general/untopicked). */
+export const TOPIC_CATEGORY_SLUGS = [
+  'news',
+  'campus',
+  'politics',
+  'family',
+  'faith',
+] as const;
+export type TopicCategorySlug = (typeof TOPIC_CATEGORY_SLUGS)[number];
+
+/** Editor category options (topic). Opinion is a format aggregate, not a topic. */
+export const EDITOR_CATEGORIES = [
+  { value: 'news', label: 'News' },
+  { value: 'campus', label: 'Campus' },
+  { value: 'politics', label: 'Politics' },
+  { value: 'family', label: 'Family Issues' },
+  { value: 'faith', label: 'Faith' },
+] as const;
+
+export const EDITOR_FORMATS = [
+  { value: 'news', label: 'News' },
+  { value: 'opinion', label: 'Opinion / Op-Ed' },
+] as const;
 
 export function isSectionSlug(value: string): value is PublicSectionSlug {
   return (SECTION_SLUGS as readonly string[]).includes(value);
+}
+
+export function isPostFormat(value: string): value is PostFormat {
+  return (POST_FORMATS as readonly string[]).includes(value);
 }
 
 export function getSection(slug: string) {
@@ -144,6 +180,11 @@ export function categoryLabel(slug: string): string {
   if (found) return found.label;
   if (!slug) return 'News';
   return slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, ' ');
+}
+
+export function formatLabel(format: string): string {
+  if (format === 'opinion') return 'Opinion';
+  return 'News';
 }
 
 /** Canonical public path for a section — NEVER /category/… */
@@ -164,9 +205,47 @@ export function getSectionAbsoluteUrl(slug: string): string {
 }
 
 /**
+ * Prisma `where` for a public hub listing.
+ * News + Opinion hubs aggregate by format; topic hubs filter by category.
+ */
+export function postsWhereForPublicHub(slug: PublicSectionSlug): {
+  category?: string;
+  format?: string;
+} {
+  if (slug === 'news') return { format: 'news' };
+  if (slug === 'opinion') return { format: 'opinion' };
+  return { category: slug };
+}
+
+/**
  * Article permalinks are always story-slug based.
  * Changing post.category only changes which section listing includes it.
  */
 export function articleUrlsStableAcrossCategoryMigration(): true {
   return true;
+}
+
+/** Normalize CSV / free-text tokens to category or format slugs. */
+export function normalizeTopicSlug(raw: string): string {
+  const s = raw.toLowerCase().trim().replace(/\s+/g, ' ');
+  if (!s) return 'news';
+  if (s === 'family issues' || s === 'family-issues') return 'family';
+  if (s === 'campus news') return 'campus';
+  if (s === 'op-ed' || s === 'oped' || s === 'opinon') return 'opinion';
+  return s.replace(/\s+/g, '-');
+}
+
+export function normalizeFormatSlug(raw: string): PostFormat {
+  const s = raw.toLowerCase().trim();
+  if (
+    s === 'opinion' ||
+    s === 'op-ed' ||
+    s === 'oped' ||
+    s === 'opinon' ||
+    s.includes('opinion') ||
+    s.includes('op-ed')
+  ) {
+    return 'opinion';
+  }
+  return 'news';
 }

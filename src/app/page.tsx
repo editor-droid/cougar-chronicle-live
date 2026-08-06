@@ -39,15 +39,15 @@ export default async function Home() {
   const mainStory = allPosts[0];
   const sideStories = allPosts.slice(1, 5); // 4 stories for the sidebar stack
 
-  // News category posts
+  // News hub = all news-format posts (any topic)
   const newsPosts = await prisma.post.findMany({
-    where: { state: 'PUBLISHED', category: 'news', printEditionId: null, publishedAt: { lte: new Date() } },
+    where: { state: 'PUBLISHED', format: 'news', printEditionId: null, publishedAt: { lte: new Date() } },
     orderBy: { publishedAt: { sort: 'desc', nulls: 'last' } },
     include: { author: true },
     take: 4
   });
 
-  // Faith category posts
+  // Faith topic posts
   const faithPosts = await prisma.post.findMany({
     where: { state: 'PUBLISHED', category: 'faith', printEditionId: null, publishedAt: { lte: new Date() } },
     orderBy: { publishedAt: { sort: 'desc', nulls: 'last' } },
@@ -55,9 +55,9 @@ export default async function Home() {
     take: 4
   });
 
-  // Opinion category posts (Text-centric focus)
+  // Opinion hub = all opinion/op-ed posts (any topic)
   const opinionPosts = await prisma.post.findMany({
-    where: { state: 'PUBLISHED', category: 'opinion', printEditionId: null, publishedAt: { lte: new Date() } },
+    where: { state: 'PUBLISHED', format: 'opinion', printEditionId: null, publishedAt: { lte: new Date() } },
     orderBy: { publishedAt: { sort: 'desc', nulls: 'last' } },
     include: { author: true },
     take: 4
