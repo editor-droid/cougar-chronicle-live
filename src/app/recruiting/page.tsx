@@ -3,7 +3,17 @@ import Image from 'next/image';
 import { Suspense } from 'react';
 import VolunteerForm from '@/components/VolunteerForm';
 import { getActiveOpenRoles, getMediaAppearances } from '@/lib/site-content';
-import { Users, Flag, FileText, Podcast, ExternalLink } from 'lucide-react';
+import {
+  Flag,
+  FileText,
+  ExternalLink,
+  Briefcase,
+  GraduationCap,
+  Award,
+  Mic2,
+  Network,
+  Plane,
+} from 'lucide-react';
 import { linkPreview } from '@/lib/link-preview';
 import YoutubeThumb from '@/components/YoutubeThumb';
 import ApplyInterestPicker from './ApplyInterestPicker';
@@ -209,41 +219,121 @@ export default async function RecruitingPage() {
           </div>
         </div>
 
-        {/* Benefits — compact row */}
-        <div style={{ marginBottom: '1.5rem' }}>
+        {/* Benefits and opportunities — flyer + career pipeline */}
+        <div style={{ marginBottom: '1.75rem' }}>
           <h2
             className="font-serif text-center"
-            style={{ fontSize: '1.4rem', marginBottom: '0.85rem', color: 'var(--primary)' }}
+            style={{ fontSize: '1.4rem', marginBottom: '0.35rem', color: 'var(--primary)' }}
           >
-            Why apply
+            Benefits and opportunities
           </h2>
+          <p
+            className="font-sans text-center text-muted"
+            style={{
+              fontSize: '0.92rem',
+              marginBottom: '1rem',
+              maxWidth: '36rem',
+              marginLeft: 'auto',
+              marginRight: 'auto',
+              lineHeight: 1.45,
+            }}
+          >
+            More than a byline — real training, a stronger résumé, and doors into journalism, politics, and advocacy.
+          </p>
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
-              gap: '0.65rem',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+              gap: '0.75rem',
             }}
           >
             {[
-              { icon: <Users size={22} />, text: 'Network nationwide' },
-              { icon: <FileText size={22} />, text: 'Real bylines & training' },
-              { icon: <Podcast size={22} />, text: 'National exposure' },
-              { icon: <Flag size={22} />, text: 'Shape the debate' },
-            ].map((b, i) => (
+              {
+                icon: <Network size={22} />,
+                title: 'Powerful networking',
+                text: 'Connect with like-minded students and with state and federal leaders, policymakers, and journalists nationwide.',
+              },
+              {
+                icon: <FileText size={22} />,
+                title: 'Real-world journalism',
+                text: 'Gain valuable experience in authentic, impactful reporting — and help shape the discourse in Utah and beyond.',
+              },
+              {
+                icon: <Mic2 size={22} />,
+                title: 'National exposure',
+                text: 'Top stories open doors to podcast appearances and other outlets. Past writers have been featured on Fox News, the Charlie Kirk Show, and more.',
+              },
+              {
+                icon: <Briefcase size={22} />,
+                title: 'Internships & careers',
+                text: 'Access internship and career opportunities with reputable organizations in journalism, politics, and advocacy — especially for editors and staff writers.',
+              },
+              {
+                icon: <GraduationCap size={22} />,
+                title: 'Build your résumé',
+                text: 'Publish under a professional masthead and grow a portfolio that stands out for jobs, graduate school, and media roles.',
+              },
+              {
+                icon: <Award size={22} />,
+                title: 'Scholarships & leadership',
+                text: 'Eligible for potential scholarships and the chance to grow into an editor role on staff.',
+              },
+              {
+                icon: <Plane size={22} />,
+                title: 'Events, travel & more',
+                text: 'Access special events, networking and travel opportunities, and other perks as they arise — including invitations to appear on podcasts to discuss your work.',
+              },
+              {
+                icon: <Flag size={22} />,
+                title: 'Shape the debate',
+                text: 'Advance the conservative cause with serious campus coverage, faith, family, and investigations that matter.',
+              },
+            ].map((b) => (
               <div
-                key={i}
+                key={b.title}
                 style={{
-                  padding: '0.9rem 0.75rem',
+                  padding: '1.05rem 1.1rem',
                   backgroundColor: 'var(--surface)',
                   borderRadius: '0.65rem',
                   border: '1px solid var(--border)',
-                  textAlign: 'center',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.4rem',
                 }}
               >
-                <div style={{ color: 'var(--primary)', marginBottom: '0.4rem', display: 'flex', justifyContent: 'center' }}>
-                  {b.icon}
+                <div
+                  style={{
+                    color: 'var(--primary)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: '999px',
+                      background: 'rgba(27, 34, 83, 0.08)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
+                    {b.icon}
+                  </span>
+                  <h3
+                    className="font-serif"
+                    style={{ fontSize: '1.02rem', fontWeight: 700, margin: 0, color: 'var(--primary)' }}
+                  >
+                    {b.title}
+                  </h3>
                 </div>
-                <p className="font-sans" style={{ fontSize: '0.85rem', color: 'var(--muted)', lineHeight: 1.35, margin: 0, fontWeight: 600 }}>
+                <p
+                  className="font-sans text-muted"
+                  style={{ fontSize: '0.88rem', lineHeight: 1.45, margin: 0 }}
+                >
                   {b.text}
                 </p>
               </div>
