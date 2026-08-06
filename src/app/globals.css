@@ -1150,6 +1150,42 @@ body:has([data-link-hub-page]) .site-shell > main.container {
   display: contents;
 }
 
+/* X / Twitter embeds — centered, constrained, not full-column jank */
+.article-content .tweet-embed,
+.article-content [data-tweet-embed] {
+  display: flex !important;
+  justify-content: center;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 1.75rem auto !important;
+  overflow: hidden;
+}
+
+.article-content .tweet-embed .twitter-tweet,
+.article-content .twitter-tweet {
+  margin-left: auto !important;
+  margin-right: auto !important;
+  max-width: min(100%, 550px) !important;
+}
+
+/* While widgets.js hydrates, keep the fallback blockquote readable */
+.article-content blockquote.twitter-tweet {
+  border: 1px solid var(--border, #e2e4ea);
+  border-radius: 0.75rem;
+  background: #fff;
+  padding: 1rem 1.15rem;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--foreground);
+  box-sizing: border-box;
+}
+
+.article-content blockquote.twitter-tweet a {
+  color: #1d9bf0;
+  word-break: break-word;
+}
+
 @media (max-width: 768px) {
   .article-content .cc-carousel,
   .cc-carousel,

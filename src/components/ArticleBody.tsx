@@ -10,6 +10,7 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
   type TouchEvent as ReactTouchEvent,
 } from 'react';
+import TwitterEmbedHydrator from '@/components/TwitterEmbedHydrator';
 
 type GalleryImage = { src: string; alt: string };
 
@@ -270,6 +271,7 @@ export default function ArticleBody({
 
   return (
     <div className={className} style={style}>
+      <TwitterEmbedHydrator rootSelector=".article-content" />
       {segments.map((seg, i) => {
         if (seg.type === 'html') {
           return (
