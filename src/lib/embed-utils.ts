@@ -4,6 +4,7 @@ import {
   youtubeEmbedUrl,
 } from './videos';
 import { prepareArticleHtmlImages } from './media-url';
+import { normalizeArticleImageLayouts } from './article-image-layouts';
 
 export type EmbedProvider = 'youtube' | 'instagram' | 'stream';
 
@@ -193,8 +194,8 @@ export function withArticleInlinePlayback(src: string): string {
 export function enhanceArticleVideoEmbeds(html: string): string {
   if (!html) return html;
 
-  // Legacy hosts → CDN, then body <img> via same-origin /_next/image (like hero)
-  let out = prepareArticleHtmlImages(html);
+  // Multi-image stack / grid / carousel markup, then CDN + optimizer
+  let out = prepareArticleHtmlImages(normalizeArticleImageLayouts(html));
 
   out = out.replace(
     /(<iframe\b[^>]*?\bsrc=["'])([^"']+)(["'])/gi,

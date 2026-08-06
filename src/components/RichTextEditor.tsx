@@ -1977,12 +1977,28 @@ export const RichTextEditor = forwardRef<
   );
 
   const insertGallery = useCallback(
-    (images: {src: string, alt: string}[], columns: number) => {
+    (images: { src: string; alt: string }[], columns: number) => {
       if (!editor) return;
-      const html = `<div class="wp-block-gallery columns-${columns}" style="display: grid; grid-template-columns: repeat(${columns}, 1fr); gap: 16px; margin: 24px 0;">` +
-        images.map(img => `<div style="position: relative; width: 100%; padding-bottom: 100%;"><img src="${img.src}" alt="${img.alt}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 8px;" /></div>`).join("") +
-        `</div>`;
-      editor.chain().focus().insertContent(html).run();
+      // Prefer TipTap gallery node (stack / grid / carousel via data-layout)
+      const chain = editor.chain().focus() as any;
+      if (typeof chain.insertGallery === 'function') {
+        chain.insertGallery(images, columns, 'grid').run();
+        return;
+      }
+      editor
+        .chain()
+        .focus()
+        .insertContent({
+          type: 'gallery',
+          attrs: {
+            images,
+            columns,
+            imageFit: 'cover',
+            gallerySize: 'full',
+            layout: 'grid',
+          },
+        })
+        .run();
     },
     [editor]
   );

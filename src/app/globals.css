@@ -889,6 +889,7 @@ body:has([data-link-hub-page]) .site-shell > main.container {
 /* Galleries / embeds still use the full content column */
 .article-content .blog-gallery,
 .article-content .wp-block-gallery,
+.article-content .article-gallery,
 .article-content .wp-block-embed,
 .article-content figure.wp-block-embed {
   max-width: 100% !important;
@@ -896,39 +897,250 @@ body:has([data-link-hub-page]) .site-shell > main.container {
 }
 
 .article-content .blog-gallery img,
-.article-content .wp-block-gallery img {
+.article-content .wp-block-gallery img,
+.article-content .article-gallery img {
   max-width: 100% !important;
   width: 100% !important;
   max-height: none;
 }
 
-/* Article multi-image galleries: side-by-side, tight, no huge gaps */
-.article-content .blog-gallery--article {
+/* ── Multi-image: stack (readable) ── */
+.article-content .article-gallery--stack {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center;
+  gap: 1rem !important;
+  margin: 1.5rem 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  background: transparent !important;
+  border: none !important;
+}
+
+.article-content .article-gallery--stack .article-gallery-item,
+.article-content .article-gallery--stack figure {
+  margin: 0 !important;
+  width: 100%;
+  max-width: min(100%, 520px);
+  aspect-ratio: auto !important;
+  background: transparent !important;
+  overflow: visible !important;
+  border: none !important;
+}
+
+.article-content .article-gallery--stack img {
+  width: 100% !important;
+  height: auto !important;
+  max-height: none !important;
+  margin: 0 !important;
+  object-fit: contain !important;
+  border-radius: 0.4rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+/* ── Multi-image: grid ── */
+.article-content .article-gallery--grid {
   display: grid !important;
+  grid-template-columns: repeat(var(--gallery-cols, 2), minmax(0, 1fr)) !important;
   gap: 10px !important;
-  margin: 1.25rem 0 !important;
+  margin: 1.5rem 0 !important;
   width: 100% !important;
   max-width: 100% !important;
 }
 
-.article-content .blog-gallery--article .blog-gallery-item,
-.article-content .blog-gallery--article figure {
+.article-content .article-gallery--grid[data-columns="2"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+.article-content .article-gallery--grid[data-columns="3"] {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+.article-content .article-gallery--grid .article-gallery-item,
+.article-content .article-gallery--grid figure {
   margin: 0 !important;
-  aspect-ratio: auto !important;
-  min-height: 0;
-  background: #f4f5f8;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: 0.4rem;
+  background: #eef0f6;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.article-content .blog-gallery--article img {
+.article-content .article-gallery--grid img {
   width: 100% !important;
-  height: auto !important;
-  max-height: 420px;
+  height: 100% !important;
   margin: 0 !important;
+  object-fit: cover !important;
+}
+
+.article-content .article-gallery--grid[data-image-fit="contain"] img {
   object-fit: contain !important;
+  height: auto !important;
+  max-height: 100%;
+}
+
+/* Hide raw HTML carousel markup when present (React ArticleBody replaces it) */
+.article-content .article-gallery--carousel {
+  display: none !important;
+}
+
+/* ── React carousel (ArticleBody) ── */
+.article-carousel {
+  position: relative;
+  width: 100%;
+  max-width: min(100%, 420px);
+  margin: 1.5rem auto;
+  border: 1px solid var(--border, #e2e4ea);
   border-radius: 0.5rem;
+  background: #f6f7fa;
+  overflow: hidden;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.article-carousel--landscape {
+  /* Memorial / wide screenshots — a bit larger for readable text, not full-bleed */
+  max-width: min(100%, 640px);
+}
+
+.article-carousel-stage {
+  position: relative;
+  /* Stack every slide in one cell so height = tallest loaded image (no collapse) */
+  display: grid;
+  place-items: center;
+  padding: 0.75rem 2.4rem;
+  min-height: 200px;
+  box-sizing: border-box;
+}
+
+/* All slides stay mounted; only active is visible (no remount / reload flash) */
+.article-carousel-image {
+  grid-area: 1 / 1;
+  display: block !important;
+  width: auto !important;
+  max-width: 100% !important;
+  height: auto !important;
+  max-height: 420px !important;
+  margin: 0 auto !important;
+  object-fit: contain !important;
+  border-radius: 0.25rem !important;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.article-carousel-image.is-active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  z-index: 1;
+}
+
+.article-carousel--landscape .article-carousel-image {
+  width: 100% !important;
+  max-height: 460px !important;
+}
+
+.article-carousel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  border: 1px solid var(--border, #e2e4ea);
+  background: #fff;
+  color: var(--primary, #1b2253);
+  font-size: 1.35rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  z-index: 2;
+}
+
+.article-carousel-btn:hover:not(:disabled) {
+  background: var(--primary, #1b2253);
+  color: #fff;
+  border-color: var(--primary, #1b2253);
+}
+
+.article-carousel-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.article-carousel-prev { left: 0.4rem; }
+.article-carousel-next { right: 0.4rem; }
+
+.article-carousel-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.4rem;
+  padding: 0.35rem 0.5rem;
+  background: #fff;
+  border-top: 1px solid var(--border, #e2e4ea);
+}
+
+.article-carousel-dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  justify-content: center;
+  max-width: 70%;
+}
+
+.article-carousel-dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  border: none;
+  padding: 0;
+  background: #cfd3de;
+  cursor: pointer;
+}
+
+.article-carousel-dot.is-active {
+  background: var(--primary, #1b2253);
+  width: 0.95rem;
+}
+
+.article-carousel-counter {
+  position: absolute;
+  right: 0.6rem;
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--muted, #5c6478);
+}
+
+.article-html-chunk {
+  /* wrapper around static HTML segments — no extra spacing */
+  display: contents;
+}
+
+@media (max-width: 480px) {
+  .article-carousel,
+  .article-carousel--landscape {
+    max-width: 100%;
+  }
+  .article-carousel-stage {
+    padding: 0.5rem 2.1rem;
+  }
+  .article-carousel-image {
+    max-height: 360px !important;
+  }
+  .article-carousel--landscape .article-carousel-image {
+    max-height: 400px !important;
+  }
 }
 
 /* Image galleries (print / articles / editor HTML) */

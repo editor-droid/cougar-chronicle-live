@@ -9,6 +9,7 @@ export default function ClientLightbox() {
   useEffect(() => {
     const handleImageClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
+      if (target.closest('.article-carousel-btn, .article-carousel-dot, .article-carousel-bar')) return;
       if (target.tagName === 'IMG' && target.closest('.article-content')) {
         setImgSrc((target as HTMLImageElement).src);
         setIsOpen(true);

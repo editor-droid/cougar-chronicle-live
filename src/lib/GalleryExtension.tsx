@@ -10,6 +10,9 @@ import {
   Grid2x2,
   Maximize2,
   RectangleHorizontal,
+  Rows3,
+  LayoutGrid,
+  GalleryHorizontal,
 } from "lucide-react";
 
 // ── Gallery Image type ──────────────────────────────────────────────────────
@@ -20,6 +23,7 @@ export interface GalleryImage {
 
 type ImageFit = "cover" | "contain";
 type GallerySize = "full" | "large" | "medium";
+type GalleryLayout = "stack" | "grid" | "carousel";
 
 const NAVY = "#1B2253";
 const NAVY_MID = "#2a3570";
@@ -36,11 +40,22 @@ function GalleryNodeView({ node, updateAttributes, deleteNode, editor }: any) {
     node.attrs.gallerySize === "medium" || node.attrs.gallerySize === "large"
       ? node.attrs.gallerySize
       : "full";
+  const layout: GalleryLayout =
+    node.attrs.layout === "carousel" || node.attrs.layout === "stack"
+      ? node.attrs.layout
+      : "grid";
   const [dragIdx, setDragIdx] = useState<number | null>(null);
 
   const setColumns = (cols: number) => updateAttributes({ columns: cols });
   const setFit = (fit: ImageFit) => updateAttributes({ imageFit: fit });
   const setSize = (size: GallerySize) => updateAttributes({ gallerySize: size });
+  const setLayout = (next: GalleryLayout) => {
+    updateAttributes({
+      layout: next,
+      // Prefer contain for screenshots in stack/carousel
+      imageFit: next === "grid" ? imageFit : "contain",
+    });
+  };
 
   const removeImage = (idx: number) => {
     const newImages = images.filter((_: GalleryImage, i: number) => i !== idx);
@@ -108,10 +123,37 @@ function GalleryNodeView({ node, updateAttributes, deleteNode, editor }: any) {
             Gallery
           </span>
           <span className="text-xs" style={{ color: "rgba(255,255,255,0.7)" }}>
-            {images.length} image{images.length !== 1 ? "s" : ""}
+            {images.length} image{images.length !== 1 ? "s" : ""} · {layout}
           </span>
 
           <div className="flex-1" />
+
+          {/* Layout: stack | grid | carousel */}
+          {(
+            [
+              ["stack", "Stack", Rows3],
+              ["grid", "Grid", LayoutGrid],
+              ["carousel", "Carousel", GalleryHorizontal],
+            ] as const
+          ).map(([val, label, Icon]) => (
+            <button
+              key={val}
+              type="button"
+              onClick={() => setLayout(val)}
+              className="px-2 py-1 rounded text-xs font-semibold transition-colors flex items-center gap-1"
+              style={{
+                color: layout === val ? NAVY : ACCENT,
+                background: layout === val ? "#fff" : "transparent",
+                border: `1px solid ${layout === val ? "#fff" : NAVY_BORDER}`,
+              }}
+              title={`${label} layout`}
+            >
+              <Icon size={13} />
+              {label}
+            </button>
+          ))}
+
+          <div className="w-px h-4 mx-0.5" style={{ background: NAVY_BORDER }} />
 
           {/* Size */}
           {(
@@ -167,43 +209,47 @@ function GalleryNodeView({ node, updateAttributes, deleteNode, editor }: any) {
 
           <div className="w-px h-4 mx-0.5" style={{ background: NAVY_BORDER }} />
 
-          {/* Columns */}
-          <button
-            type="button"
-            onClick={() => setColumns(2)}
-            className="p-1.5 rounded transition-colors"
-            style={{
-              color: columns === 2 ? "#fff" : ACCENT,
-              background: columns === 2 ? "rgba(255,255,255,0.18)" : "transparent",
-            }}
-            title="2 columns"
-          >
-            <Columns2 size={15} />
-          </button>
-          <button
-            type="button"
-            onClick={() => setColumns(3)}
-            className="p-1.5 rounded transition-colors"
-            style={{
-              color: columns === 3 ? "#fff" : ACCENT,
-              background: columns === 3 ? "rgba(255,255,255,0.18)" : "transparent",
-            }}
-            title="3 columns"
-          >
-            <Columns3 size={15} />
-          </button>
-          <button
-            type="button"
-            onClick={() => setColumns(4)}
-            className="p-1.5 rounded transition-colors"
-            style={{
-              color: columns === 4 ? "#fff" : ACCENT,
-              background: columns === 4 ? "rgba(255,255,255,0.18)" : "transparent",
-            }}
-            title="4 columns"
-          >
-            <Grid2x2 size={15} />
-          </button>
+          {/* Columns (grid only) */}
+          {layout === "grid" && (
+            <>
+              <button
+                type="button"
+                onClick={() => setColumns(2)}
+                className="p-1.5 rounded transition-colors"
+                style={{
+                  color: columns === 2 ? "#fff" : ACCENT,
+                  background: columns === 2 ? "rgba(255,255,255,0.18)" : "transparent",
+                }}
+                title="2 columns"
+              >
+                <Columns2 size={15} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setColumns(3)}
+                className="p-1.5 rounded transition-colors"
+                style={{
+                  color: columns === 3 ? "#fff" : ACCENT,
+                  background: columns === 3 ? "rgba(255,255,255,0.18)" : "transparent",
+                }}
+                title="3 columns"
+              >
+                <Columns3 size={15} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setColumns(4)}
+                className="p-1.5 rounded transition-colors"
+                style={{
+                  color: columns === 4 ? "#fff" : ACCENT,
+                  background: columns === 4 ? "rgba(255,255,255,0.18)" : "transparent",
+                }}
+                title="4 columns"
+              >
+                <Grid2x2 size={15} />
+              </button>
+            </>
+          )}
 
           <div className="w-px h-4 mx-0.5" style={{ background: NAVY_BORDER }} />
 
@@ -240,8 +286,14 @@ function GalleryNodeView({ node, updateAttributes, deleteNode, editor }: any) {
             background: "#f4f5f9",
             border: `1px solid ${NAVY}22`,
             borderTop: "none",
-            display: "grid",
-            gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
+            display: layout === "stack" ? "flex" : "grid",
+            flexDirection: layout === "stack" ? "column" : undefined,
+            gridTemplateColumns:
+              layout === "grid"
+                ? `repeat(${columns}, minmax(0, 1fr))`
+                : layout === "carousel"
+                  ? "1fr"
+                  : undefined,
             gap: "10px",
             width: "100%",
             maxWidth,
@@ -386,11 +438,30 @@ export const GalleryExtension = Node.create({
           "data-gallery-size": attributes.gallerySize || "full",
         }),
       },
+      layout: {
+        default: "grid",
+        parseHTML: (element: HTMLElement) => {
+          const raw =
+            element.getAttribute("data-layout") ||
+            (element.classList.contains("article-gallery--stack")
+              ? "stack"
+              : element.classList.contains("article-gallery--carousel")
+                ? "carousel"
+                : element.classList.contains("article-gallery--grid")
+                  ? "grid"
+                  : "grid");
+          return raw === "stack" || raw === "carousel" ? raw : "grid";
+        },
+        renderHTML: (attributes: Record<string, any>) => ({
+          "data-layout": attributes.layout || "grid",
+        }),
+      },
     };
   },
 
   parseHTML() {
     return [
+      { tag: 'div[class*="article-gallery"]' },
       { tag: 'div[class*="blog-gallery"]' },
       { tag: 'div[class*="wp-block-gallery"]' },
     ];
@@ -403,32 +474,45 @@ export const GalleryExtension = Node.create({
     const columns = HTMLAttributes["data-columns"] || "2";
     const fit = HTMLAttributes["data-image-fit"] || "cover";
     const size = HTMLAttributes["data-gallery-size"] || "full";
+    const layoutRaw = HTMLAttributes["data-layout"] || "grid";
+    const layout =
+      layoutRaw === "stack" || layoutRaw === "carousel" ? layoutRaw : "grid";
     const maxW =
       size === "medium" ? "520px" : size === "large" ? "720px" : "100%";
 
     const imgElements = images.map((img: GalleryImage) => [
       "figure",
-      { class: "blog-gallery-item" },
+      { class: "article-gallery-item blog-gallery-item" },
       [
         "img",
         {
           src: img.src,
           alt: img.alt,
           loading: "lazy",
-          style: `width:100%;height:100%;object-fit:${fit};object-position:center;display:block;`,
+          style: `width:100%;height:auto;object-fit:${fit};object-position:center;display:block;`,
         },
       ],
-      img.alt ? ["figcaption", {}, img.alt] : "",
+      img.alt && layout === "grid" ? ["figcaption", {}, img.alt] : "",
     ]);
+
+    const styleByLayout =
+      layout === "stack"
+        ? `display:flex;flex-direction:column;align-items:center;gap:1rem;margin:1.5rem auto;width:100%;max-width:${maxW};box-sizing:border-box;`
+        : layout === "carousel"
+          ? `display:block;margin:1.5rem auto;width:100%;max-width:min(100%,640px);box-sizing:border-box;`
+          : `display:grid;grid-template-columns:repeat(${columns},minmax(0,1fr));gap:12px;margin:1.5rem auto;width:100%;max-width:${maxW};box-sizing:border-box;`;
 
     return [
       "div",
       mergeAttributes(HTMLAttributes, {
-        class: `blog-gallery blog-gallery--${size}`,
+        class: `article-gallery article-gallery--${layout} blog-gallery blog-gallery--${size}${
+          layout === "grid" ? ` columns-${columns}` : ""
+        }`,
+        "data-layout": layout,
         "data-columns": columns,
         "data-image-fit": fit,
         "data-gallery-size": size,
-        style: `display:grid;grid-template-columns:repeat(${columns},minmax(0,1fr));gap:12px;margin:1.5rem auto;width:100%;max-width:${maxW};box-sizing:border-box;`,
+        style: styleByLayout,
       }),
       ...imgElements,
     ];
@@ -441,11 +525,17 @@ export const GalleryExtension = Node.create({
   addCommands() {
     return {
       insertGallery:
-        (images: GalleryImage[], columns = 2) =>
+        (images: GalleryImage[], columns = 2, layout: GalleryLayout = "grid") =>
         ({ commands }: any) => {
           return commands.insertContent({
             type: "gallery",
-            attrs: { images, columns, imageFit: "cover", gallerySize: "full" },
+            attrs: {
+              images,
+              columns,
+              imageFit: layout === "grid" ? "cover" : "contain",
+              gallerySize: "full",
+              layout,
+            },
           });
         },
     } as any;
