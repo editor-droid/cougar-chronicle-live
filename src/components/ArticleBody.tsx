@@ -6,10 +6,8 @@ import {
   useMemo,
   useRef,
   useState,
-  useSyncExternalStore,
   type CSSProperties,
   type KeyboardEvent as ReactKeyboardEvent,
-  type PointerEvent as ReactPointerEvent,
   type TouchEvent as ReactTouchEvent,
 } from 'react';
 
@@ -104,40 +102,27 @@ export function splitArticleHtml(html: string): Segment[] {
   return segments;
 }
 
-function subscribeMobile(cb: () => void) {
-  if (typeof window === 'undefined') return () => {};
-  const mq = window.matchMedia('(max-width: 768px)');
-  mq.addEventListener('change', cb);
-  return () => mq.removeEventListener('change', cb);
-}
-
-function getMobileSnapshot() {
-  if (typeof window === 'undefined') return false;
-  return window.matchMedia('(max-width: 768px)').matches;
-}
-
-function useIsMobile() {
-  return useSyncExternalStore(subscribeMobile, getMobileSnapshot, () => false);
-}
-
-function rubber(offset: number, max: number): number {
-  if (offset > 0) return offset * 0.32;
-  if (offset < -max) return -max + (offset + max) * 0.32;
-  return offset;
-}
-
-function useLandscape(images: GalleryImage[]) {
+/**
+ * Single carousel for all viewports — stacked slides only.
+ * No horizontal track (that caused infinite horizontal scroll on mobile).
+ * Swipe is snap-based (touch start/end), not a multi-width strip.
+ */
+function Carousel({ images, id }: { images: GalleryImage[]; id: string }) {
+  const n = images.length;
+  const [index, setIndex] = useState(0);
   const [landscape, setLandscape] = useState(false);
-  const locked = useRef(false);
+  const aspectLocked = useRef(false);
+  const touchX = useRef(0);
+  const touchY = useRef(0);
+  const axis = useRef<'x' | 'y' | null>(null);
 
-  const onImgLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
-    const img = e.currentTarget;
-    if (!img.naturalWidth || !img.naturalHeight || locked.current) return;
-    locked.current = true;
-    setLandscape(img.naturalWidth >= img.naturalHeight * 1.05);
-  }, []);
+  const go = useCallback(
+    (next: number) => {
+      setIndex((((next % n) + n) % n));
+    },
+    [n]
+  );
 
-  // Preload
   useEffect(() => {
     images.forEach((img) => {
       const pre = new window.Image();
@@ -145,28 +130,12 @@ function useLandscape(images: GalleryImage[]) {
     });
   }, [images]);
 
-  return { landscape, onImgLoad };
-}
-
-/** Desktop: simple stacked slides — proven stable layout. */
-function DesktopCarousel({
-  images,
-  id,
-  landscape,
-  onImgLoad,
-}: {
-  images: GalleryImage[];
-  id: string;
-  landscape: boolean;
-  onImgLoad: (e: React.SyntheticEvent<HTMLImageElement>) => void;
-}) {
-  const n = images.length;
-  const [index, setIndex] = useState(0);
-
-  const go = useCallback(
-    (next: number) => setIndex((((next % n) + n) % n)),
-    [n]
-  );
+  const onImgLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    if (!img.naturalWidth || !img.naturalHeight || aspectLocked.current) return;
+    aspectLocked.current = true;
+    setLandscape(img.naturalWidth >= img.naturalHeight * 1.05);
+  };
 
   const onKeyDown = (e: ReactKeyboardEvent) => {
     if (e.key === 'ArrowLeft') {
@@ -179,22 +148,40 @@ function DesktopCarousel({
     }
   };
 
-  // Light swipe on desktop trackpads / touch laptops without a full track
-  const touchX = useRef(0);
   const onTouchStart = (e: ReactTouchEvent) => {
-    touchX.current = e.changedTouches[0]?.clientX ?? 0;
+    const t = e.changedTouches[0];
+    if (!t) return;
+    touchX.current = t.clientX;
+    touchY.current = t.clientY;
+    axis.current = null;
   };
+
+  const onTouchMove = (e: ReactTouchEvent) => {
+    const t = e.changedTouches[0];
+    if (!t || axis.current) return;
+    const dx = Math.abs(t.clientX - touchX.current);
+    const dy = Math.abs(t.clientY - touchY.current);
+    if (dx < 10 && dy < 10) return;
+    axis.current = dx >= dy ? 'x' : 'y';
+  };
+
   const onTouchEnd = (e: ReactTouchEvent) => {
-    const x = e.changedTouches[0]?.clientX ?? 0;
-    const dx = x - touchX.current;
-    if (Math.abs(dx) < 50) return;
+    if (axis.current === 'y') {
+      axis.current = null;
+      return;
+    }
+    const t = e.changedTouches[0];
+    axis.current = null;
+    if (!t) return;
+    const dx = t.clientX - touchX.current;
+    if (Math.abs(dx) < 40) return;
     if (dx < 0) go(index + 1);
     else go(index - 1);
   };
 
   return (
     <div
-      className={`cc-carousel cc-carousel--desktop${landscape ? ' cc-carousel--wide' : ''}`}
+      className={`cc-carousel${landscape ? ' cc-carousel--wide' : ''}`}
       data-carousel-id={id}
       tabIndex={0}
       role="region"
@@ -202,6 +189,7 @@ function DesktopCarousel({
       aria-label={`Image gallery, ${n} photos`}
       onKeyDown={onKeyDown}
       onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
     >
       <div className="cc-carousel__stage">
@@ -244,338 +232,28 @@ function DesktopCarousel({
           ›
         </button>
       </div>
-      <CarouselBar n={n} index={index} images={images} go={go} />
-    </div>
-  );
-}
-
-/**
- * Mobile only: horizontal track inside a hard-clipped card.
- * Never used on desktop — avoids the layout blow-up.
- */
-function MobileCarousel({
-  images,
-  id,
-  landscape,
-  onImgLoad,
-}: {
-  images: GalleryImage[];
-  id: string;
-  landscape: boolean;
-  onImgLoad: (e: React.SyntheticEvent<HTMLImageElement>) => void;
-}) {
-  const n = images.length;
-  const viewportRef = useRef<HTMLDivElement>(null);
-  const trackRef = useRef<HTMLDivElement>(null);
-  const indexRef = useRef(0);
-  const widthRef = useRef(0);
-
-  const [index, setIndex] = useState(0);
-  const [width, setWidth] = useState(0);
-  const [dragging, setDragging] = useState(false);
-
-  const startX = useRef(0);
-  const startY = useRef(0);
-  const startOffset = useRef(0);
-  const lastX = useRef(0);
-  const lastT = useRef(0);
-  const velocity = useRef(0);
-  const axisLock = useRef<'x' | 'y' | null>(null);
-  const pointerId = useRef<number | null>(null);
-  const didDrag = useRef(false);
-
-  const applyTransform = useCallback((offset: number, animate: boolean) => {
-    const track = trackRef.current;
-    if (!track) return;
-    track.style.transition = animate
-      ? 'transform 0.36s cubic-bezier(0.22, 1, 0.36, 1)'
-      : 'none';
-    track.style.transform = `translate3d(${offset}px, 0, 0)`;
-  }, []);
-
-  const settleTo = useCallback(
-    (next: number, animate = true) => {
-      const w = widthRef.current;
-      const i = Math.max(0, Math.min(n - 1, next));
-      indexRef.current = i;
-      setIndex(i);
-      applyTransform(-i * w, animate);
-    },
-    [applyTransform, n]
-  );
-
-  useEffect(() => {
-    const el = viewportRef.current;
-    if (!el) return;
-    const measure = () => {
-      // clientWidth of the clipped viewport = one slide width
-      const w = Math.round(el.getBoundingClientRect().width);
-      if (w <= 0) return;
-      const changed = widthRef.current !== w;
-      widthRef.current = w;
-      setWidth(w);
-      if (changed) applyTransform(-indexRef.current * w, false);
-    };
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [applyTransform]);
-
-  const onPointerDown = (e: ReactPointerEvent) => {
-    if ((e.target as HTMLElement).closest('button')) return;
-    const w = widthRef.current;
-    if (!w) return;
-
-    pointerId.current = e.pointerId;
-    startX.current = e.clientX;
-    startY.current = e.clientY;
-    startOffset.current = -indexRef.current * w;
-    lastX.current = e.clientX;
-    lastT.current = performance.now();
-    velocity.current = 0;
-    axisLock.current = null;
-    didDrag.current = false;
-    setDragging(true);
-    try {
-      viewportRef.current?.setPointerCapture(e.pointerId);
-    } catch {
-      /* ignore */
-    }
-  };
-
-  const onPointerMove = (e: ReactPointerEvent) => {
-    if (pointerId.current !== e.pointerId || !dragging) return;
-    const dx = e.clientX - startX.current;
-    const dy = e.clientY - startY.current;
-
-    if (!axisLock.current) {
-      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
-      axisLock.current = Math.abs(dx) >= Math.abs(dy) ? 'x' : 'y';
-      if (axisLock.current === 'y') {
-        // Abort horizontal drag — allow native scroll
-        setDragging(false);
-        pointerId.current = null;
-        return;
-      }
-    }
-    if (axisLock.current !== 'x') return;
-
-    e.preventDefault();
-    didDrag.current = true;
-
-    const now = performance.now();
-    const dt = Math.max(1, now - lastT.current);
-    velocity.current = ((e.clientX - lastX.current) / dt) * 1000;
-    lastX.current = e.clientX;
-    lastT.current = now;
-
-    const w = widthRef.current;
-    const maxOff = Math.max(0, (n - 1) * w);
-    applyTransform(rubber(startOffset.current + dx, maxOff), false);
-  };
-
-  const endDrag = (e: ReactPointerEvent) => {
-    if (pointerId.current !== e.pointerId) return;
-    pointerId.current = null;
-    const wasDrag = didDrag.current;
-    const lock = axisLock.current;
-    axisLock.current = null;
-    setDragging(false);
-
-    if (lock === 'y' || !wasDrag) {
-      settleTo(indexRef.current, true);
-      return;
-    }
-
-    const w = widthRef.current || 1;
-    const dx = e.clientX - startX.current;
-    const v = velocity.current;
-    let next = indexRef.current;
-
-    if (Math.abs(v) > 450) {
-      next = v < 0 ? indexRef.current + 1 : indexRef.current - 1;
-    } else if (Math.abs(dx) > w * 0.18) {
-      next = dx < 0 ? indexRef.current + 1 : indexRef.current - 1;
-    } else {
-      next = Math.round((-startOffset.current - dx) / w);
-    }
-
-    settleTo(next, true);
-
-    if (wasDrag) {
-      const block = (ev: Event) => {
-        ev.stopPropagation();
-        ev.preventDefault();
-        document.removeEventListener('click', block, true);
-      };
-      document.addEventListener('click', block, true);
-      window.setTimeout(() => document.removeEventListener('click', block, true), 100);
-    }
-  };
-
-  const go = useCallback((next: number) => settleTo(next, true), [settleTo]);
-
-  const onKeyDown = (e: ReactKeyboardEvent) => {
-    if (e.key === 'ArrowLeft') {
-      e.preventDefault();
-      go(index - 1);
-    }
-    if (e.key === 'ArrowRight') {
-      e.preventDefault();
-      go(index + 1);
-    }
-  };
-
-  const slideW = width || undefined;
-
-  return (
-    <div
-      className={`cc-carousel cc-carousel--mobile${landscape ? ' cc-carousel--wide' : ''}${
-        dragging ? ' is-dragging' : ''
-      }`}
-      data-carousel-id={id}
-      tabIndex={0}
-      role="region"
-      aria-roledescription="carousel"
-      aria-label={`Image gallery, ${n} photos`}
-      onKeyDown={onKeyDown}
-    >
-      <div
-        ref={viewportRef}
-        className="cc-carousel__viewport"
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={endDrag}
-        onPointerCancel={endDrag}
-      >
-        <div
-          ref={trackRef}
-          className="cc-carousel__track"
-          style={{
-            width: width ? width * n : '100%',
-            // Critical: never inherit max-width:100% from .article-content *
-            maxWidth: 'none',
-          }}
-        >
+      <div className="cc-carousel__bar">
+        <div className="cc-carousel__dots" role="tablist" aria-label="Slides">
           {images.map((img, i) => (
-            <div
-              key={`${img.src}-${i}`}
-              className={`cc-carousel__slide${i === index ? ' is-active' : ''}`}
-              style={
-                slideW
-                  ? { width: slideW, flex: `0 0 ${slideW}px`, maxWidth: 'none' }
-                  : { width: '100%', flex: '0 0 100%', maxWidth: 'none' }
-              }
-              aria-hidden={i === index ? 'false' : 'true'}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={img.src}
-                alt={img.alt || `Photo ${i + 1} of ${n}`}
-                className="cc-carousel__img"
-                draggable={false}
-                loading={i <= 1 ? 'eager' : 'lazy'}
-                decoding="async"
-                onLoad={onImgLoad}
-              />
-            </div>
+            <button
+              key={`${img.src}-dot-${i}`}
+              type="button"
+              role="tab"
+              aria-selected={i === index}
+              aria-label={`Go to image ${i + 1}`}
+              className={`cc-carousel__dot${i === index ? ' is-active' : ''}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                go(i);
+              }}
+            />
           ))}
         </div>
-
-        <button
-          type="button"
-          className="cc-carousel__btn cc-carousel__btn--prev"
-          aria-label="Previous image"
-          disabled={index === 0}
-          onClick={(e) => {
-            e.stopPropagation();
-            go(index - 1);
-          }}
-        >
-          ‹
-        </button>
-        <button
-          type="button"
-          className="cc-carousel__btn cc-carousel__btn--next"
-          aria-label="Next image"
-          disabled={index === n - 1}
-          onClick={(e) => {
-            e.stopPropagation();
-            go(index + 1);
-          }}
-        >
-          ›
-        </button>
+        <span className="cc-carousel__count" aria-live="polite">
+          {index + 1} / {n}
+        </span>
       </div>
-      <CarouselBar n={n} index={index} images={images} go={go} />
     </div>
-  );
-}
-
-function CarouselBar({
-  n,
-  index,
-  images,
-  go,
-}: {
-  n: number;
-  index: number;
-  images: GalleryImage[];
-  go: (i: number) => void;
-}) {
-  return (
-    <div className="cc-carousel__bar">
-      <div className="cc-carousel__dots" role="tablist" aria-label="Slides">
-        {images.map((img, i) => (
-          <button
-            key={`${img.src}-dot-${i}`}
-            type="button"
-            role="tab"
-            aria-selected={i === index}
-            aria-label={`Go to image ${i + 1}`}
-            className={`cc-carousel__dot${i === index ? ' is-active' : ''}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              go(i);
-            }}
-          />
-        ))}
-      </div>
-      <span className="cc-carousel__count" aria-live="polite">
-        {index + 1} / {n}
-      </span>
-    </div>
-  );
-}
-
-function Carousel({ images, id }: { images: GalleryImage[]; id: string }) {
-  const isMobile = useIsMobile();
-  const { landscape, onImgLoad } = useLandscape(images);
-  // Avoid SSR/client HTML mismatch: server + first paint = desktop, then upgrade on phone
-  const [hydrated, setHydrated] = useState(false);
-  useEffect(() => {
-    setHydrated(true);
-  }, []);
-
-  // Desktop path is the layout-safe default. Mobile track only after hydrate.
-  if (hydrated && isMobile) {
-    return (
-      <MobileCarousel
-        images={images}
-        id={id}
-        landscape={landscape}
-        onImgLoad={onImgLoad}
-      />
-    );
-  }
-  return (
-    <DesktopCarousel
-      images={images}
-      id={id}
-      landscape={landscape}
-      onImgLoad={onImgLoad}
-    />
   );
 }
 
