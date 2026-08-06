@@ -298,11 +298,12 @@ export async function savePost(data: any) {
       data: {
         title: data.title,
         slug,
-        category: data.category,
-        format:
-          data.format === 'opinion' || data.format === 'news'
-            ? data.format
-            : undefined,
+        category: (() => {
+          const c = String(data.category || '').toLowerCase();
+          if (['campus', 'politics', 'family', 'faith'].includes(c)) return c;
+          throw new Error('Category must be campus, politics, family, or faith');
+        })(),
+        format: data.format === 'opinion' ? 'opinion' : 'news',
         content: data.content,
         imageUrl: data.imageUrl,
         seoTitle: data.seoTitle,
@@ -347,7 +348,11 @@ export async function savePost(data: any) {
       data: {
         title: data.title,
         slug,
-        category: data.category,
+        category: (() => {
+          const c = String(data.category || '').toLowerCase();
+          if (['campus', 'politics', 'family', 'faith'].includes(c)) return c;
+          throw new Error('Category must be campus, politics, family, or faith');
+        })(),
         format: data.format === 'opinion' ? 'opinion' : 'news',
         content: data.content,
         imageUrl: data.imageUrl,

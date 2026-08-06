@@ -72,7 +72,8 @@ export async function createDraftForPrintEdition(printEditionId: string) {
     data: {
       title: 'Untitled print article',
       slug: baseSlug,
-      category: 'news',
+      category: 'campus',
+      format: 'news',
       content: '<p></p>',
       state: 'DRAFT',
       authorId: session.user.id,

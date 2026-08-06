@@ -112,7 +112,11 @@ export default function EditorForm({
   const galleryInputRef = useRef<HTMLInputElement>(null); 
 
   const [title, setTitle] = useState(post?.title || '');
-  const [category, setCategory] = useState(post?.category || 'news');
+  const [category, setCategory] = useState(
+    ['campus', 'politics', 'family', 'faith'].includes(post?.category || '')
+      ? post!.category
+      : 'campus'
+  );
   const [format, setFormat] = useState<'news' | 'opinion'>(
     post?.format === 'opinion' ? 'opinion' : 'news'
   );
@@ -771,30 +775,43 @@ export default function EditorForm({
                     )}
                   </div>
                   <div className={styles.inputGroup}>
-                    <label className={styles.inputLabel}>Category (topic)</label>
-                    <select value={category} onChange={(e) => setCategory(e.target.value)} className={styles.textInput}>
-                      <option value="news">News</option>
+                    <label className={styles.inputLabel}>Category (topic) *</label>
+                    <select
+                      value={['campus', 'politics', 'family', 'faith'].includes(category) ? category : ''}
+                      onChange={(e) => setCategory(e.target.value)}
+                      className={styles.textInput}
+                      required
+                    >
+                      <option value="" disabled>
+                        Select a category…
+                      </option>
                       <option value="campus">Campus</option>
                       <option value="politics">Politics</option>
                       <option value="family">Family Issues</option>
                       <option value="faith">Faith</option>
                     </select>
                     <p className={styles.panelHint} style={{ marginTop: '0.35rem' }}>
-                      Topic hub (e.g. Faith). News &amp; Opinion pages also list by format below.
+                      Required topic hub. News and Opinion are not categories — set Format below.
                     </p>
+                    {!['campus', 'politics', 'family', 'faith'].includes(category) && (
+                      <p className={styles.panelHint} style={{ marginTop: '0.35rem', color: '#b45309' }}>
+                        This post still has category &quot;{category || 'unset'}&quot;. Pick Campus, Politics, Family, or Faith before saving.
+                      </p>
+                    )}
                   </div>
                   <div className={styles.inputGroup}>
-                    <label className={styles.inputLabel}>Format (News / Opinion)</label>
+                    <label className={styles.inputLabel}>Format (News / Opinion) *</label>
                     <select
                       value={format}
                       onChange={(e) => setFormat(e.target.value as 'news' | 'opinion')}
                       className={styles.textInput}
+                      required
                     >
                       <option value="news">News</option>
                       <option value="opinion">Opinion / Op-Ed</option>
                     </select>
                     <p className={styles.panelHint} style={{ marginTop: '0.35rem' }}>
-                      Opinion pieces also appear under the Opinion hub; news under the News hub.
+                      Required. Opinion pieces also list on /opinion; news-format pieces also list on /news.
                     </p>
                   </div>
                   <div className={styles.inputGroup}>

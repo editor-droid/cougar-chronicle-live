@@ -139,9 +139,11 @@ export const NAV_SECTION_ORDER: readonly PublicSectionSlug[] = [
 export const POST_FORMATS = ['news', 'opinion'] as const;
 export type PostFormat = (typeof POST_FORMATS)[number];
 
-/** Topic categories editors can assign (includes news for general/untopicked). */
+/**
+ * Topic categories only (NOT News / Opinion — those are format aggregates).
+ * Every article must have one of these + a format (news | opinion).
+ */
 export const TOPIC_CATEGORY_SLUGS = [
-  'news',
   'campus',
   'politics',
   'family',
@@ -149,9 +151,8 @@ export const TOPIC_CATEGORY_SLUGS = [
 ] as const;
 export type TopicCategorySlug = (typeof TOPIC_CATEGORY_SLUGS)[number];
 
-/** Editor category options (topic). Opinion is a format aggregate, not a topic. */
+/** Editor category options (topic hubs only). */
 export const EDITOR_CATEGORIES = [
-  { value: 'news', label: 'News' },
   { value: 'campus', label: 'Campus' },
   { value: 'politics', label: 'Politics' },
   { value: 'family', label: 'Family Issues' },

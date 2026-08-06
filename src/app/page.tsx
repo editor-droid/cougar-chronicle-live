@@ -39,29 +39,53 @@ export default async function Home() {
   const mainStory = allPosts[0];
   const sideStories = allPosts.slice(1, 5); // 4 stories for the sidebar stack
 
-  // News hub = all news-format posts (any topic)
-  const newsPosts = await prisma.post.findMany({
-    where: { state: 'PUBLISHED', format: 'news', printEditionId: null, publishedAt: { lte: new Date() } },
-    orderBy: { publishedAt: { sort: 'desc', nulls: 'last' } },
-    include: { author: true },
-    take: 4
-  });
+  const publishedNotPrint = {
+    state: 'PUBLISHED' as const,
+    printEditionId: null,
+    publishedAt: { lte: new Date() },
+  };
 
-  // Faith topic posts
-  const faithPosts = await prisma.post.findMany({
-    where: { state: 'PUBLISHED', category: 'faith', printEditionId: null, publishedAt: { lte: new Date() } },
-    orderBy: { publishedAt: { sort: 'desc', nulls: 'last' } },
-    include: { author: true },
-    take: 4
-  });
-
-  // Opinion hub = all opinion/op-ed posts (any topic)
-  const opinionPosts = await prisma.post.findMany({
-    where: { state: 'PUBLISHED', format: 'opinion', printEditionId: null, publishedAt: { lte: new Date() } },
-    orderBy: { publishedAt: { sort: 'desc', nulls: 'last' } },
-    include: { author: true },
-    take: 4
-  });
+  // Format aggregates (not topic categories)
+  const [newsPosts, opinionPosts, campusPosts, politicsPosts, familyPosts, faithPosts] =
+    await Promise.all([
+      prisma.post.findMany({
+        where: { ...publishedNotPrint, format: 'news' },
+        orderBy: { publishedAt: { sort: 'desc', nulls: 'last' } },
+        include: { author: true },
+        take: 4,
+      }),
+      prisma.post.findMany({
+        where: { ...publishedNotPrint, format: 'opinion' },
+        orderBy: { publishedAt: { sort: 'desc', nulls: 'last' } },
+        include: { author: true },
+        take: 4,
+      }),
+      // Topic hubs
+      prisma.post.findMany({
+        where: { ...publishedNotPrint, category: 'campus' },
+        orderBy: { publishedAt: { sort: 'desc', nulls: 'last' } },
+        include: { author: true },
+        take: 4,
+      }),
+      prisma.post.findMany({
+        where: { ...publishedNotPrint, category: 'politics' },
+        orderBy: { publishedAt: { sort: 'desc', nulls: 'last' } },
+        include: { author: true },
+        take: 4,
+      }),
+      prisma.post.findMany({
+        where: { ...publishedNotPrint, category: 'family' },
+        orderBy: { publishedAt: { sort: 'desc', nulls: 'last' } },
+        include: { author: true },
+        take: 4,
+      }),
+      prisma.post.findMany({
+        where: { ...publishedNotPrint, category: 'faith' },
+        orderBy: { publishedAt: { sort: 'desc', nulls: 'last' } },
+        include: { author: true },
+        take: 4,
+      }),
+    ]);
 
   // America 250 series posts (big monthly series)
   const america250Posts = await prisma.post.findMany({
@@ -195,91 +219,92 @@ export default async function Home() {
         {/* Left main feed */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '3.5rem' }}>
           
-          {/* NEWS BAND */}
-          {newsPosts.length > 0 && (
-            <section className="category-band">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem', borderBottom: '3px double var(--primary)', paddingBottom: '0.5rem' }}>
-                <h2 className="font-serif" style={{ fontSize: '1.5rem', margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--primary)', fontWeight: 800 }}>News</h2>
-                <div style={{ flex: 1, height: '1px', backgroundColor: 'var(--border)' }}></div>
-                <Link href="/news" className="font-sans text-sm" style={{ fontWeight: 'bold', textTransform: 'uppercase', color: 'var(--accent)' }}>View All &rarr;</Link>
-              </div>
-              <div className="category-grid">
-                {newsPosts.map(post => (
-                  <Link href={getArticleUrl(post)} key={post.id} className="category-card">
-                    <h3 className="font-serif category-headline" style={{ fontSize: '1.15rem', fontWeight: 700, lineHeight: 1.3 }}>
-                      {post.title}
-                    </h3>
-                    <div className="font-sans text-xs text-muted" style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      By {post.customAuthor || post.author.name} {post.printEditionId && <span style={{ fontSize: '0.6rem', textTransform: 'uppercase', fontWeight: 700, backgroundColor: 'var(--surface-hover)', padding: '0.1rem 0.3rem', borderRadius: '0.25rem', border: '1px solid var(--border)', color: 'var(--foreground)' }}>🗞️ Print</span>}
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </section>
-          )}
+          {/* Format aggregates + topic hubs (nav order) */}
+          {(
+            [
+              { key: 'news', label: 'News', href: '/news', posts: newsPosts, style: 'grid' as const },
+              { key: 'opinion', label: 'Opinion', href: '/opinion', posts: opinionPosts, style: 'opinion' as const },
+              { key: 'campus', label: 'Campus', href: '/campus', posts: campusPosts, style: 'grid' as const },
+              { key: 'politics', label: 'Politics', href: '/politics', posts: politicsPosts, style: 'grid' as const },
+              { key: 'family', label: 'Family', href: '/family', posts: familyPosts, style: 'grid' as const },
+              { key: 'faith', label: 'Faith', href: '/faith', posts: faithPosts, style: 'grid' as const },
+            ] as const
+          ).map((band) => {
+            if (band.posts.length === 0) return null;
 
-          {/* FAITH BAND */}
-          {faithPosts.length > 0 && (
-            <section className="category-band">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem', borderBottom: '3px double var(--primary)', paddingBottom: '0.5rem' }}>
-                <h2 className="font-serif" style={{ fontSize: '1.5rem', margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--primary)', fontWeight: 800 }}>Faith</h2>
-                <div style={{ flex: 1, height: '1px', backgroundColor: 'var(--border)' }}></div>
-                <Link href="/faith" className="font-sans text-sm" style={{ fontWeight: 'bold', textTransform: 'uppercase', color: 'var(--accent)' }}>View All &rarr;</Link>
-              </div>
-              <div className="category-grid">
-                {faithPosts.map(post => (
-                  <Link href={getArticleUrl(post)} key={post.id} className="category-card">
-                    <h3 className="font-serif category-headline" style={{ fontSize: '1.15rem', fontWeight: 700, lineHeight: 1.3 }}>
-                      {post.title}
-                    </h3>
-                    <div className="font-sans text-xs text-muted" style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      By {post.customAuthor || post.author.name} {post.printEditionId && <span style={{ fontSize: '0.6rem', textTransform: 'uppercase', fontWeight: 700, backgroundColor: 'var(--surface-hover)', padding: '0.1rem 0.3rem', borderRadius: '0.25rem', border: '1px solid var(--border)', color: 'var(--foreground)' }}>🗞️ Print</span>}
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </section>
-          )}
+            if (band.style === 'opinion') {
+              return (
+                <section key={band.key} className="category-band">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem', borderBottom: '3px double var(--primary)', paddingBottom: '0.5rem' }}>
+                    <h2 className="font-serif" style={{ fontSize: '1.5rem', margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--primary)', fontWeight: 800 }}>{band.label}</h2>
+                    <div style={{ flex: 1, height: '1px', backgroundColor: 'var(--border)' }}></div>
+                    <Link href={band.href} className="font-sans text-sm" style={{ fontWeight: 'bold', textTransform: 'uppercase', color: 'var(--accent)' }}>View All &rarr;</Link>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+                    {band.posts.map((post) => (
+                      <Link
+                        href={getArticleUrl(post)}
+                        key={post.id}
+                        style={{
+                          padding: '1.5rem',
+                          backgroundColor: 'var(--surface)',
+                          borderTop: '3px solid var(--accent)',
+                          borderLeft: '1px solid var(--border)',
+                          borderRight: '1px solid var(--border)',
+                          borderBottom: '1px solid var(--border)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between',
+                        }}
+                      >
+                        <div>
+                          <span className="font-serif" style={{ fontSize: '3rem', color: 'var(--border)', display: 'block', lineHeight: 0.1, marginBottom: '0.5rem', fontFamily: 'Georgia, serif' }}>“</span>
+                          <h3 className="font-serif" style={{ fontSize: '1.35rem', fontWeight: 700, lineHeight: 1.3, marginBottom: '1rem' }}>
+                            {post.title}
+                          </h3>
+                        </div>
+                        <div className="font-sans text-xs" style={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          By {post.customAuthor || post.author.name}{' '}
+                          {post.printEditionId && (
+                            <span style={{ fontSize: '0.6rem', textTransform: 'uppercase', fontWeight: 700, backgroundColor: 'var(--surface-hover)', padding: '0.1rem 0.3rem', borderRadius: '0.25rem', border: '1px solid var(--border)', color: 'var(--foreground)', letterSpacing: 'normal' }}>
+                              🗞️ Print
+                            </span>
+                          )}
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              );
+            }
 
-          {/* OPINION BAND (Wordy, text-centric columns in NR / DW style) */}
-          {opinionPosts.length > 0 && (
-            <section className="category-band">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem', borderBottom: '3px double var(--primary)', paddingBottom: '0.5rem' }}>
-                <h2 className="font-serif" style={{ fontSize: '1.5rem', margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--primary)', fontWeight: 800 }}>Opinion</h2>
-                <div style={{ flex: 1, height: '1px', backgroundColor: 'var(--border)' }}></div>
-                <Link href="/opinion" className="font-sans text-sm" style={{ fontWeight: 'bold', textTransform: 'uppercase', color: 'var(--accent)' }}>View All &rarr;</Link>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
-                {opinionPosts.map(post => (
-                  <Link 
-                    href={getArticleUrl(post)} 
-                    key={post.id} 
-                    style={{ 
-                      padding: '1.5rem', 
-                      backgroundColor: 'var(--surface)', 
-                      borderTop: '3px solid var(--accent)', 
-                      borderLeft: '1px solid var(--border)',
-                      borderRight: '1px solid var(--border)',
-                      borderBottom: '1px solid var(--border)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'space-between'
-                    }}
-                  >
-                    <div>
-                      <span className="font-serif" style={{ fontSize: '3rem', color: 'var(--border)', display: 'block', lineHeight: 0.1, marginBottom: '0.5rem', fontFamily: 'Georgia, serif' }}>“</span>
-                      <h3 className="font-serif" style={{ fontSize: '1.35rem', fontWeight: 700, lineHeight: 1.3, marginBottom: '1rem' }}>
+            return (
+              <section key={band.key} className="category-band">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem', borderBottom: '3px double var(--primary)', paddingBottom: '0.5rem' }}>
+                  <h2 className="font-serif" style={{ fontSize: '1.5rem', margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--primary)', fontWeight: 800 }}>{band.label}</h2>
+                  <div style={{ flex: 1, height: '1px', backgroundColor: 'var(--border)' }}></div>
+                  <Link href={band.href} className="font-sans text-sm" style={{ fontWeight: 'bold', textTransform: 'uppercase', color: 'var(--accent)' }}>View All &rarr;</Link>
+                </div>
+                <div className="category-grid">
+                  {band.posts.map((post) => (
+                    <Link href={getArticleUrl(post)} key={post.id} className="category-card">
+                      <h3 className="font-serif category-headline" style={{ fontSize: '1.15rem', fontWeight: 700, lineHeight: 1.3 }}>
                         {post.title}
                       </h3>
-                    </div>
-                    <div className="font-sans text-xs" style={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      By {post.customAuthor || post.author.name} {post.printEditionId && <span style={{ fontSize: '0.6rem', textTransform: 'uppercase', fontWeight: 700, backgroundColor: 'var(--surface-hover)', padding: '0.1rem 0.3rem', borderRadius: '0.25rem', border: '1px solid var(--border)', color: 'var(--foreground)', letterSpacing: 'normal' }}>🗞️ Print</span>}
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </section>
-          )}
+                      <div className="font-sans text-xs text-muted" style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        By {post.customAuthor || post.author.name}{' '}
+                        {post.printEditionId && (
+                          <span style={{ fontSize: '0.6rem', textTransform: 'uppercase', fontWeight: 700, backgroundColor: 'var(--surface-hover)', padding: '0.1rem 0.3rem', borderRadius: '0.25rem', border: '1px solid var(--border)', color: 'var(--foreground)' }}>
+                            🗞️ Print
+                          </span>
+                        )}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            );
+          })}
 
           {/* VIDEOS BAND — after Opinion */}
           {homeVideos.length > 0 && (
