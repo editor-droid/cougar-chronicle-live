@@ -222,20 +222,21 @@ export default async function RecruitingPage() {
         {/* Benefits and opportunities — flyer + career pipeline */}
         <div style={{ marginBottom: '1.75rem' }}>
           <h2
-            className="font-serif text-center"
-            style={{ fontSize: '1.4rem', marginBottom: '0.35rem', color: 'var(--primary)' }}
+            className="font-serif"
+            style={{ fontSize: '1.4rem', marginBottom: '0.35rem', color: 'var(--primary)', textAlign: 'left' }}
           >
             Benefits and opportunities
           </h2>
           <p
-            className="font-sans text-center text-muted"
+            className="font-sans text-muted"
             style={{
               fontSize: '0.92rem',
               marginBottom: '1rem',
               maxWidth: '36rem',
-              marginLeft: 'auto',
-              marginRight: 'auto',
+              marginLeft: 0,
+              marginRight: 0,
               lineHeight: 1.45,
+              textAlign: 'left',
             }}
           >
             More than a byline — real training, a stronger résumé, and doors into journalism, politics, and advocacy.
