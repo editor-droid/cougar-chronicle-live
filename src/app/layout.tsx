@@ -136,6 +136,7 @@ export default async function RootLayout({
               <a href="/donate" className="font-sans font-bold" style={{ color: 'inherit', textDecoration: 'none' }}>Donate</a>
               <a href="/about" className="font-sans font-bold" style={{ color: 'inherit', textDecoration: 'none' }}>About Us</a>
               <a href="/contact" className="font-sans font-bold" style={{ color: 'inherit', textDecoration: 'none' }}>Contact Us</a>
+              <a href="/recruiting" className="font-sans font-bold" style={{ color: 'inherit', textDecoration: 'none' }}>Recruiting</a>
             </div>
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginLeft: 'auto' }}>
               <span className="font-sans font-bold">Follow Us:</span>
@@ -246,6 +247,7 @@ export default async function RootLayout({
                 <li><a href="/about" style={{ color: 'white', opacity: 0.8, textDecoration: 'none' }}>About Us</a></li>
                 <li><a href="/contact" style={{ color: 'white', opacity: 0.8, textDecoration: 'none' }}>Contact</a></li>
                 <li><a href="/donate" style={{ color: 'white', opacity: 0.8, textDecoration: 'none' }}>Donate</a></li>
+                <li><a href="/recruiting" style={{ color: 'white', opacity: 0.8, textDecoration: 'none' }}>Recruiting</a></li>
                 <li><a href="/account" style={{ color: 'white', opacity: 0.8, textDecoration: 'none' }}>My Account</a></li>
               </ul>
             </div>

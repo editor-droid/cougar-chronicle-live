@@ -6,10 +6,19 @@ import {
   AUGUST_SUPPORTER_MIN,
 } from '@/lib/membership-constants';
 
-export default function DonateForm() {
+type DonateFormProps = {
+  /** Preserved when landing from an article blurb, etc. */
+  sourceFrom?: string;
+  articleSlug?: string;
+};
+
+export default function DonateForm({ sourceFrom, articleSlug }: DonateFormProps = {}) {
   const [amount, setAmount] = useState<number>(50);
   const [customAmount, setCustomAmount] = useState<string>('');
   const [isHovered, setIsHovered] = useState<number | null>(null);
+
+  const donationSource = sourceFrom || 'fundraiser_page';
+  const sourceDetail = articleSlug || '';
 
   const handleCustomChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCustomAmount(e.target.value);
@@ -183,7 +192,11 @@ export default function DonateForm() {
         <input
           type="hidden"
           name="metadata"
-          value={JSON.stringify({ campaign: 'august_fundraiser' })}
+          value={JSON.stringify({
+            campaign: 'august_fundraiser',
+            source: donationSource,
+            sourceDetail,
+          })}
         />
         <button
           type="submit"

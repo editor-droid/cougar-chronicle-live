@@ -35,12 +35,15 @@ export async function POST() {
       email: { equals: session.user.email, mode: 'insensitive' },
       amount: { gte: AUGUST_MEMBERSHIP_MIN },
       createdAt: { gte: since },
+      OR: [{ campaign: 'august_fundraiser' }, { source: 'legacy' }],
     },
     orderBy: { createdAt: 'desc' },
     take: 20,
   });
 
-  const augustGift = gifts.find((d) => d.createdAt.getMonth() === 7);
+  const augustGift =
+    gifts.find((d) => d.campaign === 'august_fundraiser') ||
+    gifts.find((d) => d.createdAt.getMonth() === 7);
   if (!augustGift && !isAugustFundraiserWindow()) {
     return NextResponse.json({ granted: false, reason: 'no_qualifying_gift' });
   }

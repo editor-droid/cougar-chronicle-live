@@ -86,6 +86,7 @@ export default function MobileMenu() {
                 <Link href="/about" className="mobile-nav-link font-sans">About</Link>
                 <Link href="/contact" className="mobile-nav-link font-sans">Contact</Link>
                 <Link href="/donate" className="mobile-nav-link font-sans">Donate</Link>
+                <Link href="/recruiting" className="mobile-nav-link font-sans">Recruiting</Link>
                 {isPwa && (
                   <Link href="/account" className="mobile-nav-link font-sans">Account</Link>
                 )}

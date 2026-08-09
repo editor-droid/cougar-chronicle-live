@@ -6,7 +6,7 @@ import { auth } from '@/auth';
 import { cookies } from 'next/headers';
 import Link from 'next/link';
 import ClientLightbox from './ClientLightbox';
-import ArticleBody from '@/components/ArticleBody';
+import ArticleDonateBlocks from '@/components/ArticleDonateBlocks';
 import KeyTakeaways from '@/components/KeyTakeaways';
 import VideoHighlights from '@/components/VideoHighlights';
 import { injectHeadingIds } from '@/lib/toc';
@@ -262,10 +262,11 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
           <KeyTakeaways content={post.keyInsights || ''} />
 
           {hasAccess ? (
-            <ArticleBody
+            <ArticleDonateBlocks
               className="font-serif article-content"
               style={{ fontSize: '1.125rem', lineHeight: 1.8, color: 'var(--foreground)' }}
               html={htmlContent}
+              articleSlug={post.slug}
             />
           ) : (
             <>

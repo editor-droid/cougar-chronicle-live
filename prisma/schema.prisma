@@ -197,6 +197,12 @@ model Donation {
   name            String?
   email           String
   amount          Float
+  /// e.g. general | august_fundraiser
+  campaign        String   @default("general")
+  /// e.g. donate_page | fundraiser_page | article_end | article_mid | manual | legacy
+  source          String   @default("unknown")
+  /// Optional context: article slug, note, etc.
+  sourceDetail    String?
   stripeSessionId String?  @unique
   createdAt       DateTime @default(now())
 }

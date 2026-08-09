@@ -41,6 +41,8 @@ export async function POST(req: Request) {
     } else if (type === 'donation') {
       const amountTotal = session.amount_total ? session.amount_total / 100 : 0;
       const campaign = session.metadata?.campaign || 'general';
+      const source = session.metadata?.source || 'unknown';
+      const sourceDetail = session.metadata?.sourceDetail || null;
       const donorUserId = session.metadata?.userId || '';
 
       if (customerEmail) {
@@ -49,6 +51,9 @@ export async function POST(req: Request) {
             email: customerEmail,
             name: customerName,
             amount: amountTotal,
+            campaign,
+            source,
+            sourceDetail: sourceDetail || null,
             stripeSessionId: session.id,
           },
         });

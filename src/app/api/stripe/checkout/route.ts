@@ -36,8 +36,11 @@ export async function POST(req: Request) {
     let checkoutSession;
 
     if (type === 'donate') {
-      const campaign = (metadata?.campaign as string) || '';
+      const campaign = (metadata?.campaign as string) || 'general';
+      const source = (metadata?.source as string) || 'unknown';
+      const sourceDetail = String(metadata?.sourceDetail || metadata?.article || '').slice(0, 200);
       const isAugustFundraiser = campaign === 'august_fundraiser';
+      // Prefer success return to the page the donor came from (article mid/end stay simple via donate page)
       const successPath = isAugustFundraiser
         ? `/fundraiser?success=true&purchase=${amount}`
         : `/donate?success=true&purchase=${amount}`;
@@ -70,6 +73,8 @@ export async function POST(req: Request) {
         metadata: {
           type: 'donation',
           campaign: campaign || 'general',
+          source: source || 'unknown',
+          sourceDetail,
           userId: session?.user?.id || '',
         },
       });

@@ -52,7 +52,7 @@ export default async function AnalyticsPage(props: {
     { label: 'Still in progress', value: fmt(t.draftPosts), hint: 'Drafts & in review' },
     { label: 'Email list', value: fmt(t.activeSubscribers), hint: 'Active subscribers' },
     { label: 'Video page opens', value: fmt(t.videoPageViews), hint: 'Watch page views' },
-    { label: 'Donations raised', value: `$${fmt(Math.round(t.donationsTotal))}`, hint: 'Fundraiser total' },
+    { label: 'Donations raised', value: `$${fmt(Math.round(t.donationsTotal))}`, hint: 'All gifts (every campaign)' },
     { label: 'Print orders', value: fmt(t.printOrders), hint: 'Physical / digital print buys' },
     { label: 'Videos online', value: fmt(t.videos), hint: 'Active videos' },
   ];

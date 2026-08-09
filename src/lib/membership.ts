@@ -88,9 +88,6 @@ export async function grantYearMembership(opts: {
   return { granted: true, userId: user.id, createdUser };
 }
 
-/** Calendar August (any year) — campaign window for fundraiser membership perk. */
-export function isAugustFundraiserWindow(date = new Date()): boolean {
-  return date.getMonth() === 7; // 0-indexed: August = 7
-}
+export { isAugustFundraiserWindow } from '@/lib/membership-constants';
 
 // AUGUST_FOUNDING_MEMBER_MIN lives in membership-constants.ts (safe for client components)

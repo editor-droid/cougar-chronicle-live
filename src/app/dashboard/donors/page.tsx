@@ -4,6 +4,11 @@ import prisma from '@/lib/prisma';
 import DashboardHeader from '@/components/DashboardHeader';
 import { updateFundraiserGoal } from './actions';
 import ManualDonationForm from './ManualDonationForm';
+import {
+  campaignLabel,
+  DONATION_CAMPAIGN,
+  sourceLabel,
+} from '@/lib/donations';
 
 export default async function DonorsPage() {
   const session = await auth();
@@ -13,14 +18,20 @@ export default async function DonorsPage() {
     orderBy: { createdAt: 'desc' },
   });
 
-  const totalRaised = donations.reduce((sum, d) => sum + d.amount, 0);
+  const totalAll = donations.reduce((sum, d) => sum + d.amount, 0);
+  const fundraiserRaised = donations
+    .filter((d) => d.campaign === DONATION_CAMPAIGN.AUGUST_FUNDRAISER)
+    .reduce((sum, d) => sum + d.amount, 0);
+  const generalRaised = donations
+    .filter((d) => d.campaign === DONATION_CAMPAIGN.GENERAL)
+    .reduce((sum, d) => sum + d.amount, 0);
 
   const goalSetting = await prisma.siteSetting.findUnique({
     where: { key: 'fundraiserGoal' },
   });
 
   const goal = goalSetting ? parseInt(goalSetting.value, 10) : 8000;
-  const pct = Math.min(100, (totalRaised / Math.max(goal, 1)) * 100);
+  const pct = Math.min(100, (fundraiserRaised / Math.max(goal, 1)) * 100);
 
   return (
     <div className="container animate-fade-in" style={{ marginTop: '1rem', marginBottom: '3rem' }}>
@@ -35,15 +46,28 @@ export default async function DonorsPage() {
         }}
       >
         <div className="dash-card" style={{ padding: '1.25rem 1.35rem' }}>
-          <p className="font-sans" style={{ margin: '0 0 0.35rem', fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6b7280' }}>
+          <p
+            className="font-sans"
+            style={{
+              margin: '0 0 0.35rem',
+              fontSize: '0.7rem',
+              fontWeight: 800,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              color: '#6b7280',
+            }}
+          >
             Fundraiser
           </p>
           <h2 className="font-serif" style={{ fontSize: '1.35rem', margin: '0 0 1rem', color: '#1B2253' }}>
-            Status
+            August drive
           </h2>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
             <span className="font-sans text-muted" style={{ fontSize: '0.9rem' }}>
-              Raised: <strong style={{ color: 'var(--foreground)' }}>${totalRaised.toLocaleString()}</strong>
+              Raised:{' '}
+              <strong style={{ color: 'var(--foreground)' }}>
+                ${fundraiserRaised.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+              </strong>
             </span>
             <span className="font-sans text-muted" style={{ fontSize: '0.9rem' }}>
               Goal: ${goal.toLocaleString()}
@@ -68,10 +92,25 @@ export default async function DonorsPage() {
               }}
             />
           </div>
+          <p className="font-sans text-muted" style={{ fontSize: '0.8rem', margin: '0.75rem 0 0' }}>
+            All-time gifts: ${totalAll.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+            {' · '}
+            General: ${generalRaised.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+          </p>
         </div>
 
         <div className="dash-card" style={{ padding: '1.25rem 1.35rem' }}>
-          <p className="font-sans" style={{ margin: '0 0 0.35rem', fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6b7280' }}>
+          <p
+            className="font-sans"
+            style={{
+              margin: '0 0 0.35rem',
+              fontSize: '0.7rem',
+              fontWeight: 800,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              color: '#6b7280',
+            }}
+          >
             Settings
           </p>
           <h2 className="font-serif" style={{ fontSize: '1.35rem', margin: '0 0 1rem', color: '#1B2253' }}>
@@ -116,6 +155,8 @@ export default async function DonorsPage() {
                   <th>Date</th>
                   <th>Donor</th>
                   <th>Email</th>
+                  <th>Campaign</th>
+                  <th>Source</th>
                   <th style={{ textAlign: 'right' }}>Amount</th>
                 </tr>
               </thead>
@@ -127,6 +168,15 @@ export default async function DonorsPage() {
                     </td>
                     <td>{donation.name || 'Anonymous'}</td>
                     <td className="text-muted">{donation.email}</td>
+                    <td className="text-muted">{campaignLabel(donation.campaign)}</td>
+                    <td className="text-muted">
+                      {sourceLabel(donation.source)}
+                      {donation.sourceDetail ? (
+                        <span style={{ display: 'block', fontSize: '0.75rem', opacity: 0.85 }}>
+                          {donation.sourceDetail}
+                        </span>
+                      ) : null}
+                    </td>
                     <td style={{ textAlign: 'right', fontWeight: 700, color: '#1B2253' }}>
                       ${donation.amount.toFixed(2)}
                     </td>

@@ -3,8 +3,15 @@ import Image from 'next/image';
 import DonateForm from './DonateForm';
 import { Target, Users, Globe } from 'lucide-react';
 
-export default async function FundraiserPage() {
-  const donations = await prisma.donation.findMany();
+export default async function FundraiserPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ from?: string; article?: string; success?: string; purchase?: string }>;
+}) {
+  const sp = (await searchParams) || {};
+  const donations = await prisma.donation.findMany({
+    where: { campaign: 'august_fundraiser' },
+  });
   const totalRaised = donations.reduce((sum, d) => sum + d.amount, 0);
 
   const goalSetting = await prisma.siteSetting.findUnique({
@@ -231,7 +238,26 @@ export default async function FundraiserPage() {
         {/* Right Column: The Form */}
         <div style={{ position: 'relative' }}>
           <div style={{ position: 'sticky', top: '2rem' }}>
-            <DonateForm />
+            {sp.success === 'true' && (
+              <div
+                role="status"
+                style={{
+                  marginBottom: '1rem',
+                  padding: '1rem 1.15rem',
+                  borderRadius: '0.75rem',
+                  border: '1px solid rgba(5, 150, 105, 0.35)',
+                  backgroundColor: 'rgba(5, 150, 105, 0.1)',
+                }}
+              >
+                <p className="font-serif" style={{ margin: 0, fontSize: '1.15rem', color: '#065f46', fontWeight: 600 }}>
+                  Thank you{sp.purchase ? ` for your $${sp.purchase} gift` : ''}!
+                </p>
+                <p className="font-sans" style={{ margin: '0.4rem 0 0', color: '#047857', fontSize: '0.9rem', lineHeight: 1.5 }}>
+                  You&apos;re powering independent coverage of the BYU community.
+                </p>
+              </div>
+            )}
+            <DonateForm sourceFrom={sp.from} articleSlug={sp.article} />
           </div>
         </div>
 

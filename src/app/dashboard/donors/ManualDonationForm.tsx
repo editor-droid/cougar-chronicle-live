@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { addManualDonation } from './actions';
+import { DONATION_CAMPAIGN } from '@/lib/donations';
 
 const field: React.CSSProperties = {
   width: '100%',
@@ -19,6 +20,8 @@ export default function ManualDonationForm() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [amount, setAmount] = useState('');
+  const [campaign, setCampaign] = useState<string>(DONATION_CAMPAIGN.AUGUST_FUNDRAISER);
+  const [sourceDetail, setSourceDetail] = useState('');
   const [message, setMessage] = useState('');
   const [pending, startTransition] = useTransition();
 
@@ -41,7 +44,7 @@ export default function ManualDonationForm() {
         Add donation manually
       </h2>
       <p className="font-sans text-muted" style={{ fontSize: '0.85rem', marginBottom: '1rem' }}>
-        Checks, Venmo, offline gifts — counts toward the fundraiser total.
+        Checks, Venmo, offline gifts. Pick the campaign so fundraiser totals stay accurate.
       </p>
       {message && (
         <p
@@ -91,6 +94,28 @@ export default function ManualDonationForm() {
             style={field}
           />
         </div>
+        <div>
+          <label className="font-sans text-sm text-muted">Campaign</label>
+          <select
+            value={campaign}
+            onChange={(e) => setCampaign(e.target.value)}
+            className="font-sans"
+            style={field}
+          >
+            <option value={DONATION_CAMPAIGN.AUGUST_FUNDRAISER}>August fundraiser</option>
+            <option value={DONATION_CAMPAIGN.GENERAL}>General</option>
+          </select>
+        </div>
+        <div>
+          <label className="font-sans text-sm text-muted">Note / source</label>
+          <input
+            value={sourceDetail}
+            onChange={(e) => setSourceDetail(e.target.value)}
+            placeholder="Venmo, check #…"
+            className="font-sans"
+            style={field}
+          />
+        </div>
         <button
           type="button"
           className="dash-btn dash-btn-primary"
@@ -103,10 +128,13 @@ export default function ManualDonationForm() {
                   name: name || undefined,
                   email: email || undefined,
                   amount: parseFloat(amount),
+                  campaign,
+                  sourceDetail: sourceDetail || undefined,
                 });
                 setName('');
                 setEmail('');
                 setAmount('');
+                setSourceDetail('');
                 setMessage('Donation added.');
                 router.refresh();
               } catch (e) {

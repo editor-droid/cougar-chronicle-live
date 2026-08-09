@@ -27,7 +27,8 @@ export async function addManualDonation(data: {
   name?: string;
   email?: string;
   amount: number;
-  note?: string;
+  campaign?: string;
+  sourceDetail?: string;
 }) {
   const session = await auth();
   if (!session?.user || session.user.role !== 'ADMIN') throw new Error('Unauthorized');
@@ -35,16 +36,21 @@ export async function addManualDonation(data: {
   const amount = Number(data.amount);
   if (!amount || amount <= 0) throw new Error('Amount must be greater than 0');
 
+  const campaign = (data.campaign || 'general').trim() || 'general';
+
   await prisma.donation.create({
     data: {
       name: (data.name || '').trim() || 'Anonymous',
       email: (data.email || '').trim() || 'manual@thecougarchronicle.com',
       amount,
-      // store note in email suffix? Donation model may not have note - check schema
+      campaign,
+      source: 'manual',
+      sourceDetail: (data.sourceDetail || '').trim() || null,
     },
   });
 
   revalidatePath('/dashboard/donors');
   revalidatePath('/fundraiser');
+  revalidatePath('/dashboard/analytics');
   return { ok: true as const };
 }
