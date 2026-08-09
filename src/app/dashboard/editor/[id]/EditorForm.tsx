@@ -665,6 +665,16 @@ export default function EditorForm({
           </div>
 
           <div className={styles.sidebarContent}>
+            {/* Always visible at top of editor sidebar — not buried in flags */}
+            <div className={styles.panelCard} style={{ marginBottom: 0 }}>
+              <ToggleSwitch
+                checked={showDonateCta}
+                onChange={setShowDonateCta}
+                label="Ask for donations"
+                description="Show donate blurbs on this article. On by default; turn off for sensitive stories."
+              />
+            </div>
+
             {activeTab === 'settings' && (
               <div className={styles.panelRoot}>
                 <div className={`${styles.panelHero} ${styles.panelHeroNavy}`}>
@@ -680,7 +690,6 @@ export default function EditorForm({
                     <p className={styles.panelCardTitle}>Cover & flags</p>
                     <div className={styles.flagRow}>
                       <button type="button" title="Require a subscription or lifetime purchase to read." onClick={() => setIsPremium(!isPremium)} className={`${styles.pillToggle} ${isPremium ? styles.pillActive : ''}`}>★ Premium</button>
-                      <button type="button" title="Show in-article donate blurbs (default on)." onClick={() => setShowDonateCta(!showDonateCta)} className={`${styles.pillToggle} ${showDonateCta ? styles.pillActive : ''}`}>♥ Ask for donations</button>
                       <button type="button" title="Feature this in the America 250 collection." onClick={() => setIsAmerica250(!isAmerica250)} className={`${styles.pillToggle} ${isAmerica250 ? styles.pillActive : ''}`}>🇺🇸 America 250</button>
                       <button type="button" title="Pin as breaking news (banner + push)." onClick={() => setIsBreaking(!isBreaking)} className={`${styles.pillToggle} ${isBreaking ? styles.pillActive : ''}`}>⚡ Breaking</button>
                       {isBreaking && (
