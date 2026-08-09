@@ -207,8 +207,8 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
               style={{ fontSize: '1.125rem', lineHeight: 1.8, color: 'var(--foreground)' }}
               html={htmlContent}
               articleSlug={post.slug}
-              // Members / buyers already paid — only free gift readers see donate CTAs
-              showDonate={accessViaGift}
+              // Gift readers only, and only when the article allows donate CTAs
+              showDonate={accessViaGift && post.showDonateCta !== false}
             />
           ) : (
             <>

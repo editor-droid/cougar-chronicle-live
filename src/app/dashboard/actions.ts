@@ -316,6 +316,7 @@ export async function savePost(data: any) {
         isPremium: data.isPremium !== undefined ? data.isPremium : false,
         isAmerica250: data.isAmerica250 !== undefined ? data.isAmerica250 : false,
         isBreaking: data.isBreaking !== undefined ? data.isBreaking : false,
+        showDonateCta: data.showDonateCta !== undefined ? Boolean(data.showDonateCta) : true,
         // Always set an absolute expiry when Breaking is on (default 24h). Never leave null forever.
         breakingUntil:
           data.isBreaking
@@ -342,9 +343,12 @@ export async function savePost(data: any) {
       }
     });
     await maybeSyncArticleVideos(updated);
+    revalidatePath(getArticleUrl(updated));
+    revalidatePath(`/article/${updated.slug}`);
+    revalidatePath(`/premium-article/${updated.slug}`);
   } else {
     const slug = await ensureUniqueSlug(slugSeed);
-    await prisma.post.create({
+    const created = await prisma.post.create({
       data: {
         title: data.title,
         slug,
@@ -367,6 +371,7 @@ export async function savePost(data: any) {
         isPremium: data.isPremium !== undefined ? data.isPremium : false,
         isAmerica250: data.isAmerica250 !== undefined ? data.isAmerica250 : false,
         isBreaking: data.isBreaking !== undefined ? data.isBreaking : false,
+        showDonateCta: data.showDonateCta !== undefined ? Boolean(data.showDonateCta) : true,
         breakingUntil:
           data.isBreaking
             ? computeBreakingUntil(data.breakingHours)
@@ -386,9 +391,11 @@ export async function savePost(data: any) {
         ...(data.publishedAt && { publishedAt: new Date(data.publishedAt) })
       }
     });
+    revalidatePath(getArticleUrl(created));
   }
 
   revalidatePath('/dashboard');
+  revalidatePath('/');
 }
 
 export async function updateUser(formData: FormData) {

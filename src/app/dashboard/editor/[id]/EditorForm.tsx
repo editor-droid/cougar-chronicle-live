@@ -131,6 +131,8 @@ export default function EditorForm({
   
   const [customAuthor, setCustomAuthor] = useState(post?.customAuthor || '');
   const [isPremium, setIsPremium] = useState(post?.isPremium || false);
+  // Default on; only false when explicitly disabled on the post
+  const [showDonateCta, setShowDonateCta] = useState(post?.showDonateCta !== false);
   const [keyInsights, setKeyInsights] = useState(post?.keyInsights || '');
   const [assignedAuthorId, setAssignedAuthorId] = useState(post?.authorId || authorId);
   const [printEditionId, setPrintEditionId] = useState(post?.printEditionId || '');
@@ -386,6 +388,7 @@ export default function EditorForm({
         title, slug, category, format, content, imageUrl, authorId: assignedAuthorId,
         seoTitle, seoDescription, seoKeywords,
         keyInsights, featuredImageAlt, customAuthor, isPremium,
+        showDonateCta,
         isAmerica250, isBreaking, breakingHours: isBreaking ? breakingHours || 24 : null,
         printEditionId: printEditionId || null,
         printEditionOrder, imageCaption,
@@ -677,6 +680,7 @@ export default function EditorForm({
                     <p className={styles.panelCardTitle}>Cover & flags</p>
                     <div className={styles.flagRow}>
                       <button type="button" title="Require a subscription or lifetime purchase to read." onClick={() => setIsPremium(!isPremium)} className={`${styles.pillToggle} ${isPremium ? styles.pillActive : ''}`}>★ Premium</button>
+                      <button type="button" title="Show in-article donate blurbs (default on)." onClick={() => setShowDonateCta(!showDonateCta)} className={`${styles.pillToggle} ${showDonateCta ? styles.pillActive : ''}`}>♥ Ask for donations</button>
                       <button type="button" title="Feature this in the America 250 collection." onClick={() => setIsAmerica250(!isAmerica250)} className={`${styles.pillToggle} ${isAmerica250 ? styles.pillActive : ''}`}>🇺🇸 America 250</button>
                       <button type="button" title="Pin as breaking news (banner + push)." onClick={() => setIsBreaking(!isBreaking)} className={`${styles.pillToggle} ${isBreaking ? styles.pillActive : ''}`}>⚡ Breaking</button>
                       {isBreaking && (

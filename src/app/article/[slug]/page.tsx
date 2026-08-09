@@ -267,6 +267,7 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
               style={{ fontSize: '1.125rem', lineHeight: 1.8, color: 'var(--foreground)' }}
               html={htmlContent}
               articleSlug={post.slug}
+              showDonate={post.showDonateCta !== false}
             />
           ) : (
             <>

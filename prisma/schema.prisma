@@ -70,6 +70,8 @@ model Post {
   isPremium         Boolean        @default(false)
   isAmerica250      Boolean        @default(false)
   isBreaking        Boolean        @default(false)
+  /// Show in-article donate blurbs (mid/end). Default on for free articles.
+  showDonateCta     Boolean        @default(true)
   breakingUntil     DateTime?
   customAuthor      String?
   printEditionId    String?
