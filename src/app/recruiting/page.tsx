@@ -47,7 +47,27 @@ const majorOps = [
   },
 ];
 
-const alumni = [
+type Alum = {
+  name: string;
+  role: string;
+  quote: string;
+  image: string;
+  highlight?: { label: string; href: string };
+};
+
+const alumni: Alum[] = [
+  {
+    name: 'Joseph Addington',
+    role: 'Associate Editor & Latin America Columnist at The American Conservative',
+    quote:
+      'My time as Opinion Editor and interviewing Michael Knowles prepared me for a career in conservative journalism.',
+    highlight: {
+      label: 'Cover story: “Screwworm Strikes Back” (Sept/Oct 2026)',
+      href: 'https://www.theamericanconservative.com/screwworm-strikes-back/',
+    },
+    image:
+      'https://i0.wp.com/staging-1d61-thecougarchronicle4.wpcomstaging.com/wp-content/uploads/2025/09/image1.jpeg?ssl=1',
+  },
   {
     name: 'Jacob Christensen',
     role: 'PhD Candidate in Political Philosophy at Baylor University',
@@ -55,14 +75,6 @@ const alumni = [
       'As Editor-in-Chief, I secured an internship at National Right to Life and launched the Chronicle’s first Print Edition.',
     image:
       'https://i0.wp.com/staging-1d61-thecougarchronicle4.wpcomstaging.com/wp-content/uploads/2025/09/image2.jpeg?ssl=1',
-  },
-  {
-    name: 'Joseph Addington',
-    role: 'Associate Editor & Latin America Columnist at The American Conservative',
-    quote:
-      'My time as Opinion Editor and interviewing Michael Knowles prepared me for a career in conservative journalism.',
-    image:
-      'https://i0.wp.com/staging-1d61-thecougarchronicle4.wpcomstaging.com/wp-content/uploads/2025/09/image1.jpeg?ssl=1',
   },
   {
     name: 'Eva Terry',
@@ -262,7 +274,7 @@ export default async function RecruitingPage() {
               {
                 icon: <Mic2 size={22} />,
                 title: 'National exposure',
-                text: 'Top stories open doors to podcast appearances and other outlets. Past writers have been featured on Fox News, the Charlie Kirk Show, and more.',
+                text: 'Top stories open doors to podcasts and national outlets. An alum is an editor at The American Conservative — including a recent cover story — and past writers have appeared on Fox News, the Charlie Kirk Show, and more.',
               },
               {
                 icon: <Briefcase size={22} />,
@@ -532,9 +544,71 @@ export default async function RecruitingPage() {
               Alumni achievements
             </h2>
             <p className="font-sans text-muted" style={{ fontSize: '0.88rem', margin: 0 }}>
-              From Provo to national outlets.
+              From Provo to national outlets — including cover stories at The American Conservative.
             </p>
           </div>
+
+          {/* Featured alum byline */}
+          <a
+            href="https://www.theamericanconservative.com/screwworm-strikes-back/"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'block',
+              marginBottom: '0.85rem',
+              padding: '1rem 1.15rem',
+              borderRadius: '0.75rem',
+              border: '1px solid var(--border)',
+              background:
+                'linear-gradient(135deg, rgba(27, 34, 83, 0.06) 0%, rgba(27, 34, 83, 0.1) 100%)',
+              textDecoration: 'none',
+              color: 'inherit',
+            }}
+          >
+            <p
+              className="font-sans"
+              style={{
+                margin: '0 0 0.3rem',
+                fontSize: '0.7rem',
+                fontWeight: 800,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                color: 'var(--primary)',
+              }}
+            >
+              Alum cover story · The American Conservative
+            </p>
+            <p
+              className="font-serif"
+              style={{
+                margin: '0 0 0.35rem',
+                fontSize: '1.15rem',
+                fontWeight: 700,
+                color: 'var(--foreground)',
+                lineHeight: 1.3,
+              }}
+            >
+              Joseph Addington — “Screwworm Strikes Back”
+            </p>
+            <p className="font-sans text-muted" style={{ margin: 0, fontSize: '0.88rem', lineHeight: 1.45 }}>
+              Featured in the September/October 2026 issue. One of several pieces he&apos;s written for TAC —
+              proof that Chronicle experience leads to real national bylines.
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.25rem',
+                  marginLeft: '0.4rem',
+                  color: 'var(--primary)',
+                  fontWeight: 700,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                Read it <ExternalLink size={13} />
+              </span>
+            </p>
+          </a>
+
           <div
             style={{
               display: 'grid',
@@ -571,6 +645,29 @@ export default async function RecruitingPage() {
                 <p className="font-sans text-primary" style={{ fontSize: '0.78rem', fontWeight: 600, marginBottom: '0.45rem' }}>
                   {alum.role}
                 </p>
+                {alum.highlight ? (
+                  <a
+                    href={alum.highlight.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-sans"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.3rem',
+                      fontSize: '0.75rem',
+                      fontWeight: 700,
+                      color: 'var(--primary)',
+                      textDecoration: 'none',
+                      marginBottom: '0.45rem',
+                      lineHeight: 1.35,
+                    }}
+                  >
+                    {alum.highlight.label}
+                    <ExternalLink size={12} />
+                  </a>
+                ) : null}
                 <p className="font-sans text-muted" style={{ fontSize: '0.8rem', fontStyle: 'italic', lineHeight: 1.4, margin: 0 }}>
                   &ldquo;{alum.quote}&rdquo;
                 </p>
