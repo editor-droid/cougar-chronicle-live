@@ -1,6 +1,6 @@
 import { Node, mergeAttributes } from "@tiptap/core";
 import { ReactNodeViewRenderer, NodeViewWrapper } from "@tiptap/react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   Trash2,
   Plus,
@@ -13,6 +13,7 @@ import {
   Rows3,
   LayoutGrid,
   GalleryHorizontal,
+  Loader2,
 } from "lucide-react";
 
 // ── Gallery Image type ──────────────────────────────────────────────────────
@@ -32,7 +33,7 @@ const NAVY_BORDER = "rgba(255,255,255,0.14)";
 const ACCENT = "#c5cae8";
 
 // ── React NodeView Component ────────────────────────────────────────────────
-function GalleryNodeView({ node, updateAttributes, deleteNode, editor }: any) {
+function GalleryNodeView({ node, updateAttributes, deleteNode }: any) {
   const images: GalleryImage[] = node.attrs.images || [];
   const columns: number = node.attrs.columns || 2;
   const imageFit: ImageFit = node.attrs.imageFit === "contain" ? "contain" : "cover";
@@ -45,6 +46,8 @@ function GalleryNodeView({ node, updateAttributes, deleteNode, editor }: any) {
       ? node.attrs.layout
       : "grid";
   const [dragIdx, setDragIdx] = useState<number | null>(null);
+  const [adding, setAdding] = useState(false);
+  const addFileRef = useRef<HTMLInputElement>(null);
 
   const setColumns = (cols: number) => updateAttributes({ columns: cols });
   const setFit = (fit: ImageFit) => updateAttributes({ imageFit: fit });
@@ -86,11 +89,51 @@ function GalleryNodeView({ node, updateAttributes, deleteNode, editor }: any) {
 
   const handleDragEnd = () => setDragIdx(null);
 
+  /** Open file picker and append uploaded images to this gallery (not a new one). */
   const addMoreImages = () => {
-    const event = new CustomEvent("gallery-add-images", {
-      detail: { nodePos: editor.state.selection.$anchor.pos },
-    });
-    window.dispatchEvent(event);
+    if (adding) return;
+    addFileRef.current?.click();
+  };
+
+  const handleAddFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files?.length) return;
+
+    setAdding(true);
+    const uploaded: GalleryImage[] = [];
+    try {
+      for (const file of Array.from(files)) {
+        try {
+          const res = await fetch("/api/upload", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ filename: file.name, contentType: file.type }),
+          });
+          const data = await res.json();
+          if (!res.ok || !data?.uploadUrl || !data?.publicUrl) continue;
+          await fetch(data.uploadUrl, {
+            method: "PUT",
+            headers: { "Content-Type": file.type },
+            body: file,
+          });
+          uploaded.push({ src: data.publicUrl, alt: file.name.replace(/\.[^.]+$/, "") || file.name });
+        } catch {
+          // skip failed file; continue others
+        }
+      }
+      if (uploaded.length) {
+        const nextImages = [...images, ...uploaded];
+        const nextColumns =
+          layout === "grid"
+            ? Math.min(4, Math.max(columns, nextImages.length >= 3 ? 3 : 2))
+            : columns;
+        updateAttributes({ images: nextImages, columns: nextColumns });
+      }
+    } finally {
+      setAdding(false);
+      // allow re-selecting the same files
+      e.target.value = "";
+    }
   };
 
   const maxWidth =
@@ -253,19 +296,31 @@ function GalleryNodeView({ node, updateAttributes, deleteNode, editor }: any) {
 
           <div className="w-px h-4 mx-0.5" style={{ background: NAVY_BORDER }} />
 
+          <input
+            ref={addFileRef}
+            type="file"
+            multiple
+            accept="image/*"
+            style={{ display: "none" }}
+            onChange={handleAddFiles}
+          />
+
           <button
             type="button"
             onClick={addMoreImages}
+            disabled={adding}
             className="flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold transition-colors"
             style={{
               background: "rgba(255,255,255,0.12)",
               color: "#fff",
               border: `1px solid ${NAVY_BORDER}`,
+              opacity: adding ? 0.7 : 1,
+              cursor: adding ? "wait" : "pointer",
             }}
-            title="Add more images"
+            title="Add more images to this gallery"
           >
-            <Plus size={12} />
-            Add
+            {adding ? <Loader2 size={12} className="animate-spin" /> : <Plus size={12} />}
+            {adding ? "Uploading…" : "Add"}
           </button>
 
           <button
