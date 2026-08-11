@@ -21,12 +21,16 @@ const nextConfig: NextConfig = {
     cpus: 2,
     workerThreads: false,
     serverActions: {
+      // Hosts allowed to call Server Actions (CSRF). Keep production + Railway previews.
       allowedOrigins: [
         'localhost:3000',
+        'localhost:3001',
         'cougar-chronicle-live-production-c994.up.railway.app',
+        'cougar-chronicle-live.up.railway.app',
+        '*.up.railway.app',
         '*.railway.app',
         'thecougarchronicle.com',
-        'www.thecougarchronicle.com'
+        'www.thecougarchronicle.com',
       ],
     },
   },

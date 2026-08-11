@@ -4,7 +4,7 @@ import { useState, useRef } from 'react';
 import { RichTextEditor, RichTextEditorHandle } from '@/components/RichTextEditor';
 import { SeoAnalysisPanel } from '@/components/SeoAnalysisPanel';
 import { AiSpellcheckPanel } from '@/components/AiSpellcheckPanel';
-import { savePost, updatePostState, addEditorialNote } from '../../actions';
+import { addEditorialNote } from '../../actions';
 import { useRouter } from 'next/navigation';
 import { FileDown, Loader2, X, Settings, Image as ImageIcon, CheckCircle2, PanelRightClose, PanelRightOpen, ArrowLeft, Wand2, ListChecks, Eye } from 'lucide-react';
 import styles from './EditorForm.module.css';
@@ -383,24 +383,56 @@ export default function EditorForm({
 
     setIsSubmitting(true);
     try {
-      await savePost({
-        id: post?.id,
-        title, slug, category, format, content, imageUrl, authorId: assignedAuthorId,
-        seoTitle, seoDescription, seoKeywords,
-        keyInsights, featuredImageAlt, customAuthor, isPremium,
-        showDonateCta,
-        isAmerica250, isBreaking, breakingHours: isBreaking ? breakingHours || 24 : null,
-        printEditionId: printEditionId || null,
-        printEditionOrder, imageCaption,
-        editorChecklist: checklist,
-        publishedAt: publishedAt || undefined
+      // Use API routes (not Server Actions) so Save Draft survives deploys / PWA cache skew
+      const saveRes = await fetch('/api/dashboard/posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: post?.id,
+          title,
+          slug,
+          category,
+          format,
+          content,
+          imageUrl,
+          authorId: assignedAuthorId,
+          seoTitle,
+          seoDescription,
+          seoKeywords,
+          keyInsights,
+          featuredImageAlt,
+          customAuthor,
+          isPremium,
+          showDonateCta,
+          isAmerica250,
+          isBreaking,
+          breakingHours: isBreaking ? breakingHours || 24 : null,
+          printEditionId: printEditionId || null,
+          printEditionOrder,
+          imageCaption,
+          editorChecklist: checklist,
+          publishedAt: publishedAt || undefined,
+        }),
       });
+      const saveJson = await saveRes.json().catch(() => ({}));
+      if (!saveRes.ok) {
+        throw new Error(
+          (saveJson as { error?: string }).error || `Failed to save (${saveRes.status})`
+        );
+      }
 
       if (newState && post?.id) {
-        const fd = new FormData();
-        fd.append('postId', post.id);
-        fd.append('newState', newState);
-        await updatePostState(fd);
+        const stateRes = await fetch('/api/dashboard/posts/state', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ postId: post.id, newState }),
+        });
+        const stateJson = await stateRes.json().catch(() => ({}));
+        if (!stateRes.ok) {
+          throw new Error(
+            (stateJson as { error?: string }).error || `Failed to update status (${stateRes.status})`
+          );
+        }
       }
 
       setChecklistGate(false);
