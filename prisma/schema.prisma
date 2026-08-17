@@ -175,11 +175,13 @@ model Subscriber {
   createdAt      DateTime @default(now())
   isActive       Boolean  @default(true)
   wantsNews      Boolean  @default(true)
+  wantsCampus    Boolean  @default(true)
+  wantsPolitics  Boolean  @default(true)
   wantsFaith     Boolean  @default(true)
   wantsOpinion   Boolean  @default(true)
   wantsVideos    Boolean  @default(true)
   wantsDigest    Boolean  @default(true)
-  wantsInstant   Boolean  @default(false)
+  wantsInstant   Boolean  @default(true)
   wantsBreaking  Boolean  @default(true)
 }
 
@@ -243,6 +245,8 @@ model PushSubscription {
   userId        String?
   createdAt     DateTime @default(now())
   wantsNews     Boolean  @default(true)
+  wantsCampus   Boolean  @default(true)
+  wantsPolitics Boolean  @default(true)
   wantsFaith    Boolean  @default(true)
   wantsOpinion  Boolean  @default(true)
   wantsVideos   Boolean  @default(true)

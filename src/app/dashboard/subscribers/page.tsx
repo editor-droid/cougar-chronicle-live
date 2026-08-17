@@ -21,6 +21,8 @@ export default async function SubscribersPage() {
           email: s.email,
           isActive: s.isActive,
           wantsNews: s.wantsNews,
+          wantsCampus: s.wantsCampus,
+          wantsPolitics: s.wantsPolitics,
           wantsFaith: s.wantsFaith,
           wantsOpinion: s.wantsOpinion,
           wantsVideos: s.wantsVideos,

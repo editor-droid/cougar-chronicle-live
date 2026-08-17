@@ -11,6 +11,8 @@ type Status = 'loading' | 'unsupported' | 'denied' | 'off' | 'on';
 
 type Prefs = {
   wantsNews: boolean;
+  wantsCampus: boolean;
+  wantsPolitics: boolean;
   wantsFaith: boolean;
   wantsOpinion: boolean;
   wantsVideos: boolean;
@@ -19,6 +21,8 @@ type Prefs = {
 
 const defaultPrefs: Prefs = {
   wantsNews: true,
+  wantsCampus: true,
+  wantsPolitics: true,
   wantsFaith: true,
   wantsOpinion: true,
   wantsVideos: true,
@@ -158,6 +162,8 @@ export default function PushSettings() {
             [
               ['wantsBreaking', 'Breaking alerts'],
               ['wantsNews', 'News'],
+              ['wantsCampus', 'Campus'],
+              ['wantsPolitics', 'Politics'],
               ['wantsFaith', 'Faith'],
               ['wantsOpinion', 'Opinion'],
               ['wantsVideos', 'Videos'],

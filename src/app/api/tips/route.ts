@@ -24,7 +24,7 @@ export async function POST(req: Request) {
     }
 
     await resend.emails.send({
-      from: 'tips@thecougarchronicle.com',
+      from: 'The Cougar Chronicle <newsletter@updates.thecougarchronicle.com>',
       to: 'editor@thecougarchronicle.com',
       subject: 'New Secure Tip Received',
       html: `<p><strong>Secure Tip:</strong></p><p>${message}</p><p><strong>Contact Info (if provided):</strong> ${contactInfo || 'Anonymous'}</p>`,

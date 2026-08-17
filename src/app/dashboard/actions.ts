@@ -4,15 +4,15 @@ import { auth } from '@/auth';
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { PostState, Role } from '@prisma/client';
-import { Resend } from 'resend';
 import { getArticleUrl } from '@/lib/routes';
 import { broadcastPostPublication } from '@/lib/publish-utils';
+import { isResendConfigured, sendOneEmail } from '@/lib/email';
 import { syncArticleVideosToLibrary } from '@/lib/article-videos';
 import { canApprovePosts, canPublishPosts } from '@/lib/roles';
 import { computeBreakingUntil, DEFAULT_BREAKING_HOURS } from '@/lib/breaking';
 import { slugifyTitle, sanitizeSlugInput, withUniquenessSuffix } from '@/lib/slug';
 
-const resend = new Resend(process.env.RESEND_API_KEY || 're_fallback_key_so_build_does_not_crash');
+
 
 /** Create /videos library entries for Stream+YouTube embeds in published posts. */
 async function maybeSyncArticleVideos(post: {
@@ -193,8 +193,6 @@ ${cleanContent}`,
 
   // Handle email notifications based on state transitions
   try {
-    const isMock = !process.env.RESEND_API_KEY || process.env.RESEND_API_KEY.includes('fallback');
-    
     if (newState === 'IN_REVIEW' && post.state === 'DRAFT') {
       // Mark all outstanding notes as resolved since the writer is resubmitting
       await prisma.editorialNote.updateMany({
@@ -213,13 +211,8 @@ ${cleanContent}`,
         
         console.log(`\n=========================================\n[EMAIL NOTIFICATION] Submission for Review\nTo: ${editorEmails.join(', ')}\nSubject: ${subject}\n=========================================\n`);
         
-        if (!isMock) {
-          await resend.emails.send({
-            from: 'notifications@thecougarchronicle.com',
-            to: editorEmails,
-            subject,
-            html
-          });
+        if (isResendConfigured()) {
+          await sendOneEmail({ to: editorEmails, subject, html });
         }
       }
     } else if (newState === 'APPROVED' && post.state === 'IN_REVIEW') {
@@ -229,13 +222,8 @@ ${cleanContent}`,
         
         console.log(`\n=========================================\n[EMAIL NOTIFICATION] Approval\nTo: ${post.author.email}\nSubject: ${subject}\n=========================================\n`);
 
-        if (!isMock) {
-          await resend.emails.send({
-            from: 'notifications@thecougarchronicle.com',
-            to: post.author.email,
-            subject,
-            html
-          });
+        if (isResendConfigured()) {
+          await sendOneEmail({ to: post.author.email, subject, html });
         }
       }
     } else if (newState === 'PUBLISHED' && post.state !== 'PUBLISHED') {
@@ -503,7 +491,6 @@ export async function addEditorialNote(formData: FormData) {
 
     // Email the writer
     if (post.author.email) {
-      const isMock = !process.env.RESEND_API_KEY || process.env.RESEND_API_KEY.includes('fallback');
       const subject = `Changes Requested: ${post.title}`;
       const origin = process.env.NEXTAUTH_URL || (process.env.NEXTAUTH_URL || 'http://localhost:3000');
       const html = `
@@ -515,17 +502,10 @@ export async function addEditorialNote(formData: FormData) {
         <p><a href="${origin}/dashboard/editor/${post.id}">Click here to view your dashboard and make the changes.</a></p>
       `;
 
-      if (!isMock) {
-        try {
-          await resend.emails.send({
-            from: 'notifications@thecougarchronicle.com',
-            to: post.author.email,
-            subject,
-            html
-          });
-        } catch (e) {
-          console.error("Failed to email writer about requested changes", e);
-        }
+      try {
+        await sendOneEmail({ to: post.author.email, subject, html });
+      } catch (e) {
+        console.error("Failed to email writer about requested changes", e);
       }
     }
   }
@@ -582,9 +562,6 @@ export async function createStaffUser(data: {
         process.env.AUTH_URL ||
         'https://thecougarchronicle.com';
       const resetLink = `${origin}/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
-      const isMock =
-        !process.env.RESEND_API_KEY || process.env.RESEND_API_KEY.includes('fallback');
-
       const roleLabel =
         role === 'ADMIN' ? 'an administrator' : role === 'EDITOR' ? 'an editor' : 'a writer';
       const subject = `Welcome to The Cougar Chronicle — set your password`;
@@ -597,15 +574,8 @@ export async function createStaffUser(data: {
 
       console.log(`[EMAIL] Welcome ${role} → ${email} ${resetLink}`);
 
-      if (!isMock) {
-        await resend.emails.send({
-          from: 'The Cougar Chronicle <notifications@updates.thecougarchronicle.com>',
-          to: email,
-          subject,
-          html,
-        });
-        emailSent = true;
-      }
+      const sent = await sendOneEmail({ to: email, subject, html });
+      emailSent = sent.ok;
     } catch (e) {
       console.error('Failed to generate or send password set email:', e);
     }

@@ -8,6 +8,8 @@ export type SubscriberRow = {
   email: string;
   isActive: boolean;
   wantsNews: boolean;
+  wantsCampus: boolean;
+  wantsPolitics: boolean;
   wantsFaith: boolean;
   wantsOpinion: boolean;
   wantsVideos: boolean;
@@ -15,7 +17,7 @@ export type SubscriberRow = {
 };
 
 type SortKey = 'createdAt' | 'email';
-type TopicFilter = 'all' | 'news' | 'faith' | 'opinion' | 'videos';
+type TopicFilter = 'all' | 'news' | 'campus' | 'politics' | 'faith' | 'opinion' | 'videos';
 type StatusFilter = 'all' | 'active' | 'inactive';
 
 export default function SubscribersManager({
@@ -36,6 +38,8 @@ export default function SubscribersManager({
     if (status === 'inactive') rows = rows.filter((r) => !r.isActive);
 
     if (topic === 'news') rows = rows.filter((r) => r.wantsNews);
+    if (topic === 'campus') rows = rows.filter((r) => r.wantsCampus);
+    if (topic === 'politics') rows = rows.filter((r) => r.wantsPolitics);
     if (topic === 'faith') rows = rows.filter((r) => r.wantsFaith);
     if (topic === 'opinion') rows = rows.filter((r) => r.wantsOpinion);
     if (topic === 'videos') rows = rows.filter((r) => r.wantsVideos);
@@ -88,6 +92,8 @@ export default function SubscribersManager({
             [
               ['all', 'All topics'],
               ['news', 'News'],
+              ['campus', 'Campus'],
+              ['politics', 'Politics'],
               ['faith', 'Faith'],
               ['opinion', 'Opinion'],
               ['videos', 'Videos'],
@@ -178,6 +184,8 @@ export default function SubscribersManager({
                     </button>
                   </th>
                   <th>News</th>
+                  <th>Campus</th>
+                  <th>Politics</th>
                   <th>Faith</th>
                   <th>Opinion</th>
                   <th>Videos</th>
@@ -192,6 +200,8 @@ export default function SubscribersManager({
                     </td>
                     <td style={{ fontWeight: 700 }}>{sub.email}</td>
                     <td>{sub.wantsNews ? '✓' : '—'}</td>
+                    <td>{sub.wantsCampus ? '✓' : '—'}</td>
+                    <td>{sub.wantsPolitics ? '✓' : '—'}</td>
                     <td>{sub.wantsFaith ? '✓' : '—'}</td>
                     <td>{sub.wantsOpinion ? '✓' : '—'}</td>
                     <td>{sub.wantsVideos ? '✓' : '—'}</td>

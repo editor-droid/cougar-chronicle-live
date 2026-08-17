@@ -205,7 +205,15 @@ export default async function AccountPage() {
             <form action={toggleNewsletter} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
                 <input type="checkbox" name="wantsNews" defaultChecked={subscriber?.wantsNews ?? true} style={{ width: '1.2rem', height: '1.2rem' }} />
-                <span className="font-sans font-medium">Campus & National News</span>
+                <span className="font-sans font-medium">News</span>
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
+                <input type="checkbox" name="wantsCampus" defaultChecked={subscriber?.wantsCampus ?? true} style={{ width: '1.2rem', height: '1.2rem' }} />
+                <span className="font-sans font-medium">Campus</span>
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
+                <input type="checkbox" name="wantsPolitics" defaultChecked={subscriber?.wantsPolitics ?? true} style={{ width: '1.2rem', height: '1.2rem' }} />
+                <span className="font-sans font-medium">Politics</span>
               </label>
               <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
                 <input type="checkbox" name="wantsFaith" defaultChecked={subscriber?.wantsFaith ?? true} style={{ width: '1.2rem', height: '1.2rem' }} />
@@ -226,7 +234,7 @@ export default async function AccountPage() {
                   <span className="font-sans font-medium">Weekly digest (recommended)</span>
                 </label>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', marginBottom: '0.5rem' }}>
-                  <input type="checkbox" name="wantsInstant" defaultChecked={subscriber?.wantsInstant ?? false} style={{ width: '1.2rem', height: '1.2rem' }} />
+                  <input type="checkbox" name="wantsInstant" defaultChecked={subscriber?.wantsInstant ?? true} style={{ width: '1.2rem', height: '1.2rem' }} />
                   <span className="font-sans font-medium">Email me as soon as a story publishes</span>
                 </label>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>

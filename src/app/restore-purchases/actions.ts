@@ -26,7 +26,7 @@ export async function restorePurchases(email: string) {
     }).join('<br/>');
 
     await resend.emails.send({
-      from: 'The Cougar Chronicle <noreply@cougarchronicle.com>',
+      from: 'The Cougar Chronicle <newsletter@updates.thecougarchronicle.com>',
       to: email,
       subject: 'Your Premium Article Access Links',
       html: `

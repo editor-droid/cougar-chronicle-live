@@ -42,8 +42,9 @@ export default function SubscribeForm({ onSuccess }: { onSuccess?: () => void })
           setTimeout(onSuccess, 1500);
         }
       } else {
+        const data = await res.json().catch(() => ({}));
         setStatus('error');
-        setMessage('Failed to subscribe. Please try again.');
+        setMessage(data.error || 'Failed to subscribe. Please try again.');
       }
     } catch (err) {
       setStatus('error');

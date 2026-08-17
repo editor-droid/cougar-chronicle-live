@@ -1,3 +1,41 @@
+import { Resend } from 'resend';
+
+/** Verified Resend domain — use this for every outbound message. */
+export const NEWSLETTER_FROM =
+  'The Cougar Chronicle <newsletter@updates.thecougarchronicle.com>';
+
+export function isResendConfigured(): boolean {
+  const key = process.env.RESEND_API_KEY || '';
+  return Boolean(key) && !key.includes('placeholder') && !key.includes('fallback');
+}
+
+export function getResend(): Resend {
+  return new Resend(process.env.RESEND_API_KEY || 're_unconfigured');
+}
+
+export async function sendOneEmail(opts: {
+  to: string | string[];
+  subject: string;
+  html: string;
+  from?: string;
+}): Promise<{ ok: true; id?: string } | { ok: false; error: string }> {
+  if (!isResendConfigured()) {
+    console.warn('[email] skipped (RESEND_API_KEY missing)', opts.subject);
+    return { ok: false, error: 'not_configured' };
+  }
+  const result = await getResend().emails.send({
+    from: opts.from || NEWSLETTER_FROM,
+    to: opts.to,
+    subject: opts.subject,
+    html: opts.html,
+  });
+  if (result.error) {
+    console.error('[email] send failed', opts.subject, result.error);
+    return { ok: false, error: result.error.message };
+  }
+  return { ok: true, id: result.data?.id };
+}
+
 /** Strict-enough email check for subscribe + broadcast (blocks probes / SQL noise). */
 const EMAIL_RE =
   /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;

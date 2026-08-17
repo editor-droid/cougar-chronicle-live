@@ -23,6 +23,7 @@ import { isBreakingStillActive } from '@/lib/breaking';
 import { buildArticleMetadata } from '@/lib/article-metadata';
 import { buildArticleBreadcrumbJsonLd } from '@/lib/section-seo';
 import { categoryLabel, formatLabel, getSectionPath } from '@/lib/categories';
+import SubscribeForm from '@/components/SubscribeForm';
 
 export async function generateMetadata(
   { params }: { params: Promise<{ slug: string }> },
@@ -353,10 +354,7 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
         <div className="newsletter-box" style={{ marginTop: '3rem', borderRadius: '0.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <h2 className="font-serif" style={{ color: 'white', fontSize: '1.75rem', margin: '0 0 0.5rem 0' }}>The Cougar Chronicle</h2>
           <p className="font-sans text-sm" style={{ marginBottom: '1.5rem', opacity: 0.9 }}>Get the best conservative journalism delivered to your inbox daily.</p>
-          <form action="/api/subscribe" method="POST" className="newsletter-form-container" style={{ display: 'flex', gap: '0.5rem', maxWidth: '400px', width: '100%' }}>
-            <input type="email" name="email" placeholder="Your email address" className="newsletter-input" required style={{ borderRadius: '0.25rem', marginBottom: 0, flex: 1 }} />
-            <button type="submit" className="btn" style={{ backgroundColor: 'white', color: 'var(--primary)', fontWeight: 'bold' }}>Subscribe</button>
-          </form>
+          <SubscribeForm />
         </div>
       </div>
 
@@ -405,10 +403,7 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
         <div className="newsletter-box" style={{ marginTop: '3rem', borderRadius: '0.5rem' }}>
           <h2 className="font-serif" style={{ color: 'white', fontSize: '1.25rem', margin: '0 0 0.5rem 0' }}>The Cougar Chronicle</h2>
           <p className="font-sans text-sm" style={{ marginBottom: '1.5rem', opacity: 0.9 }}>Get the best conservative journalism delivered to your inbox daily.</p>
-          <form action="/api/subscribe" method="POST" className="newsletter-form-container" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <input type="email" name="email" placeholder="Your email address" className="newsletter-input" required style={{ borderRadius: '0.25rem' }} />
-            <button type="submit" className="btn" style={{ backgroundColor: 'white', color: 'var(--primary)', fontWeight: 'bold' }}>Subscribe</button>
-          </form>
+          <SubscribeForm />
         </div>
       </aside>
     </div>

@@ -1,7 +1,8 @@
 import webpush from 'web-push';
 import prisma from './prisma';
+import { topicPrefForPost } from './subscriber-prefs';
 
-export type PushTopic = 'news' | 'faith' | 'opinion' | 'videos' | 'breaking';
+export type PushTopic = 'news' | 'campus' | 'politics' | 'faith' | 'opinion' | 'videos' | 'breaking';
 
 export async function sendPushNotification(
   title: string,
@@ -27,6 +28,8 @@ export async function sendPushNotification(
       // Match if any requested topic is enabled on the device
       where.OR = topics.map((t) => {
         if (t === 'news') return { wantsNews: true };
+        if (t === 'campus') return { wantsCampus: true };
+        if (t === 'politics') return { wantsPolitics: true };
         if (t === 'faith') return { wantsFaith: true };
         if (t === 'opinion') return { wantsOpinion: true };
         if (t === 'videos') return { wantsVideos: true };
@@ -68,15 +71,21 @@ export async function sendPushNotification(
 
 export function topicsForPost(post: {
   category?: string;
+  format?: string | null;
   isBreaking?: boolean;
   isAmerica250?: boolean;
 }): PushTopic[] {
   const topics: PushTopic[] = [];
   if (post.isBreaking) topics.push('breaking');
-  const cat = (post.category || '').toLowerCase();
-  if (cat === 'news') topics.push('news');
-  else if (cat === 'faith') topics.push('faith');
-  else if (cat === 'opinion' || post.isAmerica250) topics.push('opinion');
+  if (post.isAmerica250) {
+    topics.push('opinion');
+    return topics;
+  }
+  const pref = topicPrefForPost(post);
+  if (pref === 'wantsCampus') topics.push('campus');
+  else if (pref === 'wantsPolitics') topics.push('politics');
+  else if (pref === 'wantsFaith') topics.push('faith');
+  else if (pref === 'wantsOpinion') topics.push('opinion');
   else topics.push('news');
   return topics;
 }

@@ -2,6 +2,7 @@ import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import prisma from '@/lib/prisma';
+import { sendOneEmail } from '@/lib/email';
 
 export async function POST(req: Request) {
   const stripeKey = process.env.STRIPE_SECRET_KEY || 'sk_test_fallback_so_build_does_not_crash';
@@ -80,16 +81,13 @@ export async function POST(req: Request) {
           createIfMissing: true,
         });
 
-        if (result.granted && process.env.RESEND_API_KEY) {
+        if (result.granted) {
           try {
-            const { Resend } = require('resend');
-            const resend = new Resend(process.env.RESEND_API_KEY);
             const origin = process.env.NEXTAUTH_URL || 'https://thecougarchronicle.com';
             const expires = new Date();
             expires.setFullYear(expires.getFullYear() + 1);
 
-            await resend.emails.send({
-              from: 'The Cougar Chronicle <newsletter@updates.thecougarchronicle.com>',
+            const sent = await sendOneEmail({
               to: customerEmail,
               subject: 'You’re an America 250 Founding Member — thank you!',
               html: `
@@ -114,6 +112,7 @@ export async function POST(req: Request) {
                   <p style="color:#6B7280;font-size:14px;">Questions? Reply to this email or use our contact page.</p>
                 </div>`,
             });
+            if (!sent.ok) console.error('August membership welcome email failed', sent.error);
           } catch (e) {
             console.error('August membership welcome email failed', e);
           }
@@ -121,6 +120,22 @@ export async function POST(req: Request) {
         console.log(
           `[AUGUST_FUNDRAISER] Membership granted user=${result.userId} created=${result.createdUser} amount=$${amountTotal}`
         );
+      } else if (customerEmail) {
+        try {
+          const sent = await sendOneEmail({
+            to: customerEmail,
+            subject: 'Thank you for supporting The Cougar Chronicle',
+            html: `
+              <div style="font-family: Georgia, serif; max-width: 560px; margin: 0 auto; color: #1A1A1A;">
+                <p>Thank you for your gift of <strong>$${amountTotal.toFixed(2)}</strong> to The Cougar Chronicle.</p>
+                <p>Independent student journalism at BYU only exists because readers like you fund it. We are grateful.</p>
+                <p style="color:#6B7280;font-size:14px;">Questions? Reply to this email or use our contact page.</p>
+              </div>`,
+          });
+          if (!sent.ok) console.error('Donation thank-you email failed', sent.error);
+        } catch (e) {
+          console.error('Donation thank-you email failed', e);
+        }
       }
     } else if (type === 'physical_print' || type === 'digital_print') {
       const amountTotal = session.amount_total ? session.amount_total / 100 : 0;
@@ -152,14 +167,12 @@ export async function POST(req: Request) {
         });
         if (edition?.pdfUrl) {
           try {
-            const { Resend } = require('resend');
-            const resend = new Resend(process.env.RESEND_API_KEY);
-            await resend.emails.send({
-              from: 'The Cougar Chronicle <newsletter@updates.thecougarchronicle.com>',
+            const sent = await sendOneEmail({
               to: customerEmail,
               subject: `Your Digital Print Edition: ${edition.title}`,
               html: `<p>Thank you for purchasing the digital print edition!</p><p><a href="${edition.pdfUrl}">Download your PDF</a></p>`,
             });
+            if (!sent.ok) console.error('Digital print email failed', sent.error);
           } catch (e) {
             console.error('Digital print email failed', e);
           }
@@ -168,14 +181,12 @@ export async function POST(req: Request) {
 
       if (type === 'physical_print' && customerEmail) {
         try {
-          const { Resend } = require('resend');
-          const resend = new Resend(process.env.RESEND_API_KEY);
-          await resend.emails.send({
-            from: 'The Cougar Chronicle <newsletter@updates.thecougarchronicle.com>',
+          const sent = await sendOneEmail({
             to: customerEmail,
             subject: 'We received your Print Volume order',
             html: `<p>Thanks for ordering a physical Print Volume from The Cougar Chronicle.</p><p>We'll fulfill your order and email when it ships. Questions? Reply to this message or contact us on the site.</p>`,
           });
+          if (!sent.ok) console.error('Physical print confirm email failed', sent.error);
         } catch (e) {
           console.error('Physical print confirm email failed', e);
         }
@@ -195,14 +206,12 @@ export async function POST(req: Request) {
 
         const articleLink = `${process.env.NEXTAUTH_URL}/api/verify-token?token=${secureToken}`;
         try {
-          const { Resend } = require('resend');
-          const resend = new Resend(process.env.RESEND_API_KEY);
-          await resend.emails.send({
-            from: 'The Cougar Chronicle <newsletter@updates.thecougarchronicle.com>',
+          const sent = await sendOneEmail({
             to: customerEmail,
             subject: 'Here is your premium article',
             html: `<p>Thank you for purchasing this article!</p><p><a href="${articleLink}">Read your article</a></p>`,
           });
+          if (!sent.ok) console.error('Article purchase email failed', sent.error);
         } catch (e) {
           console.error('Article purchase email failed', e);
         }

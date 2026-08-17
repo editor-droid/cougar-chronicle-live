@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { Resend } from 'resend';
 import { getArticleUrl } from '@/lib/routes';
-import { isValidEmail, newsletterEmailFooter, withUtm } from '@/lib/email';
+import { isValidEmail, newsletterEmailFooter, sendOneEmail, withUtm } from '@/lib/email';
+import { subscriberMatchesPost } from '@/lib/subscriber-prefs';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,6 +40,8 @@ export async function GET(request: Request) {
       select: {
         email: true,
         wantsNews: true,
+        wantsCampus: true,
+        wantsPolitics: true,
         wantsFaith: true,
         wantsOpinion: true,
         wantsVideos: true,
@@ -47,7 +49,6 @@ export async function GET(request: Request) {
     });
 
     const origin = process.env.NEXTAUTH_URL || 'https://thecougarchronicle.com';
-    const resend = new Resend(process.env.RESEND_API_KEY);
     if (!process.env.RESEND_API_KEY) {
       return NextResponse.json({ error: 'RESEND_API_KEY missing' }, { status: 500 });
     }
@@ -56,14 +57,7 @@ export async function GET(request: Request) {
     for (const sub of subscribers) {
       if (!isValidEmail(sub.email)) continue;
 
-      const filtered = posts.filter((p) => {
-        if (p.isAmerica250) return true;
-        // News / Opinion are format aggregates; Faith is still a topic category
-        if (p.format === 'news') return sub.wantsNews;
-        if (p.format === 'opinion') return sub.wantsOpinion;
-        if (p.category === 'faith') return sub.wantsFaith;
-        return true;
-      });
+      const filtered = posts.filter((p) => subscriberMatchesPost(sub, p));
       const vidList = sub.wantsVideos ? videos : [];
       if (filtered.length === 0 && vidList.length === 0) continue;
 
@@ -106,13 +100,12 @@ export async function GET(request: Request) {
         </div>
       `;
 
-      const result = await resend.emails.send({
-        from: 'The Cougar Chronicle <newsletter@updates.thecougarchronicle.com>',
+      const result = await sendOneEmail({
         to: sub.email,
         subject: 'This week at The Cougar Chronicle',
         html,
       });
-      if (!result.error) sent += 1;
+      if (result.ok) sent += 1;
       else console.error('Digest fail', sub.email, result.error);
     }
 

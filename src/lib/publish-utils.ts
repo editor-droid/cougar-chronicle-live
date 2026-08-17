@@ -1,14 +1,16 @@
 import prisma from '@/lib/prisma';
-import { Resend } from 'resend';
 import { getArticleUrl } from '@/lib/routes';
 import { sendPushNotification, topicsForPost } from './push';
-import { isValidEmail, newsletterEmailFooter, withUtm } from './email';
-
-const resend = new Resend(process.env.RESEND_API_KEY || 're_fallback_key_so_build_does_not_crash');
-
-function isMockResend() {
-  return !process.env.RESEND_API_KEY || process.env.RESEND_API_KEY.includes('fallback');
-}
+import {
+  getResend,
+  isResendConfigured,
+  isValidEmail,
+  NEWSLETTER_FROM,
+  newsletterEmailFooter,
+  sendOneEmail,
+  withUtm,
+} from './email';
+import { subscriberWhereForPost } from './subscriber-prefs';
 
 async function sendBatchedBroadcast(
   emails: string[],
@@ -19,23 +21,25 @@ async function sendBatchedBroadcast(
   for (let i = 0; i < emails.length; i += CHUNK_SIZE) {
     const chunk = emails.slice(i, i + CHUNK_SIZE);
     const payloads = chunk.map((email) => ({
-      from: 'The Cougar Chronicle <newsletter@updates.thecougarchronicle.com>',
+      from: NEWSLETTER_FROM,
       to: email,
       subject,
       html: htmlForEmail(email),
     }));
+    const resend = getResend();
     const result = await resend.batch.send(payloads);
     if (result.error) {
       console.warn('Batch send failed, falling back one-by-one:', result.error.message);
       for (const email of chunk) {
-        const one = await resend.emails.send({
-          from: 'The Cougar Chronicle <newsletter@updates.thecougarchronicle.com>',
+        const one = await sendOneEmail({
           to: email,
           subject,
           html: htmlForEmail(email),
         });
-        if (one.error) console.error('Email fail', email, one.error.message);
+        if (!one.ok) console.error('Email fail', email, one.error);
       }
+    } else {
+      console.log(`[BROADCAST] batch ${i / CHUNK_SIZE + 1} sent=${chunk.length}`);
     }
   }
 }
@@ -44,7 +48,7 @@ export async function broadcastPostPublication(
   post: any,
   options?: { skipAuthorEmail?: boolean }
 ) {
-  const isMock = isMockResend();
+  const configured = isResendConfigured();
 
   if (post.author?.email && !options?.skipAuthorEmail) {
     const subject = `Your post is now live: ${post.title}`;
@@ -52,10 +56,9 @@ export async function broadcastPostPublication(
 
     console.log(`\n[EMAIL] Publication → ${post.author.email}: ${subject}\n`);
 
-    if (!isMock) {
+    if (configured) {
       try {
-        await resend.emails.send({
-          from: 'notifications@thecougarchronicle.com',
+        await sendOneEmail({
           to: post.author.email,
           subject,
           html,
@@ -97,22 +100,16 @@ export async function broadcastPostPublication(
       `;
     }
 
-    console.log(`\n[BROADCAST] Article category=${post.category} title=${post.title}\n`);
+    console.log(
+      `\n[BROADCAST] Article category=${post.category} format=${post.format} breaking=${!!post.isBreaking} title=${post.title}\n`
+    );
 
-    if (!isMock) {
-      // Instant email: only wantsInstant (or wantsBreaking when post is breaking).
-      // Weekly digesters wait for the digest cron.
-      const whereClause: any = {
-        isActive: true,
-        OR: post.isBreaking
-          ? [{ wantsInstant: true }, { wantsBreaking: true }]
-          : [{ wantsInstant: true }],
-      };
-      if (!post.isAmerica250 && !post.isBreaking) {
-        if (post.category === 'news') whereClause.wantsNews = true;
-        else if (post.category === 'faith') whereClause.wantsFaith = true;
-        else if (post.category === 'opinion') whereClause.wantsOpinion = true;
-      }
+    if (!configured) {
+      console.error('[BROADCAST] RESEND_API_KEY missing — not sending list email');
+    } else {
+      // Instant email: wantsInstant + matching topic (or breaking / America 250).
+      // Weekly digesters still get the digest cron in addition.
+      const whereClause = subscriberWhereForPost(post);
 
       const subscribers = await prisma.subscriber.findMany({
         where: whereClause,
@@ -165,16 +162,16 @@ export async function broadcastPostPublication(
       } else {
         console.log('No instant-email subscribers for this post (digest-only list waits for weekly cron).');
       }
-
-      const pushTitle = post.isBreaking
-        ? `BREAKING: ${post.title}`
-        : post.isAmerica250
-          ? `America 250: ${post.title}`
-          : `New Post: ${post.title}`;
-      await sendPushNotification(pushTitle, excerpt, getArticleUrl(post), {
-        topics: topicsForPost(post),
-      });
     }
+
+    const pushTitle = post.isBreaking
+      ? `BREAKING: ${post.title}`
+      : post.isAmerica250
+        ? `America 250: ${post.title}`
+        : `New Post: ${post.title}`;
+    await sendPushNotification(pushTitle, excerpt, getArticleUrl(post), {
+      topics: topicsForPost(post),
+    });
   } catch (broadcastError) {
     console.error('Failed to trigger broadcast:', broadcastError);
   }
@@ -185,7 +182,7 @@ export async function broadcastVideoPublication(video: {
   slug: string;
   description?: string | null;
 }) {
-  const isMock = isMockResend();
+  const configured = isResendConfigured();
   const origin = process.env.NEXTAUTH_URL || 'https://thecougarchronicle.com';
   const url = `/videos/${video.slug}`;
   const raw = (video.description || 'Watch our latest video from The Cougar Chronicle.').replace(
@@ -196,7 +193,7 @@ export async function broadcastVideoPublication(video: {
 
   console.log(`\n[BROADCAST] Video title=${video.title}\n`);
 
-  if (!isMock) {
+  if (configured) {
     try {
       const subscribers = await prisma.subscriber.findMany({
         where: { isActive: true, wantsVideos: true, wantsInstant: true },
