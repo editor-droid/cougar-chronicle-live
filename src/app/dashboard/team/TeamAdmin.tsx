@@ -2,19 +2,27 @@
 
 import { useState } from 'react';
 import type { OpenRole, TeamMember } from '@/lib/site-content-types';
+import type { StaffLinkableUser, StaffOrganizerRow } from '@/lib/staff-organizer-types';
 import TeamRosterManager from './TeamRosterManager';
 import OpenRolesManager from './OpenRolesManager';
+import StaffOrganizer from './StaffOrganizer';
 
-type Tab = 'staff' | 'roles';
+type Tab = 'organizer' | 'staff' | 'roles';
 
 export default function TeamAdmin({
   team,
   openRoles,
+  organizerRows,
+  organizerUsers,
+  organizerSummary,
 }: {
   team: TeamMember[];
   openRoles: OpenRole[];
+  organizerRows: StaffOrganizerRow[];
+  organizerUsers: StaffLinkableUser[];
+  organizerSummary: { roster: number; published30: number; quiet: number; unlisted: number };
 }) {
-  const [tab, setTab] = useState<Tab>('staff');
+  const [tab, setTab] = useState<Tab>('organizer');
   const openCount = openRoles.filter((r) => r.isOpen).length;
 
   return (
@@ -34,7 +42,8 @@ export default function TeamAdmin({
       >
         {(
           [
-            ['staff', 'Current staff', team.length],
+            ['organizer', 'Organizer', organizerRows.length],
+            ['staff', 'Public roster', team.length],
             ['roles', 'Open roles', openCount],
           ] as const
         ).map(([id, label, count]) => {
@@ -82,7 +91,9 @@ export default function TeamAdmin({
         })}
       </div>
 
-      {tab === 'staff' ? (
+      {tab === 'organizer' ? (
+        <StaffOrganizer rows={organizerRows} users={organizerUsers} summary={organizerSummary} />
+      ) : tab === 'staff' ? (
         <TeamRosterManager initialTeam={team} compact />
       ) : (
         <OpenRolesManager initial={openRoles} compact />

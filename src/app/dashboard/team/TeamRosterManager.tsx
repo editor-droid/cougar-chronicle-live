@@ -79,7 +79,7 @@ export default function TeamRosterManager({
     <div style={{ width: '100%' }}>
       <div className="dash-toolbar" style={{ marginBottom: '1rem' }}>
         <p className="font-sans text-muted" style={{ margin: 0, flex: '1 1 240px', lineHeight: 1.5, fontSize: '0.9rem' }}>
-          Public <strong>About Us</strong> roster. Staff Writers can leave title blank.
+          Public <strong>About Us</strong> roster. Staff Writers can leave title blank. Start date stays in the dashboard only.
         </p>
         <button type="button" className="dash-btn dash-btn-primary" disabled={pending} onClick={saveTeam}>
           {pending ? 'Saving…' : 'Save staff'}
@@ -212,6 +212,15 @@ export default function TeamRosterManager({
                       value={member.title}
                       onChange={(e) => updateMember(member.id, { title: e.target.value })}
                     />
+                    <label className="font-sans text-muted" style={{ fontSize: '0.7rem', fontWeight: 700 }}>
+                      Started
+                      <input
+                        type="date"
+                        style={{ ...field, marginTop: '0.2rem' }}
+                        value={member.joinedAt || ''}
+                        onChange={(e) => updateMember(member.id, { joinedAt: e.target.value || undefined })}
+                      />
+                    </label>
                     <button
                       type="button"
                       onClick={() => setTeam(team.filter((t) => t.id !== member.id))}

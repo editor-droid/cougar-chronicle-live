@@ -22,6 +22,10 @@ export type TeamMember = {
   title: string;
   group: TeamGroup;
   sortOrder: number;
+  /** YYYY-MM-DD. Used by the staff organizer; not shown on About. */
+  joinedAt?: string;
+  /** Linked dashboard user, when the public name matches an account. */
+  userId?: string;
 };
 
 export const TEAM_GROUP_LABELS: Record<TeamGroup, string> = {

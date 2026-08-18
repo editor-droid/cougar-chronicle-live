@@ -71,6 +71,7 @@ body:has(.dashboard-shell) .site-shell > main.container {
 .dashboard-shell input[type='url'],
 .dashboard-shell input[type='search'],
 .dashboard-shell input[type='number'],
+.dashboard-shell input[type='date'],
 .dashboard-shell input[type='password'],
 .dashboard-shell select,
 .dashboard-shell textarea {

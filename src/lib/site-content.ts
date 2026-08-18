@@ -81,14 +81,29 @@ export async function getPublicTeam(): Promise<TeamMember[]> {
   });
 }
 
+function normalizeJoinedAt(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined;
+  const trimmed = value.trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return undefined;
+  const t = Date.parse(`${trimmed}T00:00:00`);
+  if (Number.isNaN(t)) return undefined;
+  return trimmed;
+}
+
 export async function savePublicTeam(list: TeamMember[]) {
-  const normalized = list.map((item, i) => ({
-    id: item.id || newId(),
-    name: (item.name || '').trim(),
-    title: (item.title || '').trim(),
-    group: (TEAM_GROUP_ORDER.includes(item.group) ? item.group : 'contributors') as TeamGroup,
-    sortOrder: typeof item.sortOrder === 'number' ? item.sortOrder : i,
-  }));
+  const normalized = list.map((item, i) => {
+    const joinedAt = normalizeJoinedAt(item.joinedAt);
+    const userId = typeof item.userId === 'string' ? item.userId.trim() : '';
+    return {
+      id: item.id || newId(),
+      name: (item.name || '').trim(),
+      title: (item.title || '').trim(),
+      group: (TEAM_GROUP_ORDER.includes(item.group) ? item.group : 'contributors') as TeamGroup,
+      sortOrder: typeof item.sortOrder === 'number' ? item.sortOrder : i,
+      ...(joinedAt ? { joinedAt } : {}),
+      ...(userId ? { userId } : {}),
+    };
+  });
   await writeJsonSetting(SITE_KEYS.publicTeam, normalized);
   return normalized;
 }
