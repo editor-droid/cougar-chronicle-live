@@ -1152,7 +1152,9 @@ body:has([data-link-hub-page]) .site-shell > main.container {
 
 /* X / Twitter embeds — centered, constrained, not full-column jank */
 .article-content .tweet-embed,
-.article-content [data-tweet-embed] {
+.article-content [data-tweet-embed],
+.rich-text-preview-pane .tweet-embed,
+.rich-text-preview-pane [data-tweet-embed] {
   display: flex !important;
   justify-content: center;
   width: 100% !important;
@@ -1162,14 +1164,17 @@ body:has([data-link-hub-page]) .site-shell > main.container {
 }
 
 .article-content .tweet-embed .twitter-tweet,
-.article-content .twitter-tweet {
+.article-content .twitter-tweet,
+.rich-text-preview-pane .tweet-embed .twitter-tweet,
+.rich-text-preview-pane .twitter-tweet {
   margin-left: auto !important;
   margin-right: auto !important;
   max-width: min(100%, 550px) !important;
 }
 
 /* While widgets.js hydrates, keep the fallback blockquote readable */
-.article-content blockquote.twitter-tweet {
+.article-content blockquote.twitter-tweet,
+.rich-text-preview-pane blockquote.twitter-tweet {
   border: 1px solid var(--border, #e2e4ea);
   border-radius: 0.75rem;
   background: #fff;
@@ -1181,9 +1186,18 @@ body:has([data-link-hub-page]) .site-shell > main.container {
   box-sizing: border-box;
 }
 
-.article-content blockquote.twitter-tweet a {
+.article-content blockquote.twitter-tweet a,
+.rich-text-preview-pane blockquote.twitter-tweet a {
   color: #1d9bf0;
   word-break: break-word;
+}
+
+.rich-text-editor-content .tweet-embed-node {
+  margin: 0;
+}
+
+.rich-text-editor-content .tweet-embed-node.ProseMirror-selectednode {
+  outline: none;
 }
 
 @media (max-width: 768px) {

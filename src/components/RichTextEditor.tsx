@@ -3,6 +3,7 @@ import { BubbleMenu } from "@tiptap/react/menus";
 import StarterKit from "@tiptap/starter-kit";
 import Heading from "@tiptap/extension-heading";
 import Link from "@tiptap/extension-link";
+import { Blockquote } from "@tiptap/extension-blockquote";
 import { ResizableImage } from "../lib/ResizableImageExtension";
 import { GalleryExtension } from "../lib/GalleryExtension";
 import Image from "@tiptap/extension-image";
@@ -15,8 +16,11 @@ import TableCell from "@tiptap/extension-table-cell";
 import TableHeader from "@tiptap/extension-table-header";
 import Highlight from "@tiptap/extension-highlight";
 import { VideoEmbed } from "../lib/VideoEmbedExtension";
+import { TweetEmbed } from "../lib/TweetEmbedExtension";
 import { parseVideoEmbedInput, type EmbedProvider } from "../lib/embed-utils";
+import { parseTweetInput, type TweetEmbedAttrs } from "../lib/tweet-embed";
 import { streamEmbedUrl, youtubeEmbedUrl } from "../lib/videos";
+import TwitterEmbedHydrator from "./TwitterEmbedHydrator";
 import * as tus from "tus-js-client";
 import {
   useEffect,
@@ -81,6 +85,20 @@ interface RichTextEditorProps {
   viewMode?: "edit" | "split" | "preview";
 }
 
+function XLogo({ size = 15 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden
+    >
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.008 3.974H5.059z" />
+    </svg>
+  );
+}
+
 function ToolbarButton({
   onClick,
   active,
@@ -125,7 +143,7 @@ function ToolbarButton({
 }
 
 // ── Floating embed popover near cursor / toolbar ─────────────────────────────
-type EmbedDialogMode = "video" | "link";
+type EmbedDialogMode = "video" | "link" | "tweet";
 type EmbedAnchor = { top: number; left: number; bottom: number };
 
 function clampPopoverPosition(anchor: EmbedAnchor, width: number, height: number) {
@@ -152,6 +170,7 @@ function EmbedDialog({
   onClose,
   onInsertVideo,
   onInsertLink,
+  onInsertTweet,
   mode,
   initialUrl = "",
   preferredProvider,
@@ -165,6 +184,7 @@ function EmbedDialog({
     aspectRatio: string;
   }) => void;
   onInsertLink: (url: string) => void;
+  onInsertTweet: (attrs: TweetEmbedAttrs) => void;
   mode: EmbedDialogMode;
   initialUrl?: string;
   preferredProvider?: EmbedProvider;
@@ -188,6 +208,7 @@ function EmbedDialog({
     "idle" | "preparing" | "uploading" | "done" | "error"
   >("idle");
   const [uploadFileName, setUploadFileName] = useState<string | null>(null);
+  const [lookupPhase, setLookupPhase] = useState<"idle" | "loading">("idle");
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -196,6 +217,7 @@ function EmbedDialog({
   const [pos, setPos] = useState({ top: 80, left: 80 });
 
   const isUploading = uploadPhase === "preparing" || uploadPhase === "uploading";
+  const isLookingUp = lookupPhase === "loading";
 
   const abortUpload = useCallback(() => {
     uploadGenRef.current += 1;
@@ -221,6 +243,7 @@ function EmbedDialog({
     if (open) {
       setUrl(initialUrl);
       setError("");
+      setLookupPhase("idle");
       setTab(
         preferredProvider === "instagram" || preferredProvider === "youtube"
           ? "paste"
@@ -228,7 +251,12 @@ function EmbedDialog({
       );
       resetUploadState();
       setTimeout(() => {
-        if (preferredProvider === "instagram" || preferredProvider === "youtube") {
+        if (
+          preferredProvider === "instagram" ||
+          preferredProvider === "youtube" ||
+          mode === "tweet" ||
+          mode === "link"
+        ) {
           inputRef.current?.focus();
         }
       }, 50);
@@ -236,7 +264,7 @@ function EmbedDialog({
       // Stop only in-flight client uploads (never DELETE remote Stream media)
       abortUpload();
     }
-  }, [open, initialUrl, preferredProvider, resetUploadState, abortUpload]);
+  }, [open, initialUrl, preferredProvider, mode, resetUploadState, abortUpload]);
 
   // Position near caret / anchor; remeasure after paint
   useEffect(() => {
@@ -287,14 +315,14 @@ function EmbedDialog({
   useEffect(() => {
     if (!open) return;
     const onDown = (e: MouseEvent) => {
-      if (isUploading) return;
+      if (isUploading || isLookingUp) return;
       if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
         onClose();
       }
     };
     document.addEventListener("mousedown", onDown);
     return () => document.removeEventListener("mousedown", onDown);
-  }, [open, onClose, isUploading]);
+  }, [open, onClose, isUploading, isLookingUp]);
 
   const insertStreamUid = useCallback(
     (uid: string) => {
@@ -396,28 +424,38 @@ function EmbedDialog({
   if (!open) return null;
 
   const isLink = mode === "link";
+  const isTweet = mode === "tweet";
   const showUploadTab =
-    !isLink && preferredProvider !== "instagram" && preferredProvider !== "youtube";
-  const parsed = !isLink && url.trim() ? parseVideoEmbedInput(url.trim()) : null;
+    !isLink &&
+    !isTweet &&
+    preferredProvider !== "instagram" &&
+    preferredProvider !== "youtube";
+  const parsed =
+    !isLink && !isTweet && url.trim() ? parseVideoEmbedInput(url.trim()) : null;
+  const parsedTweet = isTweet && url.trim() ? parseTweetInput(url.trim()) : null;
   const showMiniPreview = Boolean(parsed?.embedSrc && tab === "paste");
 
   const title = isLink
     ? "Insert link"
-    : preferredProvider === "instagram"
-      ? "Instagram"
-      : preferredProvider === "youtube"
-        ? "YouTube"
-        : "Insert video";
+    : isTweet
+      ? "Embed X post"
+      : preferredProvider === "instagram"
+        ? "Instagram"
+        : preferredProvider === "youtube"
+          ? "YouTube"
+          : "Insert video";
 
   const placeholder = isLink
     ? "https://example.com"
-    : preferredProvider === "instagram"
-      ? "instagram.com/p/… or /reel/…"
-      : preferredProvider === "youtube"
-        ? "YouTube URL…"
-        : "YouTube or Instagram URL…";
+    : isTweet
+      ? "x.com/…/status/… or twitter.com/…"
+      : preferredProvider === "instagram"
+        ? "instagram.com/p/… or /reel/…"
+        : preferredProvider === "youtube"
+          ? "YouTube URL…"
+          : "YouTube or Instagram URL…";
 
-  const handleInsert = () => {
+  const handleInsert = async () => {
     const trimmed = url.trim();
     if (!trimmed) {
       setError("URL is required");
@@ -430,6 +468,39 @@ function EmbedDialog({
         onClose();
       } catch {
         setError("Enter a valid URL (https://…)");
+      }
+      return;
+    }
+    if (isTweet) {
+      const tweet = parseTweetInput(trimmed);
+      if (!tweet) {
+        setError("Paste an X post URL (x.com/…/status/…).");
+        return;
+      }
+      setLookupPhase("loading");
+      setError("");
+      try {
+        const res = await fetch(
+          `/api/embeds/tweet?url=${encodeURIComponent(tweet.url)}`
+        );
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data?.tweetId) {
+          onInsertTweet({
+            url: data.url || tweet.url,
+            tweetId: data.tweetId,
+            handle: data.handle || tweet.handle,
+            text: data.text || "",
+            authorName: data.authorName || "",
+          });
+        } else {
+          onInsertTweet(tweet);
+        }
+        onClose();
+      } catch {
+        onInsertTweet(tweet);
+        onClose();
+      } finally {
+        setLookupPhase("idle");
       }
       return;
     }
@@ -488,11 +559,11 @@ function EmbedDialog({
       e.preventDefault();
       handleInsert();
     }
-    if (e.key === "Escape" && !isUploading) onClose();
+    if (e.key === "Escape" && !isUploading && !isLookingUp) onClose();
   };
 
   const handleClose = () => {
-    if (isUploading) return;
+    if (isUploading || isLookingUp) return;
     onClose();
   };
 
@@ -536,6 +607,8 @@ function EmbedDialog({
           <span style={{ color: "var(--primary)" }}>
             {isLink ? (
               <LinkIcon size={16} />
+            ) : isTweet ? (
+              <XLogo size={14} />
             ) : preferredProvider === "instagram" ? (
               <Camera size={16} />
             ) : (
@@ -559,17 +632,17 @@ function EmbedDialog({
             color: "var(--muted)",
             background: "none",
             border: "none",
-            cursor: isUploading ? "not-allowed" : "pointer",
-            opacity: isUploading ? 0.4 : 1,
+            cursor: isUploading || isLookingUp ? "not-allowed" : "pointer",
+            opacity: isUploading || isLookingUp ? 0.4 : 1,
           }}
           aria-label="Close"
-          disabled={isUploading}
+          disabled={isUploading || isLookingUp}
         >
           <X size={14} />
         </button>
       </div>
 
-      {!isLink && (
+      {!isLink && !isTweet && (
         <div className="flex gap-0 px-2" style={{ borderBottom: "1px solid var(--border)", flexShrink: 0 }}>
           {videoTabs.map((t) => (
             <button
@@ -709,9 +782,14 @@ function EmbedDialog({
           </div>
         )}
 
-        {(isLink || tab === "paste") && (
+        {(isLink || isTweet || tab === "paste") && (
           <>
-            {!isLink && showUploadTab && (
+            {isTweet && (
+              <p className="font-sans text-xs" style={{ margin: 0, color: "var(--muted)", lineHeight: 1.4 }}>
+                Paste a link to an X/Twitter post. The embed appears in the article body at the cursor.
+              </p>
+            )}
+            {!isLink && !isTweet && showUploadTab && (
               <p className="font-sans text-xs" style={{ margin: 0, color: "var(--muted)", lineHeight: 1.4 }}>
                 Paste a YouTube or Instagram link. For Stream, use the Upload tab.
               </p>
@@ -725,6 +803,7 @@ function EmbedDialog({
                 setError("");
               }}
               onKeyDown={handleKeyDown}
+              disabled={isLookingUp}
               placeholder={placeholder}
               className="w-full text-sm rounded-lg px-3 py-2 font-sans"
               style={{
@@ -739,6 +818,12 @@ function EmbedDialog({
             {error && (
               <p className="text-xs font-sans" style={{ color: "#b91c1c", margin: 0 }}>
                 {error}
+              </p>
+            )}
+            {isTweet && parsedTweet && !error && (
+              <p className="font-sans text-xs" style={{ margin: 0, color: "var(--muted)" }}>
+                Post {parsedTweet.tweetId}
+                {parsedTweet.handle ? ` · @${parsedTweet.handle}` : ""}
               </p>
             )}
             {showMiniPreview && (
@@ -764,12 +849,14 @@ function EmbedDialog({
               <button
                 type="button"
                 onClick={handleClose}
+                disabled={isLookingUp}
                 className="font-sans text-xs font-bold px-3 py-1.5 rounded-md"
                 style={{
                   background: "transparent",
                   border: "1px solid var(--border)",
                   color: "var(--muted)",
-                  cursor: "pointer",
+                  cursor: isLookingUp ? "not-allowed" : "pointer",
+                  opacity: isLookingUp ? 0.5 : 1,
                 }}
               >
                 Cancel
@@ -777,21 +864,32 @@ function EmbedDialog({
               <button
                 type="button"
                 onClick={handleInsert}
+                disabled={isLookingUp}
                 className="font-sans text-xs font-bold px-3 py-1.5 rounded-md"
                 style={{
                   background: "var(--primary)",
                   border: "none",
                   color: "#fff",
-                  cursor: "pointer",
+                  cursor: isLookingUp ? "wait" : "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.35rem",
                 }}
               >
-                Insert
+                {isLookingUp ? (
+                  <>
+                    <Loader2 size={12} style={{ animation: "spin 1s linear infinite" }} />
+                    Embedding…
+                  </>
+                ) : (
+                  "Insert"
+                )}
               </button>
             </div>
           </>
         )}
 
-        {!isLink && tab === "library" && (
+        {!isLink && !isTweet && tab === "library" && (
           <div>
             {libraryLoading && (
               <p className="text-xs font-sans text-muted" style={{ margin: 0 }}>Loading…</p>
@@ -1169,6 +1267,7 @@ function Toolbar({
   onGalleryInsert,
   onVideoEmbed,
   onInstagram,
+  onTweet,
   onLink,
 }: {
   editor: Editor | null;
@@ -1176,6 +1275,7 @@ function Toolbar({
   onGalleryInsert?: () => void;
   onVideoEmbed: (e: React.MouseEvent) => void;
   onInstagram: (e: React.MouseEvent) => void;
+  onTweet: (e: React.MouseEvent) => void;
   onLink: (e: React.MouseEvent) => void;
 }) {
   if (!editor) return null;
@@ -1369,6 +1469,11 @@ function Toolbar({
       {/* Instagram */}
       <ToolbarButton onClick={onInstagram} title="Embed Instagram">
         <Camera size={15} />
+      </ToolbarButton>
+
+      {/* X / Twitter post */}
+      <ToolbarButton onClick={onTweet} title="Embed X post">
+        <XLogo size={14} />
       </ToolbarButton>
 
       <div
@@ -1590,10 +1695,12 @@ function FloatingBubbleToolbar({
   editor,
   onImageInsert,
   onVideoEmbed,
+  onTweet,
 }: {
   editor: Editor;
   onImageInsert?: () => void;
   onVideoEmbed?: (e: React.MouseEvent) => void;
+  onTweet?: (e: React.MouseEvent) => void;
 }) {
   const [isInsertingLink, setIsInsertingLink] = useState(false);
   const [url, setUrl] = useState("");
@@ -1623,7 +1730,7 @@ function FloatingBubbleToolbar({
         if (!editor.isEditable || !view.hasFocus()) return false;
         // Hide over media/atoms and when the dedicated link menu is showing
         if (editor.isActive("image") || editor.isActive("gallery")) return false;
-        if (editor.isActive("videoEmbed")) return false;
+        if (editor.isActive("videoEmbed") || editor.isActive("tweetEmbed")) return false;
         if (editor.isActive("link")) return false;
         // Show on caret click (empty selection) and on text highlight
         return true;
@@ -1750,6 +1857,15 @@ function FloatingBubbleToolbar({
             size="small"
           >
             <Video size={14} />
+          </ToolbarButton>
+        )}
+        {onTweet && (
+          <ToolbarButton
+            onClick={(e) => onTweet(e)}
+            title="Embed X post"
+            size="small"
+          >
+            <XLogo size={13} />
           </ToolbarButton>
         )}
 
@@ -1879,18 +1995,24 @@ function LinkBubbleMenu({ editor }: { editor: Editor }) {
 
 function PreviewPane({ html }: { html: string }) {
   return (
-    <div
-      className="rich-text-preview-pane blog-post-content article-content p-6 overflow-y-auto"
-      style={{
-        background: "#fff",
-        color: "var(--foreground)",
-        minHeight: "600px",
-        maxWidth: "100%",
-        overflowX: "hidden",
-        boxSizing: "border-box",
-      }}
-      dangerouslySetInnerHTML={{ __html: html }}
-    />
+    <>
+      <div
+        className="rich-text-preview-pane blog-post-content article-content p-6 overflow-y-auto"
+        style={{
+          background: "#fff",
+          color: "var(--foreground)",
+          minHeight: "600px",
+          maxWidth: "100%",
+          overflowX: "hidden",
+          boxSizing: "border-box",
+        }}
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
+      <TwitterEmbedHydrator
+        rootSelector=".rich-text-preview-pane"
+        watch={html}
+      />
+    </>
   );
 }
 
@@ -1916,6 +2038,21 @@ export const RichTextEditor = forwardRef<
       heading: false,
       link: false,
       underline: false,
+      blockquote: false,
+    }),
+    Blockquote.extend({
+      parseHTML() {
+        return [
+          {
+            tag: "blockquote",
+            getAttrs: (node) => {
+              const el = node as HTMLElement;
+              if (el.classList?.contains("twitter-tweet")) return false;
+              return {};
+            },
+          },
+        ];
+      },
     }),
     Heading.configure({ levels: [1, 2, 3] }),
     Link.configure({
@@ -1935,6 +2072,7 @@ export const RichTextEditor = forwardRef<
     TableCell,
     Highlight.configure({ HTMLAttributes: { class: 'editorial-highlight', style: 'background-color: #fef08a; padding: 0.1rem 0.2rem; border-radius: 0.2rem;' } }),
     VideoEmbed,
+    TweetEmbed,
   ], [placeholder]);
 
   const editor = useEditor({
@@ -1944,6 +2082,7 @@ export const RichTextEditor = forwardRef<
     editorProps: {
       handleClick: (view, pos, event) => {
         const target = event.target as HTMLElement;
+        if (target.closest(".tweet-embed-node a")) return false;
         if (target.closest('a')) {
           event.preventDefault();
           return true;
@@ -2038,6 +2177,14 @@ export const RichTextEditor = forwardRef<
     [editor]
   );
 
+  const handleInsertTweet = useCallback(
+    (attrs: TweetEmbedAttrs) => {
+      if (!editor) return;
+      editor.chain().focus().setTweetEmbed(attrs).run();
+    },
+    [editor]
+  );
+
   /** Anchor the embed popover to the caret (or the toolbar button as fallback). */
   const openEmbedNearCursor = useCallback(
     (opts: {
@@ -2113,6 +2260,7 @@ export const RichTextEditor = forwardRef<
                 fromEvent: e,
               })
             }
+            onTweet={(e) => openEmbedNearCursor({ mode: "tweet", fromEvent: e })}
             onLink={(e) => openEmbedNearCursor({ mode: "link", fromEvent: e })}
           />
         )}
@@ -2147,6 +2295,9 @@ export const RichTextEditor = forwardRef<
                     onVideoEmbed={(e) =>
                       openEmbedNearCursor({ mode: "video", fromEvent: e })
                     }
+                    onTweet={(e) =>
+                      openEmbedNearCursor({ mode: "tweet", fromEvent: e })
+                    }
                   />
                   <LinkBubbleMenu editor={editor} />
                 </>
@@ -2166,6 +2317,7 @@ export const RichTextEditor = forwardRef<
         onClose={() => setEmbedDialog(prev => ({ ...prev, open: false }))}
         onInsertVideo={handleInsertVideo}
         onInsertLink={handleInsertLink}
+        onInsertTweet={handleInsertTweet}
       />
     </>
   );

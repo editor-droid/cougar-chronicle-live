@@ -58,11 +58,18 @@ function loadWidgetsScript(): Promise<void> {
  * Loads X/Twitter widgets.js and hydrates any .twitter-tweet blockquotes
  * in the article. Safe to mount on every article page.
  */
-export default function TwitterEmbedHydrator({ rootSelector = '.article-content' }: { rootSelector?: string }) {
+export default function TwitterEmbedHydrator({
+  rootSelector = '.article-content',
+  watch,
+}: {
+  rootSelector?: string;
+  /** Remount / re-hydrate when preview HTML changes */
+  watch?: string;
+}) {
   useEffect(() => {
     const root = document.querySelector(rootSelector);
     if (!root) return;
-    if (!root.querySelector('.twitter-tweet, .tweet-embed')) return;
+    if (!root.querySelector('.twitter-tweet, .tweet-embed, [data-tweet-embed]')) return;
 
     let cancelled = false;
 
@@ -89,7 +96,7 @@ export default function TwitterEmbedHydrator({ rootSelector = '.article-content'
     return () => {
       cancelled = true;
     };
-  }, [rootSelector]);
+  }, [rootSelector, watch]);
 
   return null;
 }
