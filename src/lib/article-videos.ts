@@ -18,6 +18,7 @@ import {
 import { getArticleUrl } from '@/lib/routes';
 import { withUniquenessSuffix } from '@/lib/slug';
 import { categoryLabel, getSectionPath } from '@/lib/categories';
+import { schemaAuthors } from '@/lib/bylines';
 
 export type ArticleVideoEmbed = {
   platform: VideoPlatformName;
@@ -394,12 +395,7 @@ export async function buildNewsArticleJsonLdWithVideos(
       new Date()
     ).toISOString(),
     dateModified: (post.updatedAt || post.publishedAt || post.createdAt || new Date()).toISOString(),
-    author: [
-      {
-        '@type': 'Person',
-        name: post.customAuthor || post.author?.name || 'Staff',
-      },
-    ],
+    author: schemaAuthors(post.customAuthor || post.author?.name || 'Staff'),
     publisher: {
       '@type': 'Organization',
       name: 'The Cougar Chronicle',

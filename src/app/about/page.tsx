@@ -71,7 +71,8 @@ function renderTeamGrid(
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '1.5rem' }}>
       {members.map((member) => {
-        const authorId = authorByName.get(normalizePersonName(member.name));
+        const authorId =
+          member.userId || authorByName.get(normalizePersonName(member.name));
         const cardStyle = {
           padding: '1.5rem',
           backgroundColor: 'var(--surface)',

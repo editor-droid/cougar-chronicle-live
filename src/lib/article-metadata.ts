@@ -6,6 +6,7 @@
 import type { Metadata } from 'next';
 import { getArticleUrl } from '@/lib/routes';
 import { rewriteMediaUrl } from '@/lib/media-url';
+import { splitBylineNames } from '@/lib/bylines';
 
 type ArticleMetaPost = {
   title: string;
@@ -51,6 +52,8 @@ export function buildArticleMetadata(post: ArticleMetaPost): Metadata {
   const heroImage = rewriteMediaUrl(post.imageUrl) || null;
   const ogAlt = (post.featuredImageAlt || post.title || 'The Cougar Chronicle').slice(0, 125);
   const authorName = post.customAuthor || post.author?.name || 'The Cougar Chronicle';
+  const authorNames = splitBylineNames(authorName);
+  const authorsList = (authorNames.length ? authorNames : [authorName]).map((name) => ({ name }));
   const canonical = getArticleUrl(post);
   const ogTitle = `${title} | The Cougar Chronicle`;
 
@@ -58,7 +61,7 @@ export function buildArticleMetadata(post: ArticleMetaPost): Metadata {
     title,
     description,
     keywords,
-    authors: [{ name: authorName }],
+    authors: authorsList,
     alternates: {
       canonical,
     },
@@ -74,7 +77,7 @@ export function buildArticleMetadata(post: ArticleMetaPost): Metadata {
         : [{ url: '/images/default-article.jpg', width: 1080, height: 720, alt: 'The Cougar Chronicle' }],
       publishedTime: post.publishedAt?.toISOString() || post.createdAt.toISOString(),
       modifiedTime: post.updatedAt?.toISOString(),
-      authors: [authorName],
+      authors: authorNames.length ? authorNames : [authorName],
       section: post.category || undefined,
       tags: keywords.length ? keywords : undefined,
     },

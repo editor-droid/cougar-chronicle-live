@@ -19,6 +19,7 @@ export default async function UsersPage() {
       email: true,
       role: true,
       archivedAt: true,
+      _count: { select: { posts: true } },
     },
   });
 

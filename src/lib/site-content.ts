@@ -25,6 +25,7 @@ export const SITE_KEYS = {
   mediaAppearances: 'mediaAppearances',
   publicTeam: 'publicTeam',
   openRoles: 'openRoles',
+  authorRedirects: 'authorRedirects',
 } as const;
 
 function newId() {

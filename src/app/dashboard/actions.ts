@@ -11,6 +11,7 @@ import { syncArticleVideosToLibrary } from '@/lib/article-videos';
 import { canApprovePosts, canPublishPosts } from '@/lib/roles';
 import { computeBreakingUntil, DEFAULT_BREAKING_HOURS } from '@/lib/breaking';
 import { slugifyTitle, sanitizeSlugInput, withUniquenessSuffix } from '@/lib/slug';
+import { mergeAuthors } from '@/lib/merge-authors';
 
 
 
@@ -583,6 +584,32 @@ export async function createStaffUser(data: {
 
   revalidatePath('/dashboard/users');
   return { ok: true as const, userId: user.id, emailSent };
+}
+
+export async function mergeAuthorsAction(data: {
+  keepId: string;
+  foldId: string;
+  keepName?: string | null;
+}) {
+  const session = await auth();
+  if (!session?.user || session.user.role !== 'ADMIN') {
+    throw new Error('Unauthorized');
+  }
+  if (data.foldId === session.user.id) {
+    throw new Error('You cannot merge your own login into someone else');
+  }
+  const result = await mergeAuthors({
+    keepId: data.keepId,
+    foldId: data.foldId,
+    keepName: data.keepName,
+  });
+  revalidatePath('/dashboard/users');
+  revalidatePath('/dashboard/team');
+  revalidatePath('/about');
+  revalidatePath(`/author/${result.keepId}`);
+  revalidatePath(`/author/${result.foldId}`);
+  revalidatePath('/');
+  return result;
 }
 
 /** @deprecated use createStaffUser */

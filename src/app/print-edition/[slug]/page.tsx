@@ -6,6 +6,7 @@ import { auth } from '@/auth';
 import { cookies } from 'next/headers';
 import Link from 'next/link';
 import ClientLightbox from './ClientLightbox';
+import ArticleByline from '@/components/ArticleByline';
 import ArticleBody from '@/components/ArticleBody';
 import KeyTakeaways from '@/components/KeyTakeaways';
 import ShareButton from '@/components/ShareButton';
@@ -16,6 +17,7 @@ import { enhanceArticleVideoEmbeds } from '@/lib/embed-utils';
 import { rewriteMediaUrl } from '@/lib/media-url';
 import { getArticleUrl } from '@/lib/routes';
 import { buildArticleMetadata } from '@/lib/article-metadata';
+import { schemaAuthors } from '@/lib/bylines';
 import SubscribeForm from '@/components/SubscribeForm';
 
 export async function generateMetadata(
@@ -127,10 +129,7 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
     image: post.imageUrl ? [post.imageUrl] : [],
     datePublished: post.publishedAt?.toISOString() || post.createdAt.toISOString(),
     dateModified: post.updatedAt.toISOString(),
-    author: [{
-      '@type': 'Person',
-      name: post.customAuthor || post.author.name || 'Staff'
-    }],
+    author: schemaAuthors(post.customAuthor || post.author.name || 'Staff'),
     publisher: {
       '@type': 'Organization',
       name: 'The Cougar Chronicle',
@@ -169,12 +168,11 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
             </h1>
             
             <div className="font-sans text-sm text-muted" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-              <span style={{ fontWeight: 600 }}>
-                By{' '}
-                <Link href={`/author/${post.authorId}`} style={{ textDecoration: 'none', color: 'inherit' }} className="hover:text-primary transition-colors">
-                  {post.customAuthor || post.author.name || 'Staff'}
-                </Link>
-              </span>
+              <ArticleByline
+                authorId={post.authorId}
+                authorName={post.author.name}
+                customAuthor={post.customAuthor}
+              />
               <ShareButton title={post.title} text={`${post.title} — The Cougar Chronicle`} />
               <span>•</span>
               <span>{new Date(post.publishedAt || post.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>

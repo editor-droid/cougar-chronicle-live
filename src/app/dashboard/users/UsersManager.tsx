@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { Archive, Plus, RotateCcw, Search, UserPlus, X } from 'lucide-react';
-import { createStaffUser, updateUserFields } from '../actions';
+import { Archive, GitMerge, Plus, RotateCcw, Search, UserPlus, X } from 'lucide-react';
+import { createStaffUser, mergeAuthorsAction, updateUserFields } from '../actions';
 import type { Role } from '@prisma/client';
 
 type UserRow = {
@@ -12,6 +12,7 @@ type UserRow = {
   email: string | null;
   role: Role;
   archivedAt: Date | string | null;
+  _count?: { posts: number };
 };
 
 const ROLES: Role[] = ['USER', 'WRITER', 'EDITOR', 'ADMIN'];
@@ -49,6 +50,10 @@ export default function UsersManager({
   const [message, setMessage] = useState('');
   const [pending, startTransition] = useTransition();
   const [addOpen, setAddOpen] = useState(false);
+  const [mergeOpen, setMergeOpen] = useState(false);
+  const [keepId, setKeepId] = useState('');
+  const [foldId, setFoldId] = useState('');
+  const [keepName, setKeepName] = useState('');
   const [drafts, setDrafts] = useState<
     Record<string, { name: string; email: string; role: Role }>
   >({});
@@ -117,6 +122,38 @@ export default function UsersManager({
         router.refresh();
       } catch (e) {
         setMessage(e instanceof Error ? e.message : 'Archive failed');
+      }
+    });
+  };
+
+  const openMerge = (fold?: string) => {
+    setFoldId(fold || '');
+    setKeepId('');
+    setKeepName('');
+    setMergeOpen(true);
+    setMessage('');
+  };
+
+  const mergeUsers = () => {
+    if (!keepId || !foldId) {
+      setMessage('Pick both people — the one that stays, and the duplicate.');
+      return;
+    }
+    setMessage('');
+    startTransition(async () => {
+      try {
+        const res = await mergeAuthorsAction({
+          keepId,
+          foldId,
+          keepName: keepName.trim() || null,
+        });
+        setMergeOpen(false);
+        setMessage(
+          `Merged into ${res.keepName}. ${res.postsMoved} stor${res.postsMoved === 1 ? 'y' : 'ies'} moved.`
+        );
+        router.refresh();
+      } catch (e) {
+        setMessage(e instanceof Error ? e.message : 'Merge failed');
       }
     });
   };
@@ -238,10 +275,30 @@ export default function UsersManager({
 
         <button
           type="button"
+          onClick={() => openMerge()}
+          className="font-sans"
+          style={{
+            marginLeft: 'auto',
+            borderRadius: '999px',
+            gap: '0.4rem',
+            display: 'inline-flex',
+            alignItems: 'center',
+            padding: '0.55rem 1.15rem',
+            border: '1px solid var(--border)',
+            background: 'var(--surface)',
+            cursor: 'pointer',
+            fontWeight: 600,
+            fontSize: '0.9rem',
+            color: 'var(--foreground)',
+          }}
+        >
+          <GitMerge size={16} /> Merge authors
+        </button>
+        <button
+          type="button"
           onClick={() => setAddOpen(true)}
           className="btn btn-primary font-sans"
           style={{
-            marginLeft: 'auto',
             borderRadius: '999px',
             gap: '0.4rem',
             display: 'inline-flex',
@@ -431,6 +488,27 @@ export default function UsersManager({
                       <button
                         type="button"
                         disabled={pending}
+                        onClick={() => openMerge(user.id)}
+                        title="Merge this person into someone else"
+                        className="font-sans"
+                        style={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: '50%',
+                          border: 'none',
+                          background: 'var(--surface-hover)',
+                          color: 'var(--muted)',
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <GitMerge size={15} />
+                      </button>
+                      <button
+                        type="button"
+                        disabled={pending}
                         onClick={() => toggleArchive(user.id, archived)}
                         title={archived ? 'Restore' : 'Archive'}
                         className="font-sans"
@@ -605,6 +683,165 @@ export default function UsersManager({
                 }}
               >
                 {pending ? 'Adding…' : 'Create & send invite'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {mergeOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Merge authors"
+          onClick={() => !pending && setMergeOpen(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 80,
+            background: 'rgba(27, 34, 83, 0.35)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '1rem',
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: '100%',
+              maxWidth: 480,
+              background: 'var(--background)',
+              borderRadius: '1.15rem',
+              padding: '1.5rem',
+              boxShadow: '0 24px 48px rgba(27, 34, 83, 0.18)',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: '0.35rem',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: '50%',
+                    background: 'rgba(27, 34, 83, 0.1)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--primary)',
+                  }}
+                >
+                  <GitMerge size={18} />
+                </div>
+                <h2 className="font-serif" style={{ fontSize: '1.35rem', margin: 0 }}>
+                  Merge authors
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMergeOpen(false)}
+                style={{
+                  border: 'none',
+                  background: 'var(--surface-hover)',
+                  borderRadius: '50%',
+                  width: 32,
+                  height: 32,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <p className="font-sans text-muted" style={{ fontSize: '0.88rem', lineHeight: 1.5, marginBottom: '1.25rem' }}>
+              Stories, logins, and the About roster follow the person who stays. The duplicate is archived and their
+              old author page redirects here.
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+              <div>
+                <label className="font-sans" style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--muted)' }}>
+                  Keep this person
+                </label>
+                <select
+                  value={keepId}
+                  onChange={(e) => {
+                    const id = e.target.value;
+                    setKeepId(id);
+                    const u = users.find((x) => x.id === id);
+                    setKeepName(u?.name || '');
+                  }}
+                  style={{ ...fieldStyle, marginTop: '0.35rem' }}
+                >
+                  <option value="">Select…</option>
+                  {users
+                    .filter((u) => u.id !== foldId)
+                    .map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {(u.name || 'Unnamed') +
+                          (u.archivedAt ? ' (archived)' : '') +
+                          ` · ${u._count?.posts ?? 0} stories` +
+                          (u.email ? ` · ${u.email}` : '')}
+                      </option>
+                    ))}
+                </select>
+              </div>
+              <div>
+                <label className="font-sans" style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--muted)' }}>
+                  Merge this duplicate into them
+                </label>
+                <select
+                  value={foldId}
+                  onChange={(e) => setFoldId(e.target.value)}
+                  style={{ ...fieldStyle, marginTop: '0.35rem' }}
+                >
+                  <option value="">Select…</option>
+                  {users
+                    .filter((u) => u.id !== keepId && u.id !== currentUserId)
+                    .map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {(u.name || 'Unnamed') +
+                          (u.archivedAt ? ' (archived)' : '') +
+                          ` · ${u._count?.posts ?? 0} stories` +
+                          (u.email ? ` · ${u.email}` : '')}
+                      </option>
+                    ))}
+                </select>
+              </div>
+              <div>
+                <label className="font-sans" style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--muted)' }}>
+                  Public name after merge
+                </label>
+                <input
+                  value={keepName}
+                  onChange={(e) => setKeepName(e.target.value)}
+                  placeholder="How they should appear"
+                  style={{ ...fieldStyle, marginTop: '0.35rem' }}
+                />
+              </div>
+              <button
+                type="button"
+                className="btn btn-primary font-sans"
+                disabled={pending || !keepId || !foldId || !keepName.trim()}
+                onClick={mergeUsers}
+                style={{
+                  marginTop: '0.5rem',
+                  borderRadius: '999px',
+                  width: '100%',
+                  padding: '0.85rem',
+                }}
+              >
+                {pending ? 'Merging…' : 'Merge and archive the duplicate'}
               </button>
             </div>
           </div>

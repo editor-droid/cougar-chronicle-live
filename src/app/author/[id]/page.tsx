@@ -1,19 +1,36 @@
 import prisma from '@/lib/prisma';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { getArticleUrl } from '@/lib/routes';
 import type { Metadata, ResolvingMetadata } from 'next';
+import { buildFirstNameIndex, namesMatch } from '@/lib/bylines';
+import { SITE_KEYS } from '@/lib/site-content';
+
+async function resolveAuthor(id: string) {
+  const author = await prisma.user.findUnique({ where: { id } });
+  if (!author) notFound();
+  if (author.archivedAt) {
+    const row = await prisma.siteSetting.findUnique({ where: { key: SITE_KEYS.authorRedirects } });
+    let map: Record<string, string> = {};
+    if (row?.value) {
+      try {
+        map = JSON.parse(row.value) as Record<string, string>;
+      } catch {
+        map = {};
+      }
+    }
+    if (map[id]) redirect(`/author/${map[id]}`);
+  }
+  return author;
+}
 
 export async function generateMetadata(
   { params }: { params: Promise<{ id: string }> },
   parent: ResolvingMetadata
 ): Promise<Metadata> {
   const { id } = await params;
-  
-  const user = await prisma.user.findUnique({
-    where: { id }
-  });
+  const user = await prisma.user.findUnique({ where: { id } });
 
   if (!user) {
     return {
@@ -40,30 +57,30 @@ export async function generateMetadata(
 
 export default async function AuthorPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  
-  const author = await prisma.user.findUnique({
-    where: { id },
-  });
+  const author = await resolveAuthor(id);
 
-  if (!author) {
-    notFound();
-  }
-
-  // Include pieces assigned to this account and bylines that match their name
-  // (common when print / guest bylines use customAuthor).
-  const posts = await prisma.post.findMany({
+  // Account-assigned pieces plus matching bylines, including joint "A and B" credits.
+  const name = author.name?.trim();
+  const candidates = await prisma.post.findMany({
     where: {
       state: 'PUBLISHED',
       publishedAt: { lte: new Date() },
       OR: [
         { authorId: author.id },
-        ...(author.name
-          ? [{ customAuthor: { equals: author.name, mode: 'insensitive' as const } }]
+        ...(name
+          ? [{ customAuthor: { contains: name, mode: 'insensitive' as const } }]
           : []),
       ],
     },
     orderBy: { publishedAt: { sort: 'desc', nulls: 'last' } },
   });
+  const firstNameIndex = buildFirstNameIndex(name ? [name] : []);
+  const posts = name
+    ? candidates.filter((p) => {
+        if (namesMatch(name, p.customAuthor || '', firstNameIndex)) return true;
+        return p.authorId === author.id && !p.customAuthor?.trim();
+      })
+    : candidates.filter((p) => p.authorId === author.id);
 
   return (
     <div className="container" style={{ padding: '1rem', maxWidth: '1200px', margin: '0 auto' }}>

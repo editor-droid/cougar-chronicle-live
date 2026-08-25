@@ -1,6 +1,14 @@
 import prisma from '@/lib/prisma';
 import { getArticleUrl } from '@/lib/routes';
 import {
+  buildFirstNameIndex,
+  isJointByline,
+  isOrgByline,
+  namesMatch,
+  normName,
+  splitBylineNames,
+} from '@/lib/bylines';
+import {
   TEAM_GROUP_LABELS,
   type TeamGroup,
   type TeamMember,
@@ -35,86 +43,6 @@ type PostRow = {
   authorId: string;
   authorName: string | null;
 };
-
-const ORG_BYLINES = new Set([
-  'the cougar chronicle',
-  'cougar chronicle',
-  'editorial board',
-  'staff',
-  'staff writer',
-  'guest contributor',
-]);
-
-function normName(value: string | null | undefined): string {
-  return (value || '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, ' ')
-    .trim();
-}
-
-function isOrgByline(name: string): boolean {
-  return ORG_BYLINES.has(normName(name));
-}
-
-function editDistance(a: string, b: string): number {
-  if (a === b) return 0;
-  if (!a.length) return b.length;
-  if (!b.length) return a.length;
-  const prev = new Array(b.length + 1);
-  const cur = new Array(b.length + 1);
-  for (let j = 0; j <= b.length; j++) prev[j] = j;
-  for (let i = 1; i <= a.length; i++) {
-    cur[0] = i;
-    for (let j = 1; j <= b.length; j++) {
-      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
-      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + cost);
-    }
-    for (let j = 0; j <= b.length; j++) prev[j] = cur[j];
-  }
-  return prev[b.length];
-}
-
-const FIRST_ALIASES: Record<string, string> = {
-  alex: 'alexander',
-  alexander: 'alexander',
-  tommy: 'thomas',
-  tom: 'thomas',
-  thomas: 'thomas',
-  sam: 'samuel',
-  samuel: 'samuel',
-  liz: 'elizabeth',
-  eliza: 'elizabeth',
-  elizabeth: 'elizabeth',
-};
-
-function canonFirst(first: string): string {
-  return FIRST_ALIASES[first] || first;
-}
-
-/** Exact, close spelling (Horde/Hord), first+last aliases, or unique first name (Tommy). */
-function namesMatch(person: string, byline: string, firstNameIndex: Map<string, string[]>): boolean {
-  const a = normName(person);
-  const b = normName(byline);
-  if (!a || !b) return false;
-  if (a === b) return true;
-  if (/\band\b/.test(b)) return false;
-  if (Math.max(a.length, b.length) >= 6 && editDistance(a, b) <= 2) return true;
-  const aParts = a.split(' ');
-  const bParts = b.split(' ');
-  if (aParts.length >= 2 && bParts.length >= 2) {
-    const aLast = aParts[aParts.length - 1];
-    const bLast = bParts[bParts.length - 1];
-    if (aLast === bLast && canonFirst(aParts[0]) === canonFirst(bParts[0])) return true;
-    if (aLast.length >= 5 && bLast.length >= 5 && editDistance(aLast, bLast) <= 1 && canonFirst(aParts[0]) === canonFirst(bParts[0])) {
-      return true;
-    }
-  }
-  const first = bParts[0];
-  if (bParts.length === 1 && firstNameIndex.get(first)?.length === 1) {
-    return firstNameIndex.get(first)![0] === a;
-  }
-  return false;
-}
 
 function isoDay(d: Date | null | undefined): string | null {
   if (!d) return null;
@@ -250,15 +178,7 @@ export async function getStaffOrganizerData(): Promise<StaffOrganizerData> {
     ...team.map((m) => m.name),
     ...users.map((u) => u.name || ''),
   ].filter(Boolean);
-  const firstNameIndex = new Map<string, string[]>();
-  for (const name of knownPeople) {
-    const n = normName(name);
-    const first = n.split(' ')[0];
-    if (!first) continue;
-    const list = firstNameIndex.get(first) || [];
-    if (!list.includes(n)) list.push(n);
-    firstNameIndex.set(first, list);
-  }
+  const firstNameIndex = buildFirstNameIndex(knownPeople);
 
   function attachUser(member: TeamMember) {
     if (member.userId && userById.has(member.userId)) return userById.get(member.userId)!;
@@ -280,6 +200,21 @@ export async function getStaffOrganizerData(): Promise<StaffOrganizerData> {
     );
   }
 
+  /** Solo bylines are exclusive. Joint "A and B" stays available so both people get credit. */
+  function claimSoloMatches(personName: string, userId: string | null) {
+    for (const p of postRows) {
+      const byline = bylineOf(p);
+      if (isOrgByline(byline.name)) continue;
+      if (isJointByline(byline.name)) continue;
+      if (namesMatch(personName, byline.name, firstNameIndex)) claimedPostIds.add(p.id);
+      else if (userId && !p.customAuthor && p.authorId === userId && !byline.name) claimedPostIds.add(p.id);
+    }
+  }
+
+  function personIsKnown(part: string): boolean {
+    return knownPeople.some((k) => namesMatch(k, part, firstNameIndex));
+  }
+
   for (const member of team) {
     if (!member.name.trim()) continue;
     const user = attachUser(member);
@@ -287,12 +222,7 @@ export async function getStaffOrganizerData(): Promise<StaffOrganizerData> {
     usedNames.add(normName(member.name));
 
     const stats = takePostsFor(member.name, user?.id || member.userId || null);
-    for (const p of postRows) {
-      const byline = bylineOf(p);
-      if (isOrgByline(byline.name)) continue;
-      if (namesMatch(member.name, byline.name, firstNameIndex)) claimedPostIds.add(p.id);
-      else if (user && !p.customAuthor && p.authorId === user.id && !byline.name) claimedPostIds.add(p.id);
-    }
+    claimSoloMatches(member.name, user?.id || member.userId || null);
 
     const joinedAt = member.joinedAt || null;
     const tenureStart = joinedAt || isoDay(stats.firstPublishedAt);
@@ -330,12 +260,7 @@ export async function getStaffOrganizerData(): Promise<StaffOrganizerData> {
 
     const displayName = user.name || user.email || 'Staff account';
     const stats = takePostsFor(displayName, user.id);
-    for (const p of postRows) {
-      const byline = bylineOf(p);
-      if (isOrgByline(byline.name)) continue;
-      if (namesMatch(displayName, byline.name, firstNameIndex)) claimedPostIds.add(p.id);
-      else if (!p.customAuthor && p.authorId === user.id && !byline.name) claimedPostIds.add(p.id);
-    }
+    claimSoloMatches(displayName, user.id);
 
     rows.push({
       key: `user:${user.id}`,
@@ -369,6 +294,15 @@ export async function getStaffOrganizerData(): Promise<StaffOrganizerData> {
     const byline = bylineOf(post);
     const n = normName(byline.name);
     if (!n || isOrgByline(byline.name)) continue;
+    const parts = splitBylineNames(byline.name);
+    if (parts.length > 1) {
+      for (const part of parts) {
+        if (personIsKnown(part)) continue;
+        const key = normName(part);
+        if (key && !leftoverNames.has(key)) leftoverNames.set(key, part);
+      }
+      continue;
+    }
     if (!leftoverNames.has(n)) leftoverNames.set(n, byline.name);
   }
 
