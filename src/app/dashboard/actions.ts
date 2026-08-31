@@ -558,10 +558,24 @@ export async function createStaffUser(data: {
         data: { identifier: email, token, expires },
       });
 
-      const origin =
-        process.env.NEXTAUTH_URL ||
-        process.env.AUTH_URL ||
-        'https://thecougarchronicle.com';
+      const originCandidates = [
+        process.env.NEXTAUTH_URL,
+        process.env.AUTH_URL,
+        process.env.NEXT_PUBLIC_SITE_URL,
+      ];
+      let origin = 'https://thecougarchronicle.com';
+      for (const raw of originCandidates) {
+        if (!raw) continue;
+        try {
+          const url = new URL(raw);
+          const isLocal = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
+          if (isLocal && process.env.NODE_ENV === 'production') continue;
+          origin = url.origin;
+          break;
+        } catch {
+          // ignore malformed env values
+        }
+      }
       const resetLink = `${origin}/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
       const roleLabel =
         role === 'ADMIN' ? 'an administrator' : role === 'EDITOR' ? 'an editor' : 'a writer';

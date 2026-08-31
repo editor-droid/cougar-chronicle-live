@@ -1,6 +1,5 @@
 import Link from 'next/link';
-import prisma from '@/lib/prisma';
-import bcrypt from 'bcryptjs';
+import { resetPassword } from './actions';
 
 import type { Metadata } from 'next';
 
@@ -20,12 +19,24 @@ export const metadata: Metadata = {
   },
 };
 
+function first(value: string | string[] | undefined): string {
+  if (Array.isArray(value)) return value[0] || '';
+  return value || '';
+}
 
-export default function ResetPasswordPage({ searchParams }: { searchParams?: { token?: string, email?: string, error?: string, success?: string } }) {
-  const token = searchParams?.token;
-  const email = searchParams?.email;
-  const error = searchParams?.error;
-  const success = searchParams?.success === 'true';
+export default async function ResetPasswordPage(props: {
+  searchParams: Promise<{
+    token?: string | string[];
+    email?: string | string[];
+    error?: string | string[];
+    success?: string | string[];
+  }>;
+}) {
+  const searchParams = await props.searchParams;
+  const token = first(searchParams.token);
+  const email = first(searchParams.email);
+  const error = first(searchParams.error);
+  const success = first(searchParams.success) === 'true';
 
   if (!token || !email) {
     return (
@@ -40,7 +51,7 @@ export default function ResetPasswordPage({ searchParams }: { searchParams?: { t
   return (
     <div className="container animate-fade-in" style={{ maxWidth: '400px', marginTop: '1rem', marginBottom: '8rem' }}>
       <h1 className="font-serif text-center" style={{ marginBottom: '1rem', fontSize: '2rem' }}>Create New Password</h1>
-      
+
       {success ? (
         <div style={{ textAlign: 'center' }}>
           <p className="font-sans text-sm" style={{ color: 'green', marginBottom: '2rem', padding: '1rem', backgroundColor: '#e8f5e9', borderRadius: '0.5rem', border: '1px solid #c8e6c9' }}>
@@ -59,54 +70,11 @@ export default function ResetPasswordPage({ searchParams }: { searchParams?: { t
           )}
 
           <form
-            action={async (formData) => {
-              'use server';
-              const password = formData.get('password') as string;
-              const confirmPassword = formData.get('confirmPassword') as string;
-              
-              if (password !== confirmPassword) {
-                const { redirect } = await import('next/navigation');
-                redirect(`/reset-password?token=${token}&email=${encodeURIComponent(email)}&error=mismatch`);
-              }
-
-              try {
-                // 1. Verify token
-                const dbToken = await prisma.verificationToken.findFirst({
-                  where: { identifier: email, token }
-                });
-
-                if (!dbToken || dbToken.expires < new Date()) {
-                  const { redirect } = await import('next/navigation');
-                  redirect(`/reset-password?token=${token}&email=${encodeURIComponent(email)}&error=invalid`);
-                }
-
-                // 2. Hash new password and update user
-                const hashedPassword = await bcrypt.hash(password, 10);
-                await prisma.user.update({
-                  where: { email },
-                  data: { password: hashedPassword }
-                });
-
-                // 3. Delete the used token
-                await prisma.verificationToken.delete({
-                  where: {
-                    identifier_token: {
-                      identifier: email,
-                      token
-                    }
-                  }
-                });
-
-                const { redirect } = await import('next/navigation');
-                redirect(`/reset-password?token=${token}&email=${encodeURIComponent(email)}&success=true`);
-              } catch (e) {
-                console.error(e);
-                const { redirect } = await import('next/navigation');
-                redirect(`/reset-password?token=${token}&email=${encodeURIComponent(email)}&error=error`);
-              }
-            }}
+            action={resetPassword}
             style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
           >
+            <input type="hidden" name="token" value={token} />
+            <input type="hidden" name="email" value={email} />
             <div>
               <label className="font-sans text-sm" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>New Password</label>
               <input type="password" name="password" required minLength={8} placeholder="••••••••" />
@@ -115,7 +83,7 @@ export default function ResetPasswordPage({ searchParams }: { searchParams?: { t
               <label className="font-sans text-sm" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Confirm New Password</label>
               <input type="password" name="confirmPassword" required minLength={8} placeholder="••••••••" />
             </div>
-            
+
             <button type="submit" className="btn btn-primary" style={{ marginTop: '0.5rem', width: '100%', padding: '0.75rem' }}>
               Reset Password
             </button>
