@@ -1,5 +1,6 @@
 import prisma from '@/lib/prisma';
 import { notFound } from 'next/navigation';
+import { after } from 'next/server';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -118,12 +119,12 @@ export default async function VideoWatchPage({ params }: Props) {
     }
   }
 
-  // Page view (same simple model as articles)
-  await prisma.video.update({
-    where: { id: video.id },
-    data: { views: { increment: 1 } },
+  after(async () => {
+    await prisma.video.update({
+      where: { id: video.id },
+      data: { views: { increment: 1 } },
+    }).catch(() => {});
   });
-  video = { ...video, views: video.views + 1 };
 
   // Full playlist order for next/prev (newest first, matches library)
   const playlist = await prisma.video.findMany({

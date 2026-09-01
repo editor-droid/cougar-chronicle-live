@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { track } from '@/lib/ga-client';
 
 export default function SubscribeForm({ onSuccess }: { onSuccess?: () => void }) {
   const [name, setName] = useState('');
@@ -29,11 +30,10 @@ export default function SubscribeForm({ onSuccess }: { onSuccess?: () => void })
         setName('');
         
         if (typeof window !== 'undefined') {
-          if ((window as any).gtag) {
-            (window as any).gtag('event', 'generate_lead', { currency: 'USD', value: 0 });
-          }
-          if ((window as any).fbq) {
-            (window as any).fbq('track', 'Lead');
+          track('generate_lead', { currency: 'USD', value: 0 });
+          track('sign_up', { method: 'newsletter' });
+          if (window.fbq) {
+            window.fbq('track', 'Lead');
           }
           console.log('[Tracking] Lead event fired');
         }

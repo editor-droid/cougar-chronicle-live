@@ -1,5 +1,6 @@
 import prisma from '@/lib/prisma';
 import { notFound, redirect } from 'next/navigation';
+import { after } from 'next/server';
 import Image from 'next/image';
 import type { Metadata, ResolvingMetadata } from 'next';
 import { auth } from '@/auth';
@@ -15,6 +16,7 @@ import GiftSaveBanner from '@/components/GiftSaveBanner';
 import { getRelatedPosts } from '@/lib/related';
 import { injectHeadingIds } from '@/lib/toc';
 import { getArticleUrl } from '@/lib/routes';
+import { findPublishedPostBySlug } from '@/lib/legacy-slugs';
 import { buildNewsArticleJsonLdWithVideos } from '@/lib/article-videos';
 import { enhanceArticleVideoEmbeds } from '@/lib/embed-utils';
 import { rewriteMediaUrl } from '@/lib/media-url';
@@ -27,16 +29,17 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { slug } = await params;
 
-  const post = await prisma.post.findUnique({
-    where: { slug, state: 'PUBLISHED' },
-    include: { author: true },
-  });
+  const post = await findPublishedPostBySlug(slug);
 
   if (!post) {
     return {
       title: 'Article Not Found',
       description: 'The requested article could not be found.',
     };
+  }
+
+  if (post.slug !== slug) {
+    redirect(getArticleUrl(post));
   }
 
   return buildArticleMetadata(post);
@@ -46,23 +49,22 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
   const { slug } = await params;
   const { token } = await searchParams;
   
-  const post = await prisma.post.findUnique({
-    where: { slug, state: 'PUBLISHED' },
-    include: { author: true }
-  });
+  const post = await findPublishedPostBySlug(slug);
 
   if (!post) {
     notFound();
+  }
+
+  if (post.slug !== slug) {
+    redirect(getArticleUrl(post));
   }
 
   if (post.printEditionId || !post.isPremium) {
     redirect(getArticleUrl(post));
   }
 
-  // Analytics: Increment views
-  await prisma.post.update({
-    where: { id: post.id },
-    data: { views: { increment: 1 } }
+  after(async () => {
+    await prisma.post.update({ where: { id: post.id }, data: { views: { increment: 1 } } }).catch(() => {});
   });
 
   // Check access for premium articles
@@ -178,6 +180,7 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
                 authorId={post.authorId}
                 authorName={post.author.name}
                 customAuthor={post.customAuthor}
+                authorSlug={post.author.slug}
               />
               <ShareButton title={post.title} text={`${post.title} — The Cougar Chronicle`} />
               <span>•</span>

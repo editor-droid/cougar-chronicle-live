@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import prisma from '@/lib/prisma';
 import { buildFirstNameIndex, namesMatch, splitBylineNames } from '@/lib/bylines';
+import { authorPath } from '@/lib/author-slug';
 
 const linkStyle: React.CSSProperties = { textDecoration: 'none', color: 'inherit' };
 
@@ -8,10 +9,12 @@ export default async function ArticleByline({
   authorId,
   authorName,
   customAuthor,
+  authorSlug,
 }: {
   authorId: string;
   authorName: string | null | undefined;
   customAuthor: string | null | undefined;
+  authorSlug?: string | null;
 }) {
   const display = (customAuthor || authorName || 'Staff').trim() || 'Staff';
   const parts = splitBylineNames(display);
@@ -20,7 +23,7 @@ export default async function ArticleByline({
     return (
       <span style={{ fontWeight: 600 }}>
         By{' '}
-        <Link href={`/author/${authorId}`} style={linkStyle} className="hover:text-primary transition-colors">
+        <Link href={authorPath({ id: authorId, slug: authorSlug })} style={linkStyle} className="hover:text-primary transition-colors">
           {display}
         </Link>
       </span>
@@ -33,7 +36,7 @@ export default async function ArticleByline({
       name: { not: null },
       role: { in: ['WRITER', 'EDITOR', 'ADMIN'] },
     },
-    select: { id: true, name: true },
+    select: { id: true, name: true, slug: true },
   });
   const firstNameIndex = buildFirstNameIndex(users.map((u) => u.name || ''));
 
@@ -44,7 +47,7 @@ export default async function ArticleByline({
         const user = users.find((u) => namesMatch(u.name || '', part, firstNameIndex));
         const sep = i === 0 ? '' : i === parts.length - 1 ? ' and ' : ', ';
         const node = user ? (
-          <Link href={`/author/${user.id}`} style={linkStyle} className="hover:text-primary transition-colors">
+          <Link href={authorPath(user)} style={linkStyle} className="hover:text-primary transition-colors">
             {part}
           </Link>
         ) : (

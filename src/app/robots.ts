@@ -10,6 +10,6 @@ export default function robots(): MetadataRoute.Robots {
       // Premium/print HTML teasers are indexable (paywall body). Block staff tools only.
       disallow: ['/dashboard/', '/login', '/account', '/api/', '/restore-purchases'],
     },
-    sitemap: `${baseUrl}/sitemap.xml`,
+    sitemap: [`${baseUrl}/sitemap.xml`, `${baseUrl}/news-sitemap.xml`],
   };
 }

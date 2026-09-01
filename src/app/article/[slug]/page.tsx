@@ -1,9 +1,8 @@
 import prisma from '@/lib/prisma';
 import { notFound, redirect } from 'next/navigation';
+import { after } from 'next/server';
 import Image from 'next/image';
 import type { Metadata, ResolvingMetadata } from 'next';
-import { auth } from '@/auth';
-import { cookies } from 'next/headers';
 import Link from 'next/link';
 import ClientLightbox from './ClientLightbox';
 import ArticleByline from '@/components/ArticleByline';
@@ -12,6 +11,7 @@ import KeyTakeaways from '@/components/KeyTakeaways';
 import VideoHighlights from '@/components/VideoHighlights';
 import { injectHeadingIds } from '@/lib/toc';
 import { getArticleUrl } from '@/lib/routes';
+import { findPublishedPostBySlug } from '@/lib/legacy-slugs';
 import { resolveStreamEmbedUrl, resolveStreamThumbnailUrl } from '@/lib/videos';
 import FavoriteButton from '@/components/FavoriteButton';
 import ShareButton from '@/components/ShareButton';
@@ -32,10 +32,7 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { slug } = await params;
 
-  const post = await prisma.post.findUnique({
-    where: { slug, state: 'PUBLISHED' },
-    include: { author: true },
-  });
+  const post = await findPublishedPostBySlug(slug);
 
   if (!post) {
     return {
@@ -44,69 +41,35 @@ export async function generateMetadata(
     };
   }
 
+  if (post.slug !== slug) {
+    redirect(getArticleUrl(post));
+  }
+
   return buildArticleMetadata(post);
 }
 
-export default async function ArticlePage({ params, searchParams }: { params: Promise<{ slug: string }>, searchParams: Promise<{ token?: string }> }) {
+export default async function ArticlePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const { token } = await searchParams;
-  
-  const post = await prisma.post.findUnique({
-    where: { slug, state: 'PUBLISHED' },
-    include: { author: true }
-  });
+
+  const post = await findPublishedPostBySlug(slug);
 
   if (!post) {
     notFound();
+  }
+
+  if (post.slug !== slug) {
+    redirect(getArticleUrl(post));
   }
 
   if (post.printEditionId || post.isPremium) {
     redirect(getArticleUrl(post));
   }
 
-  // Analytics: Increment views
-  await prisma.post.update({
-    where: { id: post.id },
-    data: { views: { increment: 1 } }
+  after(async () => {
+    await prisma.post.update({ where: { id: post.id }, data: { views: { increment: 1 } } }).catch(() => {});
   });
 
-  const session = await auth();
-  let initialFavorited = false;
-  if (session?.user?.id) {
-    const fav = await prisma.favorite.findUnique({
-      where: { userId_postId: { userId: session.user.id, postId: post.id } }
-    });
-    if (fav) initialFavorited = true;
-  }
-
-  // Check access for premium articles
-  let hasAccess = !post.isPremium;
-  
-  if (post.isPremium) {
-    // 1. Check if user is logged in and subscribed
-    if (session?.user?.id) {
-      const user = await prisma.user.findUnique({ where: { id: session.user.id } });
-      if (user?.isSubscribed || user?.role === 'ADMIN' || user?.role === 'EDITOR' || post.authorId === user?.id) {
-        hasAccess = true;
-      }
-    }
-    
-    // 2. Check if they have a valid magic token from buying the article individually
-    if (!hasAccess) {
-      const cookieStore = await cookies();
-      const cookieToken = cookieStore.get(`article_token_${post.id}`)?.value;
-      const tokenToCheck = cookieToken || token;
-
-      if (tokenToCheck) {
-        const validToken = await prisma.articleToken.findUnique({
-          where: { token: tokenToCheck }
-        });
-        if (validToken && validToken.postId === post.id) {
-          hasAccess = true;
-        }
-      }
-    }
-  }
+  const hasAccess = !post.isPremium;
 
   // Isolate flows: regular articles only link to regular articles
   const nextPost = await prisma.post.findFirst({
@@ -225,9 +188,10 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
                 authorId={post.authorId}
                 authorName={post.author.name}
                 customAuthor={post.customAuthor}
+                authorSlug={post.author.slug}
               />
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.65rem' }}>
-                <FavoriteButton postId={post.id} initialFavorited={initialFavorited} />
+                <FavoriteButton postId={post.id} initialFavorited={false} />
                 <ShareButton
                   title={post.title}
                   text={`${post.title} — The Cougar Chronicle`}

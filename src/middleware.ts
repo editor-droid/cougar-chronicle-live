@@ -32,9 +32,14 @@ export default function middleware(req: NextRequest, event: NextFetchEvent) {
 
 export const config = {
   matcher: [
-    // App routes (auth) — skip static assets only
-    '/((?!api|_next/static|.*\\.png$).*)',
-    // Also run on image optimizer so we can swap r2.dev → cdn
+    // Staff/auth only — public HTML must not get NextAuth CSRF cookies
+    '/dashboard',
+    '/dashboard/:path*',
+    '/login',
+    '/account',
+    '/account/:path*',
+    '/restore-purchases',
+    // Image optimizer so we can swap r2.dev → cdn (no auth)
     '/_next/image',
   ],
 };

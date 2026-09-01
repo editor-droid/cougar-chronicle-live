@@ -10,6 +10,8 @@ const nextConfig: NextConfig = {
   turbopack: {},
   images: {
     formats: ['image/avif', 'image/webp'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     remotePatterns: [
       {
         protocol: 'https',
@@ -71,6 +73,18 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
+      {
+        source: '/',
+        has: [{ type: 'host', value: 'www.thecougarchronicle.com' }],
+        destination: 'https://thecougarchronicle.com/',
+        permanent: true,
+      },
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.thecougarchronicle.com' }],
+        destination: 'https://thecougarchronicle.com/:path*',
+        permanent: true,
+      },
       {
         source: '/join',
         destination: '/recruiting',
@@ -153,6 +167,11 @@ const nextConfig: NextConfig = {
       {
         source: '/article/:slug',
         destination: '/:slug',
+        permanent: true,
+      },
+      {
+        source: '/byu-news',
+        destination: '/news',
         permanent: true,
       },
     ];

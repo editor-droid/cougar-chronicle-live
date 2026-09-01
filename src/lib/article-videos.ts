@@ -399,9 +399,12 @@ export async function buildNewsArticleJsonLdWithVideos(
     publisher: {
       '@type': 'Organization',
       name: 'The Cougar Chronicle',
+      url: 'https://thecougarchronicle.com',
       logo: {
         '@type': 'ImageObject',
-        url: 'https://thecougarchronicle.com/icon.png',
+        url: 'https://thecougarchronicle.com/publisher-logo.svg',
+        width: 600,
+        height: 60,
       },
     },
     mainEntityOfPage: {

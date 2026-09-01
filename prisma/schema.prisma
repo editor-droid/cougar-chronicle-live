@@ -23,6 +23,7 @@ enum PostState {
 model User {
   id                String             @id @default(cuid())
   name              String?
+  slug              String?            @unique
   email             String?            @unique
   emailVerified     DateTime?
   password          String?

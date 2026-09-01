@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import prisma from '@/lib/prisma';
 import { sendOneEmail } from '@/lib/email';
+import { sendGa4Purchase } from '@/lib/ga-mp';
 
 export async function POST(req: Request) {
   const stripeKey = process.env.STRIPE_SECRET_KEY || 'sk_test_fallback_so_build_does_not_crash';
@@ -215,6 +216,30 @@ export async function POST(req: Request) {
         } catch (e) {
           console.error('Article purchase email failed', e);
         }
+      }
+    }
+
+    if (type === 'donation' || type === 'subscription') {
+      try {
+        const amountTotal = session.amount_total ? session.amount_total / 100 : 0;
+        const isDonation = type === 'donation';
+        await sendGa4Purchase({
+          clientId: session.id,
+          transactionId: session.id,
+          value: amountTotal,
+          items: [
+            {
+              item_id: isDonation ? 'donation' : 'membership',
+              item_name: isDonation ? 'Donation' : 'Membership',
+              price: amountTotal,
+              quantity: 1,
+            },
+          ],
+          campaign: session.metadata?.campaign || (isDonation ? 'general' : 'membership'),
+          source: session.metadata?.source || (isDonation ? 'unknown' : 'checkout'),
+        });
+      } catch (e) {
+        console.error('[ga-mp] webhook purchase tracking failed', e);
       }
     }
   }

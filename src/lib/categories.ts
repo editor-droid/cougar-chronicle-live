@@ -58,6 +58,9 @@ export const PUBLIC_SECTIONS = [
       'Campus opinion BYU',
       'Brigham Young University campus',
       'Provo campus news',
+      'ROC pass',
+      'Cougareat',
+      'honor code',
     ],
   },
   {

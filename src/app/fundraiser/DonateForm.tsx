@@ -5,6 +5,7 @@ import {
   AUGUST_MEMBERSHIP_MIN,
   AUGUST_SUPPORTER_MIN,
 } from '@/lib/membership-constants';
+import { track } from '@/lib/ga-client';
 
 type DonateFormProps = {
   /** Preserved when landing from an article blurb, etc. */
@@ -186,7 +187,13 @@ export default function DonateForm({ sourceFrom, articleSlug }: DonateFormProps 
         </div>
       </div>
 
-      <form action="/api/stripe/checkout" method="POST">
+      <form
+        action="/api/stripe/checkout"
+        method="POST"
+        onSubmit={() => {
+          track('begin_checkout', { currency: 'USD', value: amount });
+        }}
+      >
         <input type="hidden" name="type" value="donate" />
         <input type="hidden" name="amount" value={amount} />
         <input

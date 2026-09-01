@@ -6,11 +6,13 @@ import { getArticleUrl } from '@/lib/routes';
 import type { Metadata, ResolvingMetadata } from 'next';
 import { buildFirstNameIndex, namesMatch } from '@/lib/bylines';
 import { SITE_KEYS } from '@/lib/site-content';
+import { authorPath, ensureAuthorSlug, resolveAuthorParam } from '@/lib/author-slug';
 
-async function resolveAuthor(id: string) {
-  const author = await prisma.user.findUnique({ where: { id } });
-  if (!author) notFound();
-  if (author.archivedAt) {
+async function resolveAuthor(param: string) {
+  const { user, matchedBy } = await resolveAuthorParam(param);
+  if (!user) notFound();
+
+  if (user.archivedAt) {
     const row = await prisma.siteSetting.findUnique({ where: { key: SITE_KEYS.authorRedirects } });
     let map: Record<string, string> = {};
     if (row?.value) {
@@ -20,17 +22,27 @@ async function resolveAuthor(id: string) {
         map = {};
       }
     }
-    if (map[id]) redirect(`/author/${map[id]}`);
+    if (map[user.id]) redirect(`/author/${map[user.id]}`);
   }
-  return author;
+
+  if (matchedBy === 'id' && user.slug && param !== user.slug) {
+    redirect(authorPath(user));
+  }
+
+  if (!user.slug) {
+    const slug = await ensureAuthorSlug(user);
+    if (slug) redirect(authorPath({ id: user.id, slug }));
+  }
+
+  return user;
 }
 
 export async function generateMetadata(
   { params }: { params: Promise<{ id: string }> },
-  parent: ResolvingMetadata
+  _parent: ResolvingMetadata
 ): Promise<Metadata> {
   const { id } = await params;
-  const user = await prisma.user.findUnique({ where: { id } });
+  const { user } = await resolveAuthorParam(id);
 
   if (!user) {
     return {
@@ -38,9 +50,12 @@ export async function generateMetadata(
     };
   }
 
+  const canonical = authorPath(user);
+
   return {
     title: `${user.name || 'Author'} | The Cougar Chronicle`,
     description: `Read all articles written by ${user.name || 'Author'} on The Cougar Chronicle.`,
+    alternates: { canonical },
     openGraph: {
       title: `${user.name || 'Author'} | The Cougar Chronicle`,
       description: `Read all articles written by ${user.name || 'Author'} on The Cougar Chronicle.`,

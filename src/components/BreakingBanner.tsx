@@ -9,14 +9,36 @@ type BreakingItem = {
   id: string;
 };
 
-export default function BreakingBanner({ item }: { item: BreakingItem | null }) {
+export default function BreakingBanner({ item: itemProp }: { item?: BreakingItem | null } = {}) {
+  const [item, setItem] = useState<BreakingItem | null>(itemProp ?? null);
   const [dismissed, setDismissed] = useState(false);
+
+  useEffect(() => {
+    if (itemProp !== undefined) {
+      setItem(itemProp);
+      return;
+    }
+    let cancelled = false;
+    fetch('/api/breaking')
+      .then((res) => (res.ok ? res.json() : { item: null }))
+      .then((data: { item?: BreakingItem | null }) => {
+        if (!cancelled) setItem(data.item ?? null);
+      })
+      .catch(() => {
+        if (!cancelled) setItem(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [itemProp]);
 
   useEffect(() => {
     if (!item) return;
     try {
       if (sessionStorage.getItem(`breaking_dismissed_${item.id}`) === '1') {
         setDismissed(true);
+      } else {
+        setDismissed(false);
       }
     } catch {
       /* ignore */

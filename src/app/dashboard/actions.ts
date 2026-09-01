@@ -238,6 +238,8 @@ ${cleanContent}`,
 
   revalidatePath('/dashboard');
   revalidatePath('/');
+  revalidatePath('/news-sitemap.xml');
+  revalidatePath('/sitemap.xml');
 }
 
 async function ensureUniqueSlug(desired: string, excludeId?: string): Promise<string> {
@@ -385,6 +387,8 @@ export async function savePost(data: any) {
 
   revalidatePath('/dashboard');
   revalidatePath('/');
+  revalidatePath('/news-sitemap.xml');
+  revalidatePath('/sitemap.xml');
 }
 
 export async function updateUser(formData: FormData) {

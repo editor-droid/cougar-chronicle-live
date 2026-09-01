@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { DONATION_CAMPAIGN, DONATION_SOURCE } from '@/lib/donations';
+import { track } from '@/lib/ga-client';
 
 function DonateForm() {
   const searchParams = useSearchParams();
@@ -166,7 +167,13 @@ function DonateForm() {
           </div>
         </div>
 
-        <form action="/api/stripe/checkout" method="POST">
+        <form
+          action="/api/stripe/checkout"
+          method="POST"
+          onSubmit={() => {
+            track('begin_checkout', { currency: 'USD', value: amount });
+          }}
+        >
           <input type="hidden" name="type" value="donate" />
           <input type="hidden" name="amount" value={amount} />
           <input type="hidden" name="metadata" value={metadata} />

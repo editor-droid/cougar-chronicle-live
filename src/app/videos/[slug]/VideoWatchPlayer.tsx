@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { track } from '@/lib/ga-client';
 
 export type NavVideo = {
   slug: string;
@@ -41,6 +42,10 @@ export default function VideoWatchPlayer({
   const goPrev = useCallback(() => {
     if (prev) router.push(`/videos/${prev.slug}`);
   }, [prev, router]);
+
+  useEffect(() => {
+    track('video_start', { video_title: title });
+  }, [title]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

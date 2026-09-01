@@ -52,13 +52,13 @@ function InlineContactForm() {
   );
 }
 
-export default function Chatbot() {
-  const [isOpen, setIsOpen] = useState(false);
+export default function Chatbot({ initialOpen = false }: { initialOpen?: boolean } = {}) {
+  const [isOpen, setIsOpen] = useState(initialOpen);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [mounted, setMounted] = useState(false);
+  const [mounted, setMounted] = useState(initialOpen);
   const pathname = usePathname();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
