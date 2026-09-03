@@ -3,6 +3,7 @@ import { auth } from '@/auth';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import * as cheerio from 'cheerio';
 import sharp from 'sharp';
+import { unwrapGoogleRedirect } from '@/lib/editor-links';
 
 const s3Client = new S3Client({
   region: 'auto',
@@ -50,6 +51,12 @@ export async function POST(request: Request) {
 
     // Clean up Google's styles and classes immediately
     $("*").removeAttr("class").removeAttr("style").removeAttr("id");
+
+    // Docs export wraps every href in https://www.google.com/url?q=…
+    $("a[href]").each((_, el) => {
+      const href = $(el).attr("href");
+      if (href) $(el).attr("href", unwrapGoogleRedirect(href));
+    });
 
     const parsedData: any = {
       title: "",

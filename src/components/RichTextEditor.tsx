@@ -19,6 +19,13 @@ import { VideoEmbed } from "../lib/VideoEmbedExtension";
 import { TweetEmbed } from "../lib/TweetEmbedExtension";
 import { parseVideoEmbedInput, type EmbedProvider } from "../lib/embed-utils";
 import { parseTweetInput, type TweetEmbedAttrs } from "../lib/tweet-embed";
+import {
+  applyLink,
+  captureLinkRange,
+  formatHref,
+  rewriteHtmlAnchors,
+  type LinkRange,
+} from "../lib/editor-links";
 import { streamEmbedUrl, youtubeEmbedUrl } from "../lib/videos";
 import TwitterEmbedHydrator from "./TwitterEmbedHydrator";
 import * as tus from "tus-js-client";
@@ -1517,20 +1524,7 @@ function Toolbar({
 }
 
 function formatUrl(url: string) {
-  const trimmed = url.trim();
-  if (!trimmed) return "";
-  if (
-    trimmed.startsWith("/") ||
-    trimmed.startsWith("#") ||
-    trimmed.startsWith("mailto:") ||
-    trimmed.startsWith("tel:")
-  ) {
-    return trimmed;
-  }
-  if (!/^https?:\/\//i.test(trimmed)) {
-    return `https://${trimmed}`;
-  }
-  return trimmed;
+  return formatHref(url);
 }
 
 function LinkInput({
@@ -1704,11 +1698,14 @@ function FloatingBubbleToolbar({
 }) {
   const [isInsertingLink, setIsInsertingLink] = useState(false);
   const [url, setUrl] = useState("");
+  const linkRange = useRef<LinkRange | null>(null);
+  const insertingRef = useRef(false);
   // Track selection range so link UI resets only when caret/range actually moves
   const lastFromTo = useRef({ from: -1, to: -1 });
 
   useEffect(() => {
     const handleReset = () => {
+      if (insertingRef.current) return;
       const { from, to } = editor.state.selection;
       if (from === lastFromTo.current.from && to === lastFromTo.current.to) return;
       lastFromTo.current = { from, to };
@@ -1740,12 +1737,16 @@ function FloatingBubbleToolbar({
         <LinkInput 
           initialUrl={url}
           onSave={(finalUrl) => {
+            insertingRef.current = false;
             if (finalUrl) {
-              editor.chain().focus().setLink({ href: finalUrl }).run();
+              applyLink(editor, finalUrl, linkRange.current);
             }
             setIsInsertingLink(false);
           }}
-          onCancel={() => setIsInsertingLink(false)}
+          onCancel={() => {
+            insertingRef.current = false;
+            setIsInsertingLink(false);
+          }}
         />
       ) : (
         <div
@@ -1834,7 +1835,11 @@ function FloatingBubbleToolbar({
 
         {/* Link / Image / Video — available on click, not only highlight */}
         <ToolbarButton
-          onClick={() => setIsInsertingLink(true)}
+          onClick={() => {
+            linkRange.current = captureLinkRange(editor);
+            insertingRef.current = true;
+            setIsInsertingLink(true);
+          }}
           active={editor.isActive("link")}
           title={editor.isActive("link") ? "Edit Link" : "Insert Link"}
           size="small"
@@ -1910,6 +1915,7 @@ function FloatingBubbleToolbar({
 function LinkBubbleMenu({ editor }: { editor: Editor }) {
   const [isEditing, setIsEditing] = useState(false);
   const [url, setUrl] = useState("");
+  const linkRange = useRef<LinkRange | null>(null);
 
   const isActive = editor.isActive("link");
 
@@ -1936,7 +1942,7 @@ function LinkBubbleMenu({ editor }: { editor: Editor }) {
           initialUrl={url}
           onSave={(finalUrl) => {
             if (finalUrl) {
-              editor.chain().focus().extendMarkRange("link").setLink({ href: finalUrl }).run();
+              applyLink(editor, finalUrl, linkRange.current ?? captureLinkRange(editor));
             }
             setIsEditing(false);
           }}
@@ -1974,7 +1980,10 @@ function LinkBubbleMenu({ editor }: { editor: Editor }) {
             </a>
             <div style={{ width: "1px", height: "1rem", background: "var(--border)", margin: "0 0.25rem" }} />
             <button
-              onClick={() => setIsEditing(true)}
+              onClick={() => {
+                linkRange.current = captureLinkRange(editor);
+                setIsEditing(true);
+              }}
               title="Edit Link"
               style={{ color: "var(--muted)", cursor: "pointer", background: "transparent", border: "none", padding: "0.25rem" }}
             >
@@ -2030,6 +2039,7 @@ export const RichTextEditor = forwardRef<
     initialUrl?: string;
     anchor: EmbedAnchor | null;
   }>({ open: false, mode: "video", anchor: null });
+  const pendingLinkRange = useRef<LinkRange | null>(null);
 
   const extensions = useMemo(() => [
     // Newer StarterKit ships link + underline — disable them so we only
@@ -2055,9 +2065,17 @@ export const RichTextEditor = forwardRef<
       },
     }),
     Heading.configure({ levels: [1, 2, 3] }),
-    Link.configure({
+    Link.extend({
+      // autolink=true would make this inclusive, so typing after a link
+      // keeps growing it and setLink can rewrite every adjacent link.
+      inclusive() {
+        return false;
+      },
+    }).configure({
       openOnClick: false,
-      HTMLAttributes: { target: "_blank", rel: "noopener noreferrer", style: "text-decoration: underline;" },
+      autolink: true,
+      linkOnPaste: true,
+      HTMLAttributes: { target: "_blank", rel: "noopener noreferrer" },
     }),
     ResizableImage,
     GalleryExtension,
@@ -2080,6 +2098,7 @@ export const RichTextEditor = forwardRef<
     extensions,
     content: value,
     editorProps: {
+      transformPastedHTML: (html) => rewriteHtmlAnchors(html),
       handleClick: (view, pos, event) => {
         const target = event.target as HTMLElement;
         if (target.closest(".tweet-embed-node a")) return false;
@@ -2172,7 +2191,8 @@ export const RichTextEditor = forwardRef<
   const handleInsertLink = useCallback(
     (url: string) => {
       if (!editor) return;
-      editor.chain().focus().setLink({ href: url, target: "_blank" }).run();
+      applyLink(editor, url, pendingLinkRange.current);
+      pendingLinkRange.current = null;
     },
     [editor]
   );
@@ -2224,6 +2244,9 @@ export const RichTextEditor = forwardRef<
       }
       if (!anchor) {
         anchor = { top: 100, left: 80, bottom: 130 };
+      }
+      if (opts.mode === "link" && editor) {
+        pendingLinkRange.current = captureLinkRange(editor);
       }
       setEmbedDialog({
         open: true,
