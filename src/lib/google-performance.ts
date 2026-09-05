@@ -278,14 +278,39 @@ async function fetchGsc(
   };
 }
 
+export function parseYmdParam(raw: unknown): string | null {
+  if (typeof raw !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(raw.trim())) return null;
+  const value = raw.trim();
+  const [y, m, d] = value.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  if (dt.getUTCFullYear() !== y || dt.getUTCMonth() !== m - 1 || dt.getUTCDate() !== d) {
+    return null;
+  }
+  return value;
+}
+
+function windowForCustom(start: string, end: string): DateWindow {
+  return {
+    gaStart: start,
+    gaEnd: end,
+    gscStart: start,
+    gscEnd: end,
+    label: `${start} – ${end}`,
+  };
+}
+
 export async function getGooglePerformance(
-  range: PerformanceRange = '28d'
+  range: PerformanceRange = '28d',
+  custom?: { startDate: string; endDate: string } | null
 ): Promise<GooglePerformance> {
   const errors: string[] = [];
   const propertyId = process.env.GA4_PROPERTY_ID?.trim();
   const siteUrl = process.env.GSC_SITE_URL?.trim();
   const creds = credentialsFromEnv();
-  const win = windowForRange(range);
+  const win =
+    custom?.startDate && custom?.endDate
+      ? windowForCustom(custom.startDate, custom.endDate)
+      : windowForRange(range);
 
   if (!creds) {
     return {

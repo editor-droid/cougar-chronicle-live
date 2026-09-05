@@ -6,6 +6,7 @@ import { getSiteAnalyticsSnapshot } from '@/lib/site-analytics';
 import {
   getGooglePerformance,
   parsePerformanceRange,
+  parseYmdParam,
   PERFORMANCE_RANGES,
   publicSiteOrigin,
 } from '@/lib/google-performance';
@@ -27,7 +28,7 @@ function pageHref(path: string, origin: string) {
 }
 
 export default async function AnalyticsPage(props: {
-  searchParams?: Promise<{ range?: string }>;
+  searchParams?: Promise<{ range?: string; from?: string; to?: string }>;
 }) {
   const session = await auth();
   if (!session?.user || (session.user.role !== 'ADMIN' && session.user.role !== 'EDITOR')) {
@@ -36,11 +37,17 @@ export default async function AnalyticsPage(props: {
 
   const sp = await props.searchParams;
   const range = parsePerformanceRange(sp?.range);
+  const customFrom = parseYmdParam(sp?.from);
+  const customTo = parseYmdParam(sp?.to);
+  const customRange =
+    customFrom && customTo && customFrom <= customTo
+      ? { startDate: customFrom, endDate: customTo }
+      : null;
   const siteOrigin = publicSiteOrigin();
 
   const [site, google] = await Promise.all([
     getSiteAnalyticsSnapshot(),
-    getGooglePerformance(range),
+    getGooglePerformance(range, customRange),
   ]);
 
   const t = site.totals;
@@ -97,7 +104,7 @@ export default async function AnalyticsPage(props: {
 
             <div className={styles.rangePills} role="navigation" aria-label="Date range for Google numbers">
               {PERFORMANCE_RANGES.map((r) => {
-                const active = range === r.id;
+                const active = !customRange && range === r.id;
                 return (
                   <Link
                     key={r.id}
@@ -245,6 +252,84 @@ export default async function AnalyticsPage(props: {
               </ul>
             </div>
           )}
+        </div>
+      </section>
+
+      <section className={styles.section}>
+        <div className={styles.sectionHead}>
+          <div>
+            <p className={styles.sectionEyebrow}>Reports</p>
+            <h2 className={styles.sectionTitle}>Grant &amp; custom range</h2>
+          </div>
+          <p className={styles.sectionHint}>
+            Pull a story list or Google traffic for any window — including fiscal-year grant dates.
+          </p>
+        </div>
+
+        <div className={styles.reportGrid}>
+          <article className={styles.panel}>
+            <div className={styles.panelHead}>
+              <h3 className={styles.panelTitle}>Published stories spreadsheet</h3>
+            </div>
+            <div className={styles.panelBody}>
+              <p className={styles.reportCopy}>
+                Live articles whose publish date falls in the range (inclusive, Mountain Time). Same
+                list we use for ISI-style output reports.
+              </p>
+              <form
+                action="/api/dashboard/reports/articles"
+                method="GET"
+                className={styles.reportForm}
+              >
+                <label className={styles.reportField}>
+                  <span>From</span>
+                  <input type="date" name="from" required defaultValue="2025-09-01" />
+                </label>
+                <label className={styles.reportField}>
+                  <span>Through</span>
+                  <input type="date" name="to" required defaultValue="2026-09-01" />
+                </label>
+                <button type="submit" className="dash-btn dash-btn-primary">
+                  Download CSV
+                </button>
+              </form>
+            </div>
+          </article>
+
+          <article className={styles.panel}>
+            <div className={styles.panelHead}>
+              <h3 className={styles.panelTitle}>Website hits</h3>
+            </div>
+            <div className={styles.panelBody}>
+              <p className={styles.reportCopy}>
+                Loads Google Analytics pageviews, visits, and people for the dates you pick — shown
+                in Traffic &amp; search above.
+              </p>
+              <form action="/dashboard/analytics" method="GET" className={styles.reportForm}>
+                <label className={styles.reportField}>
+                  <span>From</span>
+                  <input
+                    type="date"
+                    name="from"
+                    required
+                    defaultValue={customFrom || '2025-07-01'}
+                  />
+                </label>
+                <label className={styles.reportField}>
+                  <span>Through</span>
+                  <input
+                    type="date"
+                    name="to"
+                    required
+                    defaultValue={customTo || '2026-06-30'}
+                  />
+                </label>
+                <button type="submit" className="dash-btn dash-btn-primary">
+                  Show traffic
+                </button>
+              </form>
+            </div>
+          </article>
         </div>
       </section>
 

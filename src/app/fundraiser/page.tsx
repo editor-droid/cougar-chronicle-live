@@ -2,6 +2,10 @@ import prisma from '@/lib/prisma';
 import Image from 'next/image';
 import DonateForm from './DonateForm';
 import { Target, Users, Globe } from 'lucide-react';
+import { formatGoalDollars } from '@/lib/donations';
+import { getFundraiserGoal } from '@/lib/fundraiser-goal';
+
+export const dynamic = 'force-dynamic';
 
 export default async function FundraiserPage({
   searchParams,
@@ -14,10 +18,8 @@ export default async function FundraiserPage({
   });
   const totalRaised = donations.reduce((sum, d) => sum + d.amount, 0);
 
-  const goalSetting = await prisma.siteSetting.findUnique({
-    where: { key: 'fundraiserGoal' }
-  });
-  const goal = goalSetting ? parseInt(goalSetting.value, 10) : 8000;
+  const goal = await getFundraiserGoal();
+  const goalLabel = formatGoalDollars(goal);
   const progressPercentage = Math.min(100, (totalRaised / Math.max(goal, 1)) * 100);
 
   return (
@@ -79,10 +81,10 @@ export default async function FundraiserPage({
             textAlign: 'left',
           }}>
             <h3 className="font-serif" style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: 'var(--primary)' }}>
-              Fall Drive · $8,000 by Thanksgiving
+              Fall Drive · {goalLabel} by Thanksgiving
             </h3>
             <p className="font-sans text-sm text-muted" style={{ marginBottom: '1rem', lineHeight: 1.45 }}>
-              Help us raise <strong>$8,000 by Thanksgiving</strong> (Nov 26, 2026).{' '}
+              Help us raise <strong>{goalLabel} by Thanksgiving</strong> (Nov 26, 2026).{' '}
               <strong>$25 America 250 Patriot</strong> — you&apos;re recognized as a supporter on our donor list
               (not a physical gift).{' '}
               <strong>$48+ Founding Member</strong> — one year of access to{' '}
@@ -257,7 +259,7 @@ export default async function FundraiserPage({
                 </p>
               </div>
             )}
-            <DonateForm sourceFrom={sp.from} articleSlug={sp.article} />
+            <DonateForm sourceFrom={sp.from} articleSlug={sp.article} goal={goal} />
           </div>
         </div>
 

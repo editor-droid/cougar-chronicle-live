@@ -2,13 +2,16 @@ import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import prisma from '@/lib/prisma';
 import DashboardHeader from '@/components/DashboardHeader';
-import { updateFundraiserGoal } from './actions';
 import ManualDonationForm from './ManualDonationForm';
+import GoalForm from './GoalForm';
 import {
   campaignLabel,
   DONATION_CAMPAIGN,
   sourceLabel,
 } from '@/lib/donations';
+import { getFundraiserGoal } from '@/lib/fundraiser-goal';
+
+export const dynamic = 'force-dynamic';
 
 export default async function DonorsPage() {
   const session = await auth();
@@ -26,11 +29,7 @@ export default async function DonorsPage() {
     .filter((d) => d.campaign === DONATION_CAMPAIGN.GENERAL)
     .reduce((sum, d) => sum + d.amount, 0);
 
-  const goalSetting = await prisma.siteSetting.findUnique({
-    where: { key: 'fundraiserGoal' },
-  });
-
-  const goal = goalSetting ? parseInt(goalSetting.value, 10) : 8000;
+  const goal = await getFundraiserGoal();
   const pct = Math.min(100, (fundraiserRaised / Math.max(goal, 1)) * 100);
 
   return (
@@ -60,7 +59,7 @@ export default async function DonorsPage() {
             Fundraiser
           </p>
           <h2 className="font-serif" style={{ fontSize: '1.35rem', margin: '0 0 1rem', color: '#1B2253' }}>
-            August drive
+            Fall drive
           </h2>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
             <span className="font-sans text-muted" style={{ fontSize: '0.9rem' }}>
@@ -116,25 +115,7 @@ export default async function DonorsPage() {
           <h2 className="font-serif" style={{ fontSize: '1.35rem', margin: '0 0 1rem', color: '#1B2253' }}>
             Goal
           </h2>
-          <form action={updateFundraiserGoal} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <label className="font-sans text-sm text-muted">Fundraiser goal ($)</label>
-            <input
-              type="number"
-              name="goal"
-              defaultValue={goal}
-              className="font-sans"
-              style={{
-                width: '100%',
-                padding: '0.7rem 0.85rem',
-                borderRadius: '0.65rem',
-                border: '1px solid #e8eaf0',
-                background: 'var(--surface-hover)',
-              }}
-            />
-            <button type="submit" className="dash-btn dash-btn-primary" style={{ alignSelf: 'flex-start' }}>
-              Update goal
-            </button>
-          </form>
+          <GoalForm currentGoal={goal} />
         </div>
       </div>
 

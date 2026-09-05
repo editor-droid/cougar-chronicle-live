@@ -2,24 +2,29 @@
 
 import { auth } from '@/auth';
 import prisma from '@/lib/prisma';
-import { revalidatePath } from 'next/cache';
+import { refresh, revalidatePath } from 'next/cache';
+import { parseGoalDollars } from '@/lib/donations';
+import { setFundraiserGoal } from '@/lib/fundraiser-goal';
 
-export async function updateFundraiserGoal(formData: FormData) {
+export async function updateFundraiserGoal(rawGoal: string | number) {
   const session = await auth();
-  if (!session?.user || session.user.role !== 'ADMIN') throw new Error('Unauthorized');
+  if (!session?.user || session.user.role !== 'ADMIN') {
+    throw new Error('Unauthorized');
+  }
 
-  const goalStr = formData.get('goal') as string;
-  const goal = parseInt(goalStr, 10) || 0;
+  const goal = parseGoalDollars(rawGoal);
+  if (goal == null) {
+    throw new Error('Enter a whole-dollar goal of at least $1');
+  }
 
-  await prisma.siteSetting.upsert({
-    where: { key: 'fundraiserGoal' },
-    update: { value: goal.toString() },
-    create: { key: 'fundraiserGoal', value: goal.toString() }
-  });
+  await setFundraiserGoal(goal);
 
   revalidatePath('/dashboard/donors');
   revalidatePath('/donate');
   revalidatePath('/fundraiser');
+  refresh();
+
+  return { ok: true as const, goal };
 }
 
 /** Manually record a donation (offline gift, check, etc.). */

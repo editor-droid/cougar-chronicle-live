@@ -8,6 +8,33 @@ export const DONATION_CAMPAIGN = {
   AUGUST_FUNDRAISER: 'august_fundraiser',
 } as const;
 
+/** SiteSetting key for the public fundraiser thermometer. */
+export const FUNDRAISER_GOAL_KEY = 'fundraiserGoal';
+
+/** Fallback if no goal has been saved yet. */
+export const DEFAULT_FUNDRAISER_GOAL = 15_000;
+
+/** Parse a goal from the settings form or stored string ("15000", "$15,000", "15k"). */
+export function parseGoalDollars(raw: unknown): number | null {
+  if (typeof raw === 'number' && Number.isFinite(raw)) {
+    const n = Math.round(raw);
+    return n >= 1 ? n : null;
+  }
+  if (typeof raw !== 'string') return null;
+  let cleaned = raw.trim().replace(/[$,\s_]/g, '');
+  if (!cleaned) return null;
+  const thousands = /k$/i.test(cleaned);
+  if (thousands) cleaned = cleaned.slice(0, -1);
+  if (!/^\d+(\.\d+)?$/.test(cleaned)) return null;
+  const n = thousands ? Math.round(Number(cleaned) * 1000) : Math.round(Number(cleaned));
+  if (!Number.isFinite(n) || n < 1) return null;
+  return n;
+}
+
+export function formatGoalDollars(goal: number): string {
+  return `$${goal.toLocaleString('en-US')}`;
+}
+
 export type DonationCampaign =
   (typeof DONATION_CAMPAIGN)[keyof typeof DONATION_CAMPAIGN];
 
@@ -29,7 +56,7 @@ export const LONG_ARTICLE_WORD_THRESHOLD = 700;
 export function campaignLabel(campaign: string | null | undefined): string {
   switch (campaign) {
     case DONATION_CAMPAIGN.AUGUST_FUNDRAISER:
-      return 'August fundraiser';
+      return 'Fall fundraiser';
     case DONATION_CAMPAIGN.GENERAL:
       return 'General';
     case null:

@@ -5,15 +5,21 @@ import {
   AUGUST_MEMBERSHIP_MIN,
   AUGUST_SUPPORTER_MIN,
 } from '@/lib/membership-constants';
+import { DEFAULT_FUNDRAISER_GOAL, formatGoalDollars } from '@/lib/donations';
 import { track } from '@/lib/ga-client';
 
 type DonateFormProps = {
   /** Preserved when landing from an article blurb, etc. */
   sourceFrom?: string;
   articleSlug?: string;
+  goal?: number;
 };
 
-export default function DonateForm({ sourceFrom, articleSlug }: DonateFormProps = {}) {
+export default function DonateForm({
+  sourceFrom,
+  articleSlug,
+  goal = DEFAULT_FUNDRAISER_GOAL,
+}: DonateFormProps = {}) {
   const [amount, setAmount] = useState<number>(50);
   const [customAmount, setCustomAmount] = useState<string>('');
   const [isHovered, setIsHovered] = useState<number | null>(null);
@@ -95,7 +101,7 @@ export default function DonateForm({ sourceFrom, articleSlug }: DonateFormProps 
         Support the Chronicle
       </h2>
       <p className="font-sans text-muted" style={{ textAlign: 'center', marginBottom: '1rem', fontSize: '0.95rem' }}>
-        $8,000 goal by Thanksgiving — fund independent campus journalism.
+        {formatGoalDollars(goal)} goal by Thanksgiving — fund independent campus journalism.
       </p>
 
       <div

@@ -102,7 +102,7 @@ export default function ManualDonationForm() {
             className="font-sans"
             style={field}
           >
-            <option value={DONATION_CAMPAIGN.AUGUST_FUNDRAISER}>August fundraiser</option>
+            <option value={DONATION_CAMPAIGN.AUGUST_FUNDRAISER}>Fall fundraiser</option>
             <option value={DONATION_CAMPAIGN.GENERAL}>General</option>
           </select>
         </div>
