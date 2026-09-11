@@ -1,8 +1,15 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getArticleUrl } from '@/lib/routes';
-import { isValidEmail, newsletterEmailFooter, sendOneEmail, withUtm } from '@/lib/email';
+import {
+  isValidEmail,
+  newsletterEmailFooter,
+  newsletterStoryRowHtml,
+  sendOneEmail,
+  withUtm,
+} from '@/lib/email';
 import { subscriberMatchesPost } from '@/lib/subscriber-prefs';
+import { emailVideoThumbnailUrl } from '@/lib/videos';
 
 export const dynamic = 'force-dynamic';
 
@@ -68,22 +75,36 @@ export async function GET(request: Request) {
             medium: 'email',
             campaign: 'weekly-digest',
           });
-          return `<li style="margin-bottom:18px;"><a href="${href}" style="color:#1B2253;font-weight:bold;font-family:Georgia,serif;font-size:17px;text-decoration:none;">${p.title}</a><br/><span style="color:#6B7280;font-size:13px;text-transform:uppercase;">${p.category}${p.isBreaking ? ' · Breaking' : ''}</span></li>`;
+          return newsletterStoryRowHtml({
+            href,
+            title: p.title,
+            meta: `${p.category}${p.isBreaking ? ' · Breaking' : ''}`,
+            imageSrc: p.imageUrl,
+            imageAlt: p.featuredImageAlt || p.title,
+            origin,
+          });
         })
         .join('');
 
       const videoHtml =
         vidList.length > 0
-          ? `<h3 style="color:#1B2253;font-family:Georgia,serif;">Videos</h3><ul style="list-style:none;padding:0;">${vidList
+          ? `<h3 style="color:#1B2253;font-family:Georgia,serif;margin:8px 0 16px 0;">Videos</h3>${vidList
               .map((v) => {
                 const href = withUtm(`${origin}/videos/${v.slug}`, {
                   source: 'newsletter',
                   medium: 'email',
                   campaign: 'weekly-digest',
                 });
-                return `<li style="margin-bottom:12px;"><a href="${href}" style="color:#1B2253;font-weight:bold;">${v.title}</a></li>`;
+                return newsletterStoryRowHtml({
+                  href,
+                  title: v.title,
+                  meta: 'Video',
+                  imageSrc: emailVideoThumbnailUrl(v),
+                  imageAlt: v.title,
+                  origin,
+                });
               })
-              .join('')}</ul>`
+              .join('')}`
           : '';
 
       const html = `
@@ -93,7 +114,7 @@ export async function GET(request: Request) {
             <p style="color:#6B7280;font-size:13px;text-transform:uppercase;letter-spacing:0.08em;">Weekly Digest</p>
           </div>
           <p style="font-size:16px;line-height:1.5;color:#444;">Here&apos;s what we published this week.</p>
-          ${filtered.length ? `<ul style="list-style:none;padding:0;margin:24px 0;">${postHtml}</ul>` : ''}
+          ${filtered.length ? `<div style="margin:24px 0;">${postHtml}</div>` : ''}
           ${videoHtml}
           <p style="margin-top:28px;"><a href="${origin}/membership?utm_source=newsletter&utm_medium=email&utm_campaign=weekly-digest" style="display:inline-block;background:#1B2253;color:#fff;padding:12px 20px;border-radius:4px;text-decoration:none;font-weight:bold;">Become a Member — $48/year</a></p>
           ${newsletterEmailFooter(origin, sub.email)}

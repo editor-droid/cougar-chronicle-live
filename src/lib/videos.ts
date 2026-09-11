@@ -202,6 +202,22 @@ export function resolveStreamThumbnailUrl(video: {
   return video.thumbnailUrl;
 }
 
+/** Public still for newsletter HTML (email clients cannot play Stream/YouTube). */
+export function emailVideoThumbnailUrl(video: {
+  platform?: string | null;
+  externalId?: string | null;
+  thumbnailUrl?: string | null;
+}): string | null {
+  const platform = video.platform || '';
+  const id = (video.externalId || '').trim();
+  if (platform === 'STREAM' && id) {
+    return `${streamThumbnailUrl(id)}?time=1s&height=480`;
+  }
+  if (video.thumbnailUrl) return video.thumbnailUrl;
+  if (platform === 'YOUTUBE' && id) return youtubeThumbnailUrl(id);
+  return null;
+}
+
 /** ISO 8601 duration, e.g. PT1M30S */
 export function formatIsoDuration(seconds: number | null | undefined): string | undefined {
   if (seconds == null || seconds <= 0 || !Number.isFinite(seconds)) return undefined;

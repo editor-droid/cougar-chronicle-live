@@ -7,6 +7,7 @@ import {
   isResendConfigured,
   isValidEmail,
   NEWSLETTER_FROM,
+  newsletterHeroImageHtml,
   sendOneEmail,
 } from '@/lib/email';
 
@@ -121,7 +122,12 @@ export async function POST(req: Request) {
                 .map(
                   (post) => `
                 <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #f1f5f9;">
-                  ${post.imageUrl ? `<img src="${post.imageUrl}" alt="${post.title}" style="max-width: 100%; height: auto; border-radius: 4px; margin-bottom: 10px;" />` : ''}
+                  ${newsletterHeroImageHtml({
+                    src: post.imageUrl,
+                    href: `${origin}${getArticleUrl(post)}`,
+                    alt: post.featuredImageAlt || post.title,
+                    origin,
+                  })}
                   <a href="${origin}${getArticleUrl(post)}" style="text-decoration: none; color: #0f172a; font-family: Georgia, serif; font-size: 16px; font-weight: bold; display: block; margin-bottom: 5px;">${post.title}</a>
                   <p style="color: #475569; font-size: 14px; margin: 0;">${post.content ? post.content.replace(/<[^>]*>?/gm, '').substring(0, 100) + '...' : 'Read our latest article.'}</p>
                 </div>

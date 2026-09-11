@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import { rewriteMediaUrl } from './media-url';
 
 /** Verified Resend domain — use this for every outbound message. */
 export const NEWSLETTER_FROM =
@@ -89,6 +90,104 @@ export function withUtm(
   } catch {
     return href;
   }
+}
+
+const PLACEHOLDER_IMAGE_RE = /\/images\/(default-article|default-og)\.(jpg|png|jpeg|webp)(\?|$)/i;
+
+function siteOrigin(origin?: string): string {
+  const raw = (origin || process.env.NEXTAUTH_URL || 'https://thecougarchronicle.com').trim();
+  return raw.replace(/\/$/, '') || 'https://thecougarchronicle.com';
+}
+
+/** Escape text interpolated into newsletter HTML. */
+export function escapeEmailHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+/**
+ * Public HTTPS URL an email client (or Gmail's image proxy) can fetch.
+ * Never point at /_next/image — clients load src directly.
+ */
+export function absoluteEmailImageUrl(
+  url: string | null | undefined,
+  origin?: string
+): string | null {
+  if (!url || typeof url !== 'string') return null;
+  let src = rewriteMediaUrl(url.trim());
+  if (!src) return null;
+  if (src.startsWith('data:') || src.includes('/_next/image')) return null;
+  if (PLACEHOLDER_IMAGE_RE.test(src)) return null;
+  if (src.startsWith('//')) src = `https:${src}`;
+  if (src.startsWith('/')) src = `${siteOrigin(origin)}${src}`;
+  if (src.startsWith('http://')) src = `https://${src.slice('http://'.length)}`;
+  if (!/^https:\/\//i.test(src)) return null;
+  if (/^https:\/\/(localhost|127\.0\.0\.1)[:/]/i.test(src)) return null;
+  return src;
+}
+
+function linkedImgTag(opts: {
+  src: string;
+  href: string;
+  alt: string;
+  width: number;
+}): string {
+  const w = opts.width;
+  return `<a href="${escapeEmailHtml(opts.href)}" style="text-decoration:none;display:block;">
+      <img src="${escapeEmailHtml(opts.src)}" alt="${escapeEmailHtml(opts.alt)}" width="${w}" border="0" style="display:block;width:100%;max-width:${w}px;height:auto;border:0;border-radius:6px;" />
+    </a>`;
+}
+
+/** Full-width hero (instant post/video). Empty string if no usable image. */
+export function newsletterHeroImageHtml(opts: {
+  src: string | null | undefined;
+  href: string;
+  alt: string;
+  origin?: string;
+}): string {
+  const src = absoluteEmailImageUrl(opts.src, opts.origin);
+  if (!src) return '';
+  return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:0 0 22px 0;">
+      <tr>
+        <td>
+          ${linkedImgTag({ src, href: opts.href, alt: opts.alt, width: 600 })}
+        </td>
+      </tr>
+    </table>`;
+}
+
+/** Digest / related-story row: optional thumb + title + meta. */
+export function newsletterStoryRowHtml(opts: {
+  href: string;
+  title: string;
+  meta?: string;
+  imageSrc?: string | null;
+  imageAlt?: string;
+  origin?: string;
+}): string {
+  const src = absoluteEmailImageUrl(opts.imageSrc, opts.origin);
+  const title = `<a href="${escapeEmailHtml(opts.href)}" style="color:#1B2253;font-weight:bold;font-family:Georgia,serif;font-size:17px;text-decoration:none;line-height:1.35;">${escapeEmailHtml(opts.title)}</a>`;
+  const meta = opts.meta
+    ? `<br/><span style="color:#6B7280;font-size:13px;text-transform:uppercase;letter-spacing:0.04em;">${escapeEmailHtml(opts.meta)}</span>`
+    : '';
+
+  if (!src) {
+    return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:0 0 18px 0;">
+      <tr><td>${title}${meta}</td></tr>
+    </table>`;
+  }
+
+  return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:0 0 18px 0;">
+      <tr>
+        <td valign="top" width="120" style="width:120px;padding-right:14px;">
+          ${linkedImgTag({ src, href: opts.href, alt: opts.imageAlt || opts.title, width: 120 })}
+        </td>
+        <td valign="top">${title}${meta}</td>
+      </tr>
+    </table>`;
 }
 
 /** Shared footer for all list emails: why you're receiving + unsubscribe + preferences. */
