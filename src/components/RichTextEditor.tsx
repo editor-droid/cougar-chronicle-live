@@ -2044,6 +2044,7 @@ export const RichTextEditor = forwardRef<
   }>({ open: false, mode: "video", anchor: null });
   const pendingLinkRange = useRef<LinkRange | null>(null);
   const editorRefInternal = useRef<Editor | null>(null);
+  const lastEmittedHtml = useRef<string | null>(null);
 
   const extensions = useMemo(() => [
     // Newer StarterKit ships link + underline — disable them so we only
@@ -2206,19 +2207,22 @@ export const RichTextEditor = forwardRef<
       }
     },
     onUpdate: ({ editor: ed }) => {
-      onChange(ed.getHTML());
+      const html = ed.getHTML();
+      lastEmittedHtml.current = html;
+      onChange(html);
     },
   });
 
   editorRefInternal.current = editor;
 
-  // Sync external value changes (e.g. when loading an existing post)
+  // Sync external value changes (import, spellcheck) without clobbering a
+  // just-applied mark when getHTML() serializes slightly differently.
   useEffect(() => {
     if (!editor) return;
-    const current = editor.getHTML();
-    if (value !== current) {
-      editor.commands.setContent(value, { emitUpdate: false });
-    }
+    if (value === lastEmittedHtml.current) return;
+    if (value === editor.getHTML()) return;
+    editor.commands.setContent(value, { emitUpdate: false });
+    lastEmittedHtml.current = value;
   }, [value, editor]);
 
   const insertImage = useCallback(

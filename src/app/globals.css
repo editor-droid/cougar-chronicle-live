@@ -177,7 +177,7 @@ header, footer, nav, button, .btn, .widget-title, .newsletter-box, .mobile-menu-
   padding: 0 1.5rem;
 }
 
-/* Modern clean links */
+/* Modern clean links — nav/cards stay unstyled; body copy must still look like a link */
 a {
   color: inherit;
   text-decoration: none;
@@ -186,6 +186,33 @@ a {
 
 a:hover {
   color: var(--primary);
+}
+
+/* In-article + editor hyperlinks. Global `a` reset made toolbar-inserted
+   links look like plain text (pasted Google Docs links kept inline color). */
+.article-content a:not(.wp-block-button__link):not(.btn):not(.article-nav-card),
+.rich-text-editor-content .tiptap a:not(.wp-block-button__link),
+.rich-text-editor-content .ProseMirror a:not(.wp-block-button__link),
+.rich-text-preview-pane a:not(.wp-block-button__link):not(.btn) {
+  color: #1d4ed8;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  text-decoration-thickness: 1px;
+}
+
+.article-content a:not(.wp-block-button__link):not(.btn):not(.article-nav-card):hover,
+.rich-text-editor-content .tiptap a:not(.wp-block-button__link):hover,
+.rich-text-editor-content .ProseMirror a:not(.wp-block-button__link):hover,
+.rich-text-preview-pane a:not(.wp-block-button__link):not(.btn):hover {
+  color: #1e3a8a;
+}
+
+.article-content a:has(img),
+.rich-text-editor-content .tiptap a:has(img),
+.rich-text-editor-content .ProseMirror a:has(img),
+.rich-text-preview-pane a:has(img) {
+  color: inherit;
+  text-decoration: none;
 }
 
 /* --- Tailwind Button Reset --- */

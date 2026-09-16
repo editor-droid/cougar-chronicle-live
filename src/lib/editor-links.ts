@@ -107,7 +107,13 @@ export function applyLink(editor: Editor, rawHref: string, range: LinkRange | nu
 
   if (from === to) {
     const safe = href.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
-    editor.chain().focus().insertContent(`<a href="${safe}">${safe}</a>`).run();
+    editor
+      .chain()
+      .focus()
+      .insertContent(
+        `<a href="${safe}" target="_blank" rel="noopener noreferrer">${safe}</a>`
+      )
+      .run();
     return;
   }
 
@@ -115,6 +121,6 @@ export function applyLink(editor: Editor, rawHref: string, range: LinkRange | nu
     .chain()
     .focus()
     .setTextSelection({ from, to })
-    .setLink({ href, target: '_blank' })
+    .setLink({ href, target: '_blank', rel: 'noopener noreferrer' })
     .run();
 }
