@@ -1,6 +1,7 @@
 import Image from "@tiptap/extension-image";
 import { ReactNodeViewRenderer, NodeViewWrapper } from "@tiptap/react";
 import { useEffect, useRef, useState } from "react";
+import { displayMediaSrc } from "@/lib/media-url";
 
 /**
  * Custom Image extension with drag-to-resize handles.
@@ -96,7 +97,7 @@ function ResizableImageView({ node, updateAttributes, selected }: any) {
       >
         <img
           ref={imgRef}
-          src={node.attrs.src}
+          src={displayMediaSrc(node.attrs.src, node.attrs.width || 1920)}
           alt={node.attrs.alt || ""}
           title={node.attrs.title || ""}
           draggable={false}

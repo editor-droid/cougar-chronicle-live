@@ -18,6 +18,8 @@ import Highlight from "@tiptap/extension-highlight";
 import { VideoEmbed } from "../lib/VideoEmbedExtension";
 import { TweetEmbed } from "../lib/TweetEmbedExtension";
 import { parseVideoEmbedInput, type EmbedProvider } from "../lib/embed-utils";
+import { prepareArticleHtmlImages } from "../lib/media-url";
+import { rewritePastedHtmlImages, uploadImageFile } from "../lib/editor-upload";
 import { parseTweetInput, type TweetEmbedAttrs } from "../lib/tweet-embed";
 import {
   applyLink,
@@ -2003,6 +2005,7 @@ function LinkBubbleMenu({ editor }: { editor: Editor }) {
 }
 
 function PreviewPane({ html }: { html: string }) {
+  const prepared = useMemo(() => prepareArticleHtmlImages(html), [html]);
   return (
     <>
       <div
@@ -2015,7 +2018,7 @@ function PreviewPane({ html }: { html: string }) {
           overflowX: "hidden",
           boxSizing: "border-box",
         }}
-        dangerouslySetInnerHTML={{ __html: html }}
+        dangerouslySetInnerHTML={{ __html: prepared }}
       />
       <TwitterEmbedHydrator
         rootSelector=".rich-text-preview-pane"
@@ -2040,6 +2043,7 @@ export const RichTextEditor = forwardRef<
     anchor: EmbedAnchor | null;
   }>({ open: false, mode: "video", anchor: null });
   const pendingLinkRange = useRef<LinkRange | null>(null);
+  const editorRefInternal = useRef<Editor | null>(null);
 
   const extensions = useMemo(() => [
     // Newer StarterKit ships link + underline — disable them so we only
@@ -2077,7 +2081,7 @@ export const RichTextEditor = forwardRef<
       linkOnPaste: true,
       HTMLAttributes: { target: "_blank", rel: "noopener noreferrer" },
     }),
-    ResizableImage,
+    ResizableImage.configure({ allowBase64: true }),
     GalleryExtension,
     Placeholder.configure({
       placeholder: placeholder ?? "Write your post content here...",
@@ -2099,6 +2103,98 @@ export const RichTextEditor = forwardRef<
     content: value,
     editorProps: {
       transformPastedHTML: (html) => rewriteHtmlAnchors(html),
+      handlePaste: (_view, event) => {
+        const files = [...(event.clipboardData?.files || [])].filter((f) =>
+          f.type.startsWith("image/")
+        );
+        const html = event.clipboardData?.getData("text/html") || "";
+        const htmlHasImg = /<img\b/i.test(html);
+        const htmlHasText = html.replace(/<[^>]+>/g, " ").trim().length > 0;
+        const hasUnhostedImg =
+          htmlHasImg &&
+          /src=["'](?!https?:\/\/(?:cdn\.thecougarchronicle\.com|thecougarchronicle\.com\/wp-content))/i.test(
+            html
+          );
+
+        if (!files.length && !hasUnhostedImg) return false;
+
+        event.preventDefault();
+        void (async () => {
+          const ed = editorRefInternal.current;
+          if (!ed) return;
+          try {
+            if (htmlHasImg && (htmlHasText || hasUnhostedImg)) {
+              const rewritten = await rewritePastedHtmlImages(rewriteHtmlAnchors(html));
+              ed.chain().focus().insertContent(rewritten).run();
+              return;
+            }
+            if (!files.length) return;
+            const urls: string[] = [];
+            for (const file of files) {
+              urls.push(await uploadImageFile(file));
+            }
+            if (urls.length === 1) {
+              ed.chain().focus().setImage({ src: urls[0], alt: files[0].name }).run();
+            } else if (urls.length > 1) {
+              const chain = ed.chain().focus() as any;
+              if (typeof chain.insertGallery === "function") {
+                chain
+                  .insertGallery(
+                    urls.map((src, i) => ({
+                      src,
+                      alt: files[i].name.replace(/\.[^.]+$/, "") || files[i].name,
+                    })),
+                    Math.min(3, urls.length > 2 ? 3 : 2),
+                    "grid"
+                  )
+                  .run();
+              }
+            }
+          } catch (e) {
+            console.error("Failed to import pasted image", e);
+            alert("Could not import that image into Chronicle storage.");
+          }
+        })();
+        return true;
+      },
+      handleDrop: (_view, event) => {
+        const files = [...(event.dataTransfer?.files || [])].filter((f) =>
+          f.type.startsWith("image/")
+        );
+        if (!files.length) return false;
+        event.preventDefault();
+        void (async () => {
+          const ed = editorRefInternal.current;
+          if (!ed) return;
+          try {
+            const urls: string[] = [];
+            for (const file of files) {
+              urls.push(await uploadImageFile(file));
+            }
+            if (urls.length === 1) {
+              ed.chain().focus().setImage({ src: urls[0], alt: files[0].name }).run();
+            } else {
+              const chain = ed.chain().focus() as any;
+              if (typeof chain.insertGallery === "function") {
+                chain
+                  .insertGallery(
+                    urls.map((src, i) => ({
+                      src,
+                      alt: files[i].name.replace(/\.[^.]+$/, "") || files[i].name,
+                    })),
+                    Math.min(3, urls.length > 2 ? 3 : 2),
+                    "grid"
+                  )
+                  .run();
+              }
+            }
+          } catch (e) {
+            console.error("Failed to import dropped image", e);
+            alert("Could not upload that image.");
+          }
+        })();
+        return true;
+      },
       handleClick: (view, pos, event) => {
         const target = event.target as HTMLElement;
         if (target.closest(".tweet-embed-node a")) return false;
@@ -2113,6 +2209,8 @@ export const RichTextEditor = forwardRef<
       onChange(ed.getHTML());
     },
   });
+
+  editorRefInternal.current = editor;
 
   // Sync external value changes (e.g. when loading an existing post)
   useEffect(() => {

@@ -2,6 +2,12 @@ import { Node, mergeAttributes } from "@tiptap/core";
 import { ReactNodeViewRenderer, NodeViewWrapper } from "@tiptap/react";
 import { useRef, useState } from "react";
 import {
+  displayMediaSrc,
+  parseGalleryImageList,
+  parseGalleryImagesFromHtmlAttributes,
+} from "@/lib/media-url";
+import { uploadImageFile } from "@/lib/editor-upload";
+import {
   Trash2,
   Plus,
   GripVertical,
@@ -104,19 +110,8 @@ function GalleryNodeView({ node, updateAttributes, deleteNode }: any) {
     try {
       for (const file of Array.from(files)) {
         try {
-          const res = await fetch("/api/upload", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ filename: file.name, contentType: file.type }),
-          });
-          const data = await res.json();
-          if (!res.ok || !data?.uploadUrl || !data?.publicUrl) continue;
-          await fetch(data.uploadUrl, {
-            method: "PUT",
-            headers: { "Content-Type": file.type },
-            body: file,
-          });
-          uploaded.push({ src: data.publicUrl, alt: file.name.replace(/\.[^.]+$/, "") || file.name });
+          const publicUrl = await uploadImageFile(file);
+          uploaded.push({ src: publicUrl, alt: file.name.replace(/\.[^.]+$/, "") || file.name });
         } catch {
           // skip failed file; continue others
         }
@@ -386,7 +381,7 @@ function GalleryNodeView({ node, updateAttributes, deleteNode }: any) {
                 }}
               >
                 <img
-                  src={img.src}
+                  src={displayMediaSrc(img.src)}
                   alt={img.alt}
                   draggable={false}
                   style={{
@@ -452,18 +447,7 @@ export const GalleryExtension = Node.create({
     return {
       images: {
         default: [],
-        parseHTML: (element: HTMLElement) => {
-          try {
-            const data = element.getAttribute("data-images");
-            return data ? JSON.parse(data) : [];
-          } catch {
-            const imgs = element.querySelectorAll("img");
-            return Array.from(imgs).map((img) => ({
-              src: img.getAttribute("src") || "",
-              alt: img.getAttribute("alt") || "",
-            }));
-          }
-        },
+        parseHTML: (element: HTMLElement) => parseGalleryImageList(element),
         renderHTML: (attributes: Record<string, any>) => {
           return { "data-images": JSON.stringify(attributes.images || []) };
         },
@@ -523,9 +507,7 @@ export const GalleryExtension = Node.create({
   },
 
   renderHTML({ HTMLAttributes }: { HTMLAttributes: Record<string, any> }) {
-    const images: GalleryImage[] = HTMLAttributes["data-images"]
-      ? JSON.parse(HTMLAttributes["data-images"])
-      : [];
+    const images: GalleryImage[] = parseGalleryImagesFromHtmlAttributes(HTMLAttributes);
     const columns = HTMLAttributes["data-columns"] || "2";
     const fit = HTMLAttributes["data-image-fit"] || "cover";
     const size = HTMLAttributes["data-gallery-size"] || "full";

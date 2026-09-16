@@ -9,6 +9,8 @@ import { useRouter } from 'next/navigation';
 import { FileDown, Loader2, X, Settings, Image as ImageIcon, CheckCircle2, PanelRightClose, PanelRightOpen, ArrowLeft, Wand2, ListChecks, Eye } from 'lucide-react';
 import styles from './EditorForm.module.css';
 import { sanitizeSlugInput, slugifyTitle, assessSlug } from '@/lib/slug';
+import { displayMediaSrc, rewriteMediaUrl, rewriteMediaUrlsInHtml } from '@/lib/media-url';
+import { uploadImageFile } from '@/lib/editor-upload';
 
 type ChecklistKey = 'spellcheck' | 'seo' | 'formatting' | 'oneWordLinks' | 'ready';
 
@@ -123,7 +125,7 @@ export default function EditorForm({
   const [slug, setSlug] = useState(post?.slug || '');
   /** Once the user edits the slug field, stop auto-syncing from title. */
   const [slugLocked, setSlugLocked] = useState(Boolean(post?.slug));
-  const [imageUrl, setImageUrl] = useState(post?.imageUrl || '');
+  const [imageUrl, setImageUrl] = useState(() => rewriteMediaUrl(post?.imageUrl || ''));
   const [seoTitle, setSeoTitle] = useState(post?.seoTitle || '');
   const [seoDescription, setSeoDescription] = useState(post?.seoDescription || '');
   const [seoKeywords, setSeoKeywords] = useState(post?.seoKeywords || '');
@@ -155,7 +157,9 @@ export default function EditorForm({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const featuredFileInputRef = useRef<HTMLInputElement>(null);
 
-  const [content, setContent] = useState(post?.content || '<p>Start writing your story here...</p>');
+  const [content, setContent] = useState(
+    () => rewriteMediaUrlsInHtml(post?.content || '<p>Start writing your story here...</p>')
+  );
   const [focusKeyword, setFocusKeyword] = useState(post?.seoKeywords?.split(',')[0] || '');
   const [isGeneratingSlug, setIsGeneratingSlug] = useState(false);
   const editorRef = useRef<RichTextEditorHandle>(null);
@@ -180,16 +184,17 @@ export default function EditorForm({
         if (result.data.title) setTitle(result.data.title);
         if (result.data.slug) setSlug(result.data.slug);
         if (result.data.content) {
-          setContent(result.data.content);
+          const imported = rewriteMediaUrlsInHtml(result.data.content);
+          setContent(imported);
           if (editorRef.current) {
-             editorRef.current.getEditor()?.commands.setContent(result.data.content);
+             editorRef.current.getEditor()?.commands.setContent(imported);
           }
         }
         if (result.data.category) setCategory(result.data.category);
         if (result.data.format === 'opinion' || result.data.format === 'news') {
           setFormat(result.data.format);
         }
-        if (result.data.imageUrl) setImageUrl(result.data.imageUrl);
+        if (result.data.imageUrl) setImageUrl(rewriteMediaUrl(result.data.imageUrl));
         if (result.data.featuredImageAlt) setFeaturedImageAlt(result.data.featuredImageAlt);
         if (result.data.seoTitle) setSeoTitle(result.data.seoTitle);
         if (result.data.seoDescription) setSeoDescription(result.data.seoDescription);
@@ -213,19 +218,7 @@ export default function EditorForm({
     const file = e.target.files[0];
     if (fileInputRef.current) fileInputRef.current.value = '';
     try {
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filename: file.name, contentType: file.type })
-      });
-      if (!response.ok) throw new Error('Failed to get upload URL');
-      const { uploadUrl, publicUrl } = await response.json();
-      const uploadRes = await fetch(uploadUrl, {
-        method: 'PUT',
-        headers: { 'Content-Type': file.type },
-        body: file
-      });
-      if (!uploadRes.ok) throw new Error('Failed to upload file to storage');
+      const publicUrl = await uploadImageFile(file);
       if (editorRef.current) {
         editorRef.current.insertImage(publicUrl);
       }
@@ -240,20 +233,7 @@ export default function EditorForm({
     const file = e.target.files[0];
     setIsUploadingFeatured(true);
     try {
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filename: file.name, contentType: file.type })
-      });
-      if (!response.ok) throw new Error('Failed to get upload URL');
-      const { uploadUrl, publicUrl } = await response.json();
-      const uploadRes = await fetch(uploadUrl, {
-        method: 'PUT',
-        headers: { 'Content-Type': file.type },
-        body: file
-      });
-      if (!uploadRes.ok) throw new Error('Failed to upload file to storage');
-      setImageUrl(publicUrl);
+      setImageUrl(await uploadImageFile(file));
     } catch (err) {
       console.error('Failed to upload featured image', err);
       alert('Failed to upload featured image to Cloudflare R2.');
@@ -638,19 +618,11 @@ export default function EditorForm({
                     if (!files?.length) return;
                     const images: { src: string; alt: string }[] = [];
                     for (const file of Array.from(files)) {
-                      const res = await fetch('/api/upload', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ filename: file.name, contentType: file.type }),
-                      });
-                      const data = await res.json();
-                      if (!res.ok) continue;
-                      await fetch(data.uploadUrl, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': file.type },
-                        body: file,
-                      });
-                      images.push({ src: data.publicUrl, alt: file.name });
+                      try {
+                        images.push({ src: await uploadImageFile(file), alt: file.name });
+                      } catch {
+                        continue;
+                      }
                     }
                     if (images.length) {
                       const ed = editorRef.current?.getEditor();
@@ -743,7 +715,7 @@ export default function EditorForm({
                   <div className={styles.imageUploadZone} onClick={() => featuredFileInputRef.current?.click()}>
                     {imageUrl ? (
                       <div className={styles.imagePreview}>
-                        <img src={imageUrl} alt="Featured" />
+                        <img src={displayMediaSrc(imageUrl)} alt="Featured" />
                       </div>
                     ) : (
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', color: '#9ca3af', padding: '1.5rem 0' }}>
@@ -754,7 +726,7 @@ export default function EditorForm({
                     <input type="file" ref={featuredFileInputRef} onChange={handleFeaturedImageUpload} accept="image/*" style={{ display: 'none' }} />
                   </div>
                   <input
-                    type="text" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)}
+                    type="text" value={imageUrl} onChange={(e) => setImageUrl(rewriteMediaUrl(e.target.value))}
                     placeholder="Or paste image URL..."
                     className={styles.textInput}
                   />

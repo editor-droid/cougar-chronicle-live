@@ -3,6 +3,9 @@ import { redirect } from 'next/navigation';
 import prisma from '@/lib/prisma';
 import EditorForm from './EditorForm';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function EditorPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
   if (!session?.user) redirect('/login');

@@ -12,6 +12,7 @@ import { canApprovePosts, canPublishPosts } from '@/lib/roles';
 import { computeBreakingUntil, DEFAULT_BREAKING_HOURS } from '@/lib/breaking';
 import { slugifyTitle, sanitizeSlugInput, withUniquenessSuffix } from '@/lib/slug';
 import { mergeAuthors } from '@/lib/merge-authors';
+import { persistArticleMedia, persistMediaUrl } from '@/lib/persist-article-media';
 
 
 
@@ -283,6 +284,10 @@ export async function savePost(data: any) {
     }
 
     const slug = await ensureUniqueSlug(slugSeed, data.id);
+    const [content, imageUrl] = await Promise.all([
+      persistArticleMedia(data.content || ''),
+      persistMediaUrl(data.imageUrl || ''),
+    ]);
 
     const updated = await prisma.post.update({
       where: { id: data.id },
@@ -295,8 +300,8 @@ export async function savePost(data: any) {
           throw new Error('Category must be campus, politics, family, or faith');
         })(),
         format: data.format === 'opinion' ? 'opinion' : 'news',
-        content: data.content,
-        imageUrl: data.imageUrl,
+        content,
+        imageUrl: imageUrl || data.imageUrl,
         seoTitle: data.seoTitle,
         seoDescription: data.seoDescription,
         seoKeywords: data.seoKeywords,
@@ -339,6 +344,10 @@ export async function savePost(data: any) {
     revalidatePath(`/premium-article/${updated.slug}`);
   } else {
     const slug = await ensureUniqueSlug(slugSeed);
+    const [content, imageUrl] = await Promise.all([
+      persistArticleMedia(data.content || ''),
+      persistMediaUrl(data.imageUrl || ''),
+    ]);
     const created = await prisma.post.create({
       data: {
         title: data.title,
@@ -349,8 +358,8 @@ export async function savePost(data: any) {
           throw new Error('Category must be campus, politics, family, or faith');
         })(),
         format: data.format === 'opinion' ? 'opinion' : 'news',
-        content: data.content,
-        imageUrl: data.imageUrl,
+        content,
+        imageUrl: imageUrl || data.imageUrl,
         authorId: role === 'WRITER' ? session.user.id : data.authorId, // Ensure WRITERs can't assign to others
         state: 'DRAFT',
         seoTitle: data.seoTitle,

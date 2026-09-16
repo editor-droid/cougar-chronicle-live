@@ -28,10 +28,122 @@ export function rewriteMediaUrlsInHtml(html: string): string {
   return html.replace(LEGACY_R2_HOST_RE, publicMediaBase());
 }
 
-function isOurMediaUrl(src: string): boolean {
+export function isOurMediaUrl(src: string): boolean {
   return /cdn\.thecougarchronicle\.com|pub-[a-f0-9]+\.r2\.dev|r2\.cloudflarestorage\.com/i.test(
     src
   );
+}
+
+/** Public URL every editor can load (our CDN, local WP uploads, or a site path). */
+export function isSharedMediaUrl(url: string): boolean {
+  const src = unwrapOptimizedImageSrc(url);
+  if (!src) return false;
+  if (src.startsWith('data:') || src.startsWith('blob:')) return false;
+  if (isOurMediaUrl(src)) return true;
+  if (/thecougarchronicle\.com\/wp-content\//i.test(src)) return true;
+  if (src.startsWith('/') && !src.startsWith('//')) return true;
+  return false;
+}
+
+function decodeHtmlAttr(src: string): string {
+  return src
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'");
+}
+
+/** Pull the original media URL out of a `/_next/image?url=` src. */
+export function unwrapOptimizedImageSrc(src: string): string {
+  if (!src) return src;
+  const decoded = decodeHtmlAttr(src);
+  if (!decoded.includes('/_next/image')) return rewriteMediaUrl(decoded);
+  try {
+    const u = decoded.startsWith('http')
+      ? new URL(decoded)
+      : new URL(decoded, 'https://thecougarchronicle.com');
+    const inner = u.searchParams.get('url');
+    return inner ? rewriteMediaUrl(inner) : rewriteMediaUrl(decoded);
+  } catch {
+    return rewriteMediaUrl(decoded);
+  }
+}
+
+/**
+ * Editor display only — do not persist. Same-origin optimizer so staff still
+ * see our R2 images when a machine cannot resolve cdn.thecougarchronicle.com.
+ */
+export function displayMediaSrc(
+  src: string | null | undefined,
+  width = 1920
+): string {
+  if (!src) return '';
+  const clean = unwrapOptimizedImageSrc(src);
+  if (!clean || clean.startsWith('data:') || clean.startsWith('blob:')) return clean;
+  if (!isOurMediaUrl(clean)) return clean;
+  const w = nearestNextImageWidth(width);
+  return `/_next/image?url=${encodeURIComponent(clean)}&w=${w}&q=75`;
+}
+
+export type GalleryImageRef = { src: string; alt: string };
+
+function parseDataImagesJson(raw: string | null): GalleryImageRef[] {
+  if (!raw) return [];
+  const candidates = [raw, decodeHtmlAttr(raw)];
+  for (const c of candidates) {
+    try {
+      const parsed = JSON.parse(c);
+      if (!Array.isArray(parsed) || parsed.length === 0) continue;
+      const out: GalleryImageRef[] = [];
+      for (const item of parsed) {
+        const src =
+          item && typeof item.src === 'string' ? unwrapOptimizedImageSrc(item.src) : '';
+        if (!src) continue;
+        out.push({
+          src,
+          alt: item && typeof item.alt === 'string' ? item.alt : '',
+        });
+      }
+      if (out.length) return out;
+    } catch {
+      /* try next candidate */
+    }
+  }
+  return [];
+}
+
+/** TipTap gallery node: prefer data-images, else child <img> tags. */
+export function parseGalleryImageList(element: HTMLElement): GalleryImageRef[] {
+  const fromAttr = parseDataImagesJson(element.getAttribute('data-images'));
+  if (fromAttr.length) return fromAttr;
+  return Array.from(element.querySelectorAll('img'))
+    .map((img) => ({
+      src: unwrapOptimizedImageSrc(img.getAttribute('src') || ''),
+      alt: img.getAttribute('alt') || '',
+    }))
+    .filter((img) => Boolean(img.src));
+}
+
+export function parseGalleryImagesFromHtmlAttributes(
+  htmlAttributes: Record<string, unknown>
+): GalleryImageRef[] {
+  const raw = htmlAttributes['data-images'];
+  if (Array.isArray(raw)) {
+    return raw
+      .map((item) => {
+        const src =
+          item && typeof item === 'object' && 'src' in item
+            ? unwrapOptimizedImageSrc(String((item as { src?: unknown }).src || ''))
+            : '';
+        const alt =
+          item && typeof item === 'object' && 'alt' in item
+            ? String((item as { alt?: unknown }).alt || '')
+            : '';
+        return { src, alt };
+      })
+      .filter((img) => Boolean(img.src));
+  }
+  if (typeof raw === 'string') return parseDataImagesJson(raw);
+  return [];
 }
 
 /**
