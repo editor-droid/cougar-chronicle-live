@@ -843,6 +843,22 @@ body:has([data-link-hub-page]) .site-shell > main.container {
 }
 
 /* Article Specific Formatting */
+/* Phones stay under the 2.5rem floor: 5vw never clears 40px below ~800px, so long titles filled the screen. */
+.article-headline {
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  line-height: 1.1;
+  margin-bottom: 1.5rem;
+  color: var(--foreground);
+}
+
+@media (max-width: 640px) {
+  .article-headline {
+    font-size: 1.65rem;
+    line-height: 1.18;
+    margin-bottom: 1.15rem;
+  }
+}
+
 .article-page-layout {
   display: grid;
   grid-template-columns: 1fr 300px;

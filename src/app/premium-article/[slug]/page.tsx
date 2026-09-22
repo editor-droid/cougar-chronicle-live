@@ -171,7 +171,7 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
               </div>
             </div>
             
-            <h1 className="font-serif" style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', lineHeight: 1.1, marginBottom: '1.5rem', color: 'var(--foreground)' }}>
+            <h1 className="font-serif article-headline">
               {post.title}
             </h1>
             
