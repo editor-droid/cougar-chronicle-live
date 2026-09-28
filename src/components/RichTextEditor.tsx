@@ -25,6 +25,7 @@ import {
   applyLink,
   captureLinkRange,
   formatHref,
+  removeLink,
   rewriteHtmlAnchors,
   type LinkRange,
 } from "../lib/editor-links";
@@ -1571,7 +1572,14 @@ function LinkInput({
   };
 
   return (
-    <div style={{ position: "relative" }}>
+    <div
+      style={{ position: "relative" }}
+      onMouseDown={(e) => {
+        const tag = (e.target as HTMLElement).tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA") return;
+        e.preventDefault();
+      }}
+    >
       <div
         style={{
           display: "flex",
@@ -1621,6 +1629,7 @@ function LinkInput({
           }}
         />
         <button
+          type="button"
           onClick={() => {
             if (showSuggestions && suggestions[selectedIndex] && url.startsWith("/")) {
               handleSave(suggestions[selectedIndex].url);
@@ -1634,6 +1643,7 @@ function LinkInput({
           Apply
         </button>
         <button
+          type="button"
           onClick={onCancel}
           style={{
             color: "var(--muted)",
@@ -1726,7 +1736,10 @@ function FloatingBubbleToolbar({
       // @ts-expect-error - Tiptap types missing tippyOptions in this version
       tippyOptions={{ duration: 100, placement: "top", offset: [0, 8] }}
       shouldShow={({ editor, view }) => {
-        if (!editor.isEditable || !view.hasFocus()) return false;
+        if (!editor.isEditable) return false;
+        // Keep the URL field mounted after it steals focus from the editor.
+        if (isInsertingLink) return true;
+        if (!view.hasFocus()) return false;
         // Hide over media/atoms and when the dedicated link menu is showing
         if (editor.isActive("image") || editor.isActive("gallery")) return false;
         if (editor.isActive("videoEmbed") || editor.isActive("tweetEmbed")) return false;
@@ -1922,14 +1935,13 @@ function LinkBubbleMenu({ editor }: { editor: Editor }) {
   const isActive = editor.isActive("link");
 
   useEffect(() => {
+    if (isEditing) return;
     if (isActive) {
       setUrl(editor.getAttributes("link").href || "");
-    } else {
-      setIsEditing(false);
     }
-  }, [editor.state.selection, isActive, editor]);
+  }, [editor.state.selection, isActive, editor, isEditing]);
 
-  if (!isActive) return null;
+  if (!isActive && !isEditing) return null;
 
   return (
     <BubbleMenu
@@ -1937,14 +1949,14 @@ function LinkBubbleMenu({ editor }: { editor: Editor }) {
       // @ts-expect-error - Tiptap types missing tippyOptions in this version
       tippyOptions={{ duration: 100, placement: "bottom" }}
       pluginKey="linkBubbleMenu"
-      shouldShow={({ editor }) => editor.isActive("link")}
+      shouldShow={({ editor: ed }) => isEditing || ed.isActive("link")}
     >
       {isEditing ? (
         <LinkInput 
           initialUrl={url}
           onSave={(finalUrl) => {
             if (finalUrl) {
-              applyLink(editor, finalUrl, linkRange.current ?? captureLinkRange(editor));
+              applyLink(editor, finalUrl, linkRange.current);
             }
             setIsEditing(false);
           }}
@@ -1982,17 +1994,24 @@ function LinkBubbleMenu({ editor }: { editor: Editor }) {
             </a>
             <div style={{ width: "1px", height: "1rem", background: "var(--border)", margin: "0 0.25rem" }} />
             <button
-              onClick={() => {
+              type="button"
+              onMouseDown={(e) => {
+                e.preventDefault();
                 linkRange.current = captureLinkRange(editor);
-                setIsEditing(true);
               }}
+              onClick={() => setIsEditing(true)}
               title="Edit Link"
               style={{ color: "var(--muted)", cursor: "pointer", background: "transparent", border: "none", padding: "0.25rem" }}
             >
               <Pencil size={14} />
             </button>
             <button
-              onClick={() => editor.chain().focus().unsetLink().run()}
+              type="button"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                linkRange.current = captureLinkRange(editor);
+              }}
+              onClick={() => removeLink(editor, linkRange.current)}
               title="Remove Link"
               style={{ color: "var(--muted)", cursor: "pointer", background: "transparent", border: "none", padding: "0.25rem" }}
             >
@@ -2196,15 +2215,8 @@ export const RichTextEditor = forwardRef<
         })();
         return true;
       },
-      handleClick: (view, pos, event) => {
-        const target = event.target as HTMLElement;
-        if (target.closest(".tweet-embed-node a")) return false;
-        if (target.closest('a')) {
-          event.preventDefault();
-          return true;
-        }
-        return false;
-      }
+      // Link clicks are not handled here on purpose. Returning true makes
+      // ProseMirror cancel the mouseup, which selects the whole editor in Chrome.
     },
     onUpdate: ({ editor: ed }) => {
       const html = ed.getHTML();
