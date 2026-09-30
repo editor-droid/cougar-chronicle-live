@@ -6,9 +6,10 @@ import { revalidatePath } from 'next/cache';
 import { PostState, Role } from '@prisma/client';
 import { getArticleUrl } from '@/lib/routes';
 import { broadcastPostPublication } from '@/lib/publish-utils';
-import { isResendConfigured, sendOneEmail } from '@/lib/email';
+import { isResendConfigured, isValidEmail, sendOneEmail } from '@/lib/email';
+import { notifyWriterAssigned } from '@/lib/desk-reminders';
 import { syncArticleVideosToLibrary } from '@/lib/article-videos';
-import { canApprovePosts, canPublishPosts } from '@/lib/roles';
+import { canApprovePosts, canEditAllPosts, canPublishPosts } from '@/lib/roles';
 import { computeBreakingUntil, DEFAULT_BREAKING_HOURS } from '@/lib/breaking';
 import { slugifyTitle, sanitizeSlugInput, withUniquenessSuffix } from '@/lib/slug';
 import { mergeAuthors } from '@/lib/merge-authors';
@@ -527,6 +528,56 @@ export async function addEditorialNote(formData: FormData) {
   revalidatePath(`/dashboard/editor/${postId}`);
 }
 
+async function sendStaffWelcome(opts: { name: string; email: string; role: Role }): Promise<boolean> {
+  try {
+    const token = crypto.randomUUID();
+    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    await prisma.verificationToken.create({
+      data: { identifier: opts.email, token, expires },
+    });
+
+    const originCandidates = [
+      process.env.NEXTAUTH_URL,
+      process.env.AUTH_URL,
+      process.env.NEXT_PUBLIC_SITE_URL,
+    ];
+    let origin = 'https://thecougarchronicle.com';
+    for (const raw of originCandidates) {
+      if (!raw) continue;
+      try {
+        const url = new URL(raw);
+        const isLocal = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
+        if (isLocal && process.env.NODE_ENV === 'production') continue;
+        origin = url.origin;
+        break;
+      } catch {
+        // ignore malformed env values
+      }
+    }
+    const resetLink = `${origin}/reset-password?token=${token}&email=${encodeURIComponent(opts.email)}`;
+    const roleLabel =
+      opts.role === 'ADMIN' ? 'an administrator' : opts.role === 'EDITOR' ? 'an editor' : 'a writer';
+    const safeName = opts.name
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    const subject = `Welcome to The Cougar Chronicle — set your password`;
+    const html = `<p>Hi ${safeName},</p>
+      <p>You've been added as <strong>${roleLabel}</strong> at The Cougar Chronicle.</p>
+      <p>Set your password to access the dashboard:</p>
+      <p><a href="${resetLink}" style="display: inline-block; background-color: #1B2253; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 4px; font-weight: bold;">Set My Password</a></p>
+      <p>If the button doesn't work, copy this link:<br/>${resetLink}</p>
+      <p>This link expires in 24 hours.</p>`;
+
+    console.log(`[EMAIL] Welcome ${opts.role} → ${opts.email} ${resetLink}`);
+    const sent = await sendOneEmail({ to: opts.email, subject, html });
+    return sent.ok;
+  } catch (e) {
+    console.error('Failed to generate or send password set email:', e);
+    return false;
+  }
+}
+
 export async function createStaffUser(data: {
   name: string;
   email?: string | null;
@@ -562,52 +613,7 @@ export async function createStaffUser(data: {
     },
   });
 
-  let emailSent = false;
-  if (email) {
-    try {
-      const token = crypto.randomUUID();
-      const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
-      await prisma.verificationToken.create({
-        data: { identifier: email, token, expires },
-      });
-
-      const originCandidates = [
-        process.env.NEXTAUTH_URL,
-        process.env.AUTH_URL,
-        process.env.NEXT_PUBLIC_SITE_URL,
-      ];
-      let origin = 'https://thecougarchronicle.com';
-      for (const raw of originCandidates) {
-        if (!raw) continue;
-        try {
-          const url = new URL(raw);
-          const isLocal = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
-          if (isLocal && process.env.NODE_ENV === 'production') continue;
-          origin = url.origin;
-          break;
-        } catch {
-          // ignore malformed env values
-        }
-      }
-      const resetLink = `${origin}/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
-      const roleLabel =
-        role === 'ADMIN' ? 'an administrator' : role === 'EDITOR' ? 'an editor' : 'a writer';
-      const subject = `Welcome to The Cougar Chronicle — set your password`;
-      const html = `<p>Hi ${name},</p>
-      <p>You've been added as <strong>${roleLabel}</strong> at The Cougar Chronicle.</p>
-      <p>Set your password to access the dashboard:</p>
-      <p><a href="${resetLink}" style="display: inline-block; background-color: #1B2253; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 4px; font-weight: bold;">Set My Password</a></p>
-      <p>If the button doesn't work, copy this link:<br/>${resetLink}</p>
-      <p>This link expires in 24 hours.</p>`;
-
-      console.log(`[EMAIL] Welcome ${role} → ${email} ${resetLink}`);
-
-      const sent = await sendOneEmail({ to: email, subject, html });
-      emailSent = sent.ok;
-    } catch (e) {
-      console.error('Failed to generate or send password set email:', e);
-    }
-  }
+  const emailSent = email ? await sendStaffWelcome({ name, email, role }) : false;
 
   revalidatePath('/dashboard/users');
   return { ok: true as const, userId: user.id, emailSent };
@@ -637,6 +643,167 @@ export async function mergeAuthorsAction(data: {
   revalidatePath(`/author/${result.foldId}`);
   revalidatePath('/');
   return result;
+}
+
+type DeskPerson = {
+  id: string;
+  name: string | null;
+  email: string | null;
+  role: Role;
+};
+
+function cleanAssignmentDate(value: unknown): { ok: true; value: Date | null } | { ok: false; message: string } {
+  if (typeof value !== 'string' || value.trim() === '') return { ok: true, value: null };
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return { ok: false, message: 'Use a real date.' };
+  const [year, month, day] = value.split('-').map(Number);
+  if (year < 2020 || year > 2100) return { ok: false, message: 'Use a real date.' };
+  const date = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+  if (
+    date.getUTCFullYear() !== year ||
+    date.getUTCMonth() !== month - 1 ||
+    date.getUTCDate() !== day
+  ) {
+    return { ok: false, message: 'Use a real date.' };
+  }
+  return { ok: true, value: date };
+}
+
+async function findDeskPerson(
+  id: string | null,
+  roles: Role[]
+): Promise<{ ok: true; user: DeskPerson | null } | { ok: false; message: string }> {
+  if (!id) return { ok: true, user: null };
+  const user = await prisma.user.findUnique({
+    where: { id },
+    select: { id: true, name: true, email: true, role: true, archivedAt: true },
+  });
+  if (!user || user.archivedAt || !roles.includes(user.role)) {
+    return { ok: false, message: 'Choose someone from the staff list.' };
+  }
+  return { ok: true, user };
+}
+
+/** Add a writer from the drafts desk. Name is required. Email turns on reminders and a password link. */
+export async function createDeskWriter(data: {
+  name: string;
+  email?: string | null;
+}): Promise<{ ok: true; user: DeskPerson } | { ok: false; message: string }> {
+  const session = await auth();
+  if (!session?.user || !canEditAllPosts(session.user.role)) {
+    return { ok: false, message: 'Only editors can add a writer.' };
+  }
+
+  const name = (data?.name || '').trim().replace(/\s+/g, ' ');
+  if (!name) return { ok: false, message: 'A name is required.' };
+  if (name.length > 80) return { ok: false, message: 'Keep the name to 80 characters.' };
+
+  let email: string | null = null;
+  if (typeof data?.email === 'string' && data.email.trim()) {
+    const candidate = data.email.trim().toLowerCase();
+    if (!isValidEmail(candidate)) return { ok: false, message: 'That email does not look valid.' };
+    email = candidate;
+  }
+
+  if (email) {
+    const existing = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true, name: true, email: true, role: true, archivedAt: true },
+    });
+    if (existing?.archivedAt) {
+      return { ok: false, message: 'That person is archived. Restore them on the Users page first.' };
+    }
+    if (existing && (existing.role === 'WRITER' || existing.role === 'EDITOR' || existing.role === 'ADMIN')) {
+      return {
+        ok: true,
+        user: { id: existing.id, name: existing.name, email: existing.email, role: existing.role },
+      };
+    }
+    if (existing) return { ok: false, message: 'That email already belongs to a reader account.' };
+  }
+
+  const bcrypt = await import('bcryptjs');
+  const randomPassword = Math.random().toString(36).slice(-8) + 'A1!';
+  const hashedPassword = await bcrypt.hash(randomPassword, 10);
+  const user = await prisma.user.create({
+    data: { name, email, password: hashedPassword, role: 'WRITER' },
+    select: { id: true, name: true, email: true, role: true },
+  });
+
+  if (email) await sendStaffWelcome({ name, email, role: 'WRITER' });
+
+  revalidatePath('/dashboard');
+  revalidatePath('/dashboard/users');
+  return { ok: true, user };
+}
+
+/** Assign a staff writer, a staff editor, and a target day. Does not publish or change the byline. */
+export async function updateDraftAssignment(data: {
+  postId: string;
+  writerId: string;
+  editorId: string;
+  targetDate: string;
+}): Promise<{ ok: true; message: string } | { ok: false; message: string }> {
+  const session = await auth();
+  if (!session?.user || !canEditAllPosts(session.user.role)) {
+    return { ok: false, message: 'Only editors can update these fields.' };
+  }
+  if (!data?.postId || typeof data.postId !== 'string') {
+    return { ok: false, message: 'Missing story.' };
+  }
+
+  const writerId = typeof data.writerId === 'string' && data.writerId.trim() ? data.writerId.trim() : null;
+  const editorId = typeof data.editorId === 'string' && data.editorId.trim() ? data.editorId.trim() : null;
+  const writer = await findDeskPerson(writerId, ['WRITER', 'EDITOR', 'ADMIN']);
+  if (!writer.ok) return writer;
+  const editor = await findDeskPerson(editorId, ['EDITOR', 'ADMIN']);
+  if (!editor.ok) return editor;
+  const targetDate = cleanAssignmentDate(data.targetDate);
+  if (!targetDate.ok) return targetDate;
+
+  const post = await prisma.post.findUnique({
+    where: { id: data.postId },
+    select: { id: true, title: true, state: true, assignedWriterId: true },
+  });
+  if (!post) return { ok: false, message: 'Story not found.' };
+  if (post.state === 'PUBLISHED') {
+    return { ok: false, message: 'Published stories stay off the drafts desk.' };
+  }
+
+  const writerChanged = (post.assignedWriterId || null) !== (writer.user?.id || null);
+  // Raw update so Prisma's @updatedAt does not rewrite "Last modified".
+  const updated = await prisma.$executeRaw`
+    UPDATE "Post"
+    SET "assignedWriterId" = ${writer.user?.id || null},
+        "assignedEditorId" = ${editor.user?.id || null},
+        "targetPublishDate" = ${targetDate.value},
+        "deskAssignedAt" = CASE WHEN ${writerChanged} THEN NOW() ELSE "deskAssignedAt" END
+    WHERE "id" = ${data.postId}
+      AND "state" <> 'PUBLISHED'
+  `;
+  if (updated === 0) {
+    return { ok: false, message: 'That story is no longer on the drafts desk.' };
+  }
+
+  let message = 'Saved';
+  if (writerChanged && writer.user) {
+    const targetIso = targetDate.value
+      ? `${targetDate.value.getUTCFullYear()}-${String(targetDate.value.getUTCMonth() + 1).padStart(2, '0')}-${String(targetDate.value.getUTCDate()).padStart(2, '0')}`
+      : null;
+    const emailResult = await notifyWriterAssigned({
+      postId: post.id,
+      title: post.title,
+      targetDate: targetIso,
+      writerName: writer.user.name,
+      writerEmail: writer.user.email,
+      editorName: editor.user?.name || null,
+    });
+    if (emailResult === 'skipped') message = 'Saved. Add an email for this writer to turn on reminders.';
+    else if (emailResult === 'failed') message = 'Saved. The assignment email could not be sent.';
+    else message = 'Saved. Assignment email sent.';
+  }
+
+  revalidatePath('/dashboard');
+  return { ok: true, message };
 }
 
 /** @deprecated use createStaffUser */

@@ -2,6 +2,7 @@ import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import prisma from '@/lib/prisma';
 import EditorForm from './EditorForm';
+import { recordEditorOpened } from '@/lib/desk-reminders';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -27,6 +28,23 @@ export default async function EditorPage({ params }: { params: Promise<{ id: str
     // Writers can only edit their own drafts
     if (post && post.authorId !== session.user.id && session.user.role === 'WRITER') {
       redirect('/dashboard');
+    }
+
+    if (post) {
+      try {
+        await recordEditorOpened({
+          postId: post.id,
+          title: post.title,
+          state: post.state,
+          assignedWriterId: post.assignedWriterId,
+          deskNotices: post.deskNotices,
+          openerId: session.user.id,
+          openerName: session.user.name,
+          openerRole: session.user.role,
+        });
+      } catch (error) {
+        console.error('Failed to record editor open', error);
+      }
     }
   }
 

@@ -453,7 +453,7 @@ body:has(.dashboard-shell) .site-shell > main.container {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
-  min-width: 520px;
+  min-width: 720px;
 }
 
 .dash-table thead {
@@ -499,6 +499,141 @@ body:has(.dashboard-shell) .site-shell > main.container {
 
 .dash-table a.dash-title-link:hover {
   color: var(--primary);
+}
+
+.dash-title-cell {
+  min-width: 16rem;
+}
+
+.dashboard-shell input.dash-assign-input,
+.dashboard-shell select.dash-assign-input {
+  width: 11.5rem;
+  min-height: 36px;
+  height: 36px;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.2;
+}
+
+.dashboard-shell select.dash-assign-input {
+  max-width: 14rem;
+}
+
+.dash-assign-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(17, 24, 39, 0.45);
+}
+
+.dash-assign-modal {
+  width: min(100%, 24rem);
+  padding: 1.25rem 1.25rem 1.1rem;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 18px 50px rgba(17, 24, 39, 0.2);
+}
+
+.dash-assign-modal h3 {
+  margin: 0 0 0.35rem;
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+}
+
+.dash-assign-modal p {
+  margin: 0 0 0.9rem;
+  font-family: var(--font-sans);
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: #4b5563;
+}
+
+.dash-assign-modal form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.dash-assign-modal label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+
+.dash-assign-modal input {
+  width: 100%;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 500;
+  font-size: 16px;
+}
+
+.dash-assign-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.dash-assign-modal-error {
+  margin: 0;
+  color: #991b1b;
+  font-size: 0.85rem;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 600;
+}
+
+.dashboard-shell input.dash-assign-input[type='date'] {
+  width: 10.5rem;
+}
+
+.dashboard-shell input.dash-assign-input:focus {
+  outline: 2px solid rgba(27, 34, 83, 0.25);
+  outline-offset: 1px;
+  border-color: #1b2253;
+}
+
+.dashboard-shell input.dash-assign-overdue {
+  border-color: #f59e0b;
+  background: #fffbeb;
+}
+
+.dash-assign-date {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+}
+
+.dash-assign-status {
+  display: block;
+  max-width: 11.5rem;
+  min-height: 0.9rem;
+  font-family: var(--font-sans);
+  font-size: 0.68rem;
+  line-height: 1.3;
+  color: #6b7280;
+  white-space: normal;
+}
+
+.dash-assign-status-error {
+  color: #991b1b;
 }
 
 .dash-row-actions {

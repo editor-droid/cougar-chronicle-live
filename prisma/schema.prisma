@@ -35,7 +35,9 @@ model User {
   isSubscribed          Boolean            @default(false)
   membershipExpiresAt   DateTime?
   giftLinks             Int                @default(0)
-  posts             Post[]
+  posts             Post[]             @relation("PostAuthor")
+  deskWriterPosts   Post[]             @relation("DeskWriter")
+  deskEditorPosts   Post[]             @relation("DeskEditor")
   accounts          Account[]
   sessions          Session[]
   editorialNotes    EditorialNote[]
@@ -56,7 +58,7 @@ model Post {
   state          PostState       @default(DRAFT)
   imageUrl       String?
   authorId       String
-  author         User            @relation(fields: [authorId], references: [id])
+  author         User            @relation("PostAuthor", fields: [authorId], references: [id])
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   publishedAt    DateTime?
@@ -75,6 +77,20 @@ model Post {
   showDonateCta     Boolean        @default(true)
   breakingUntil     DateTime?
   customAuthor      String?
+  /// Staff writer responsible for this draft. Separate from the public byline.
+  assignedWriterId  String?
+  assignedWriter    User?           @relation("DeskWriter", fields: [assignedWriterId], references: [id], onDelete: SetNull)
+  /// Staff editor responsible for this draft.
+  assignedEditorId  String?
+  assignedEditor    User?           @relation("DeskEditor", fields: [assignedEditorId], references: [id], onDelete: SetNull)
+  /// When the current writer was assigned. Used so a same-day assignment is not nagged.
+  deskAssignedAt    DateTime?
+  /// First time an editor opened the draft after this writer was assigned.
+  editorOpenedAt    DateTime?
+  /// Planning day for the drafts desk. Does not publish the story.
+  targetPublishDate DateTime?
+  /// JSON list of reminder keys already sent, so each nudge happens once.
+  deskNotices       String?         @db.Text
   printEditionId    String?
   printEditionOrder Int?
   imageCaption      String?
@@ -87,6 +103,8 @@ model Post {
   @@index([category])
   @@index([format])
   @@index([category, format])
+  @@index([assignedWriterId])
+  @@index([assignedEditorId])
 }
 
 model ArticleToken {

@@ -5,6 +5,16 @@ import Link from 'next/link';
 import { updatePostState } from './actions';
 import { getArticleUrl } from '@/lib/routes';
 import DashboardHeader from '@/components/DashboardHeader';
+import DraftAssignment from './DraftAssignment';
+import { DeskStaffProvider, type DeskPerson } from './DeskStaff';
+
+function formatDeskDate(value: Date | null | undefined): string {
+  if (!value) return '';
+  const year = value.getUTCFullYear();
+  const month = String(value.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(value.getUTCDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 
 function statusBadgeClass(state: string) {
   if (state === 'PUBLISHED' || state === 'APPROVED') return 'dash-badge dash-badge-green';
@@ -50,6 +60,8 @@ export default async function DashboardPage(props: {
   let posts: any[] = [];
   let publishedPosts: any[] = [];
   let totalPublishedPages = 1;
+  let deskWriters: DeskPerson[] = [];
+  let deskEditors: DeskPerson[] = [];
 
   if (isEditorOrAdmin) {
     needsReviewPosts = await prisma.post.findMany({
@@ -85,6 +97,14 @@ export default async function DashboardPage(props: {
       skip,
       include: { author: true },
     });
+
+    const staff = await prisma.user.findMany({
+      where: { role: { in: ['WRITER', 'EDITOR', 'ADMIN'] }, archivedAt: null },
+      select: { id: true, name: true, email: true, role: true },
+      orderBy: { name: 'asc' },
+    });
+    deskWriters = staff;
+    deskEditors = staff.filter((person) => person.role === 'EDITOR' || person.role === 'ADMIN');
   } else {
     posts = await prisma.post.findMany({
       where: { authorId: session.user.id },
@@ -105,6 +125,7 @@ export default async function DashboardPage(props: {
     <div className="container animate-fade-in" style={{ marginTop: '1rem', marginBottom: '3rem' }}>
       <DashboardHeader currentTab="posts" />
 
+      <DeskStaffProvider writers={deskWriters} editors={deskEditors}>
       {isEditorOrAdmin && needsReviewPosts.length > 0 && (
         <section className="dash-section">
           <div className="dash-card dash-card-accent">
@@ -119,6 +140,9 @@ export default async function DashboardPage(props: {
                 <thead>
                   <tr>
                     <th>Title</th>
+                    <th>Writer</th>
+                    <th>Editor</th>
+                    <th>Target date</th>
                     <th>Author</th>
                     <th>Submitted</th>
                     <th>Actions</th>
@@ -127,7 +151,7 @@ export default async function DashboardPage(props: {
                 <tbody>
                   {needsReviewPosts.map((post) => (
                     <tr key={post.id}>
-                      <td>
+                      <td className="dash-title-cell">
                         <Link
                           href={`/dashboard/editor/${post.id}`}
                           className="dash-title-link"
@@ -135,6 +159,13 @@ export default async function DashboardPage(props: {
                           {post.title}
                         </Link>
                       </td>
+                      <DraftAssignment
+                        postId={post.id}
+                        title={post.title}
+                        writerId={post.assignedWriterId || ''}
+                        editorId={post.assignedEditorId || ''}
+                        targetDate={formatDeskDate(post.targetPublishDate)}
+                      />
                       <td className="text-muted">
                         {post.customAuthor || post.author.name}
                       </td>
@@ -176,6 +207,13 @@ export default async function DashboardPage(props: {
                 <thead>
                   <tr>
                     <th>Title</th>
+                    {isEditorOrAdmin ? (
+                      <>
+                        <th>Writer</th>
+                        <th>Editor</th>
+                        <th>Target date</th>
+                      </>
+                    ) : null}
                     <th>Status</th>
                     <th>Last modified</th>
                     <th>Actions</th>
@@ -184,7 +222,7 @@ export default async function DashboardPage(props: {
                 <tbody>
                   {posts.map((post) => (
                     <tr key={post.id}>
-                      <td>
+                      <td className="dash-title-cell">
                         <Link
                           href={`/dashboard/editor/${post.id}`}
                           className="dash-title-link"
@@ -201,6 +239,15 @@ export default async function DashboardPage(props: {
                           </span>
                         )}
                       </td>
+                      {isEditorOrAdmin ? (
+                        <DraftAssignment
+                          postId={post.id}
+                          title={post.title}
+                          writerId={post.assignedWriterId || ''}
+                          editorId={post.assignedEditorId || ''}
+                          targetDate={formatDeskDate(post.targetPublishDate)}
+                        />
+                      ) : null}
                       <td>
                         <span className={statusBadgeClass(post.state)}>
                           {post.state}
@@ -386,6 +433,7 @@ export default async function DashboardPage(props: {
           )}
         </section>
       )}
+      </DeskStaffProvider>
     </div>
   );
 }

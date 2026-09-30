@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { broadcastPostPublication } from '@/lib/publish-utils';
 import { syncArticleVideosToLibrary } from '@/lib/article-videos';
+import { runDeskReminders } from '@/lib/desk-reminders';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,7 +35,15 @@ export async function GET(request: Request) {
     });
 
     if (postsToPublish.length === 0) {
-      return NextResponse.json({ success: true, message: 'No posts to publish at this time.' });
+      const desk = await runDeskReminders(now).catch((error) => {
+        console.error('Desk reminders failed during publish cron', error);
+        return null;
+      });
+      return NextResponse.json({
+        success: true,
+        message: 'No posts to publish at this time.',
+        desk,
+      });
     }
 
     let publishedCount = 0;
@@ -59,9 +68,17 @@ export async function GET(request: Request) {
       publishedCount++;
     }
 
+    let desk: { checked: number; sent: number } | null = null;
+    try {
+      desk = await runDeskReminders(now);
+    } catch (error) {
+      console.error('Desk reminders failed after publish cron', error);
+    }
+
     return NextResponse.json({ 
       success: true, 
-      message: `Successfully published ${publishedCount} scheduled post(s).` 
+      message: `Successfully published ${publishedCount} scheduled post(s).`,
+      desk,
     });
   } catch (error) {
     console.error('Failed to run scheduled publish cron:', error);
