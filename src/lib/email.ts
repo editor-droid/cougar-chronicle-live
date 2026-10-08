@@ -1,4 +1,6 @@
 import { Resend } from 'resend';
+import { DONATION_SOURCE } from './donations';
+import { isAugustFundraiserWindow } from './membership-constants';
 import { rewriteMediaUrl } from './media-url';
 
 /** Verified Resend domain — use this for every outbound message. */
@@ -8,6 +10,19 @@ export const NEWSLETTER_FROM =
 export function isResendConfigured(): boolean {
   const key = process.env.RESEND_API_KEY || '';
   return Boolean(key) && !key.includes('placeholder') && !key.includes('fallback');
+}
+
+/**
+ * Broadcasts need a key that can manage contacts and segments.
+ * Falls back to RESEND_API_KEY when a separate marketing key is not set.
+ */
+export function marketingApiKey(): string {
+  return (process.env.RESEND_MARKETING_API_KEY || process.env.RESEND_API_KEY || '').trim();
+}
+
+export function isMarketingConfigured(): boolean {
+  const key = marketingApiKey();
+  return Boolean(key) && !key.includes('placeholder') && !key.includes('fallback') && !key.includes('unconfigured');
 }
 
 export function getResend(): Resend {
@@ -190,9 +205,66 @@ export function newsletterStoryRowHtml(opts: {
     </table>`;
 }
 
-/** Shared footer for all list emails: why you're receiving + unsubscribe + preferences. */
-export function newsletterEmailFooter(origin: string, recipientEmail: string): string {
-  const unsub = `${origin}/unsubscribe?email=${encodeURIComponent(recipientEmail)}`;
+const DONATE_AMOUNTS = [10, 25, 50, 100] as const;
+
+function donateEmailHref(opts: {
+  origin: string;
+  amount?: number;
+  sourceDetail?: string;
+  campaign: string;
+}): string {
+  const inAugust = isAugustFundraiserWindow();
+  const path = inAugust ? '/fundraiser' : '/donate';
+  const params = new URLSearchParams({ from: DONATION_SOURCE.NEWSLETTER });
+  if (opts.amount) params.set('amount', String(opts.amount));
+  if (opts.sourceDetail) params.set('article', opts.sourceDetail);
+  return withUtm(`${siteOrigin(opts.origin)}${path}?${params.toString()}`, {
+    source: 'newsletter',
+    medium: 'email',
+    campaign: opts.campaign,
+  });
+}
+
+/** Donation ask for Chronicle list emails. Amount links open the donate page. */
+export function newsletterDonateHtml(opts: {
+  origin: string;
+  campaign?: string;
+  sourceDetail?: string;
+}): string {
+  const campaign = opts.campaign || 'newsletter-donate';
+  const otherHref = escapeEmailHtml(donateEmailHref({ origin: opts.origin, sourceDetail: opts.sourceDetail, campaign }));
+  const buttons = DONATE_AMOUNTS.map((amount) => {
+    const href = escapeEmailHtml(
+      donateEmailHref({ origin: opts.origin, amount, sourceDetail: opts.sourceDetail, campaign })
+    );
+    const filled = amount === 25 || amount === 50;
+    const style = filled
+      ? 'display:inline-block;background-color:#1B2253;color:#ffffff;text-decoration:none;padding:8px 14px;border-radius:4px;font-weight:bold;font-family:Arial,Helvetica,sans-serif;font-size:14px;border:1px solid #1B2253;'
+      : 'display:inline-block;background-color:#ffffff;color:#1B2253;text-decoration:none;padding:8px 14px;border-radius:4px;font-weight:bold;font-family:Arial,Helvetica,sans-serif;font-size:14px;border:1px solid #1B2253;';
+    return `<td style="padding:0 8px 8px 0;"><a href="${href}" style="${style}">$${amount}</a></td>`;
+  }).join('');
+
+  return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:28px 0 8px 0;">
+      <tr>
+        <td style="padding:18px 18px 16px 18px;background-color:#f4f6fb;border-left:4px solid #1B2253;border-radius:6px;">
+          <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:bold;letter-spacing:0.08em;text-transform:uppercase;color:#1B2253;">Support The Cougar Chronicle</p>
+          <p style="margin:8px 0 0;font-family:Georgia,serif;font-size:18px;line-height:1.35;color:#1A1A1A;">Independent reporting at BYU exists because readers fund it.</p>
+          <p style="margin:8px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.5;color:#444444;">Your gift keeps this newsroom accountable to campus — not advertisers or the administration.</p>
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:14px;"><tr>${buttons}</tr></table>
+          <p style="margin:4px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;"><a href="${otherHref}" style="color:#1B2253;font-weight:bold;text-decoration:underline;">Other amount</a></p>
+        </td>
+      </tr>
+    </table>`;
+}
+
+/**
+ * Shared footer for list emails.
+ * Omit recipientEmail on marketing broadcasts so Resend fills the unsubscribe link per contact.
+ */
+export function newsletterEmailFooter(origin: string, recipientEmail?: string): string {
+  const unsub = recipientEmail
+    ? `${origin}/unsubscribe?email=${encodeURIComponent(recipientEmail)}`
+    : '{{{RESEND_UNSUBSCRIBE_URL}}}';
   const prefs = `${origin}/account`;
   return `
     <hr style="border: none; border-top: 1px solid #eaeaea; margin-top: 40px; margin-bottom: 16px;" />

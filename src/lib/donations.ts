@@ -35,6 +35,15 @@ export function formatGoalDollars(goal: number): string {
   return `$${goal.toLocaleString('en-US')}`;
 }
 
+/** Dollar amount from a query string. Null when missing or outside $1–$10,000. */
+export function parseDonationAmount(raw: unknown): number | null {
+  const n = typeof raw === 'number' ? raw : typeof raw === 'string' && raw.trim() ? Number(raw) : NaN;
+  if (!Number.isFinite(n)) return null;
+  const rounded = Math.round(n);
+  if (rounded < 1 || rounded > 10_000) return null;
+  return rounded;
+}
+
 export type DonationCampaign =
   (typeof DONATION_CAMPAIGN)[keyof typeof DONATION_CAMPAIGN];
 
@@ -43,6 +52,7 @@ export const DONATION_SOURCE = {
   FUNDRAISER_PAGE: 'fundraiser_page',
   ARTICLE_END: 'article_end',
   ARTICLE_MID: 'article_mid',
+  NEWSLETTER: 'newsletter',
   MANUAL: 'manual',
   LEGACY: 'legacy',
   UNKNOWN: 'unknown',
@@ -78,6 +88,8 @@ export function sourceLabel(source: string | null | undefined): string {
       return 'Article (end)';
     case DONATION_SOURCE.ARTICLE_MID:
       return 'Article (mid)';
+    case DONATION_SOURCE.NEWSLETTER:
+      return 'Newsletter';
     case DONATION_SOURCE.MANUAL:
       return 'Manual / offline';
     case DONATION_SOURCE.LEGACY:

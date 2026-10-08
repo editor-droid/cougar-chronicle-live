@@ -2,7 +2,7 @@ import prisma from '@/lib/prisma';
 import Image from 'next/image';
 import DonateForm from './DonateForm';
 import { Target, Users, Globe } from 'lucide-react';
-import { formatGoalDollars } from '@/lib/donations';
+import { formatGoalDollars, parseDonationAmount } from '@/lib/donations';
 import { getFundraiserGoal } from '@/lib/fundraiser-goal';
 
 export const dynamic = 'force-dynamic';
@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 export default async function FundraiserPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ from?: string; article?: string; success?: string; purchase?: string }>;
+  searchParams?: Promise<{ from?: string; article?: string; amount?: string; success?: string; purchase?: string }>;
 }) {
   const sp = (await searchParams) || {};
   const donations = await prisma.donation.findMany({
@@ -259,7 +259,12 @@ export default async function FundraiserPage({
                 </p>
               </div>
             )}
-            <DonateForm sourceFrom={sp.from} articleSlug={sp.article} goal={goal} />
+            <DonateForm
+              sourceFrom={sp.from}
+              articleSlug={sp.article}
+              goal={goal}
+              initialAmount={parseDonationAmount(sp.amount) ?? undefined}
+            />
           </div>
         </div>
 

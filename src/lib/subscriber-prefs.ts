@@ -32,6 +32,20 @@ export function topicPrefForPost(post: {
   return 'wantsNews';
 }
 
+/** Stable group for the weekly digest. Same mask means the same story list. */
+export function digestAudienceMask(
+  sub: SubscriberTopicPrefs & { wantsVideos?: boolean | null }
+): number {
+  let mask = 0;
+  if (sub.wantsNews) mask |= 1;
+  if (sub.wantsCampus) mask |= 2;
+  if (sub.wantsPolitics) mask |= 4;
+  if (sub.wantsFaith) mask |= 8;
+  if (sub.wantsOpinion) mask |= 16;
+  if (sub.wantsVideos) mask |= 32;
+  return mask;
+}
+
 export function subscriberMatchesPost(
   sub: SubscriberTopicPrefs,
   post: {

@@ -1,10 +1,8 @@
 'use server';
 
-import prisma from '@/lib/prisma';
 import { Resend } from 'resend';
-
-const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder');
-const AUDIENCE_ID = process.env.RESEND_AUDIENCE_ID || '993e7864-bb3a-4543-a437-a7848b030657';
+import prisma from '@/lib/prisma';
+import { isMarketingConfigured, marketingApiKey } from '@/lib/email';
 
 export async function unsubscribeUser(email: string) {
   if (!email) return { error: 'Email is required' };
@@ -20,21 +18,15 @@ export async function unsubscribeUser(email: string) {
     // Ignore error if subscriber not found
   }
 
-  // 2. Remove from Resend
-  if (process.env.RESEND_API_KEY) {
+  // 2. Stop marketing broadcasts. List sends also drop inactive subscribers on the next sync.
+  if (isMarketingConfigured()) {
     try {
-      // Find the contact in the audience
-      const contacts = await resend.contacts.list({ audienceId: AUDIENCE_ID });
-      const contact = contacts.data?.data?.find(c => c.email === email);
-      
-      if (contact) {
-        await resend.contacts.remove({
-          id: contact.id,
-          audienceId: AUDIENCE_ID,
-        });
+      const updated = await new Resend(marketingApiKey()).contacts.update({ email, unsubscribed: true });
+      if (updated.error && updated.error.name !== 'not_found') {
+        console.error('Failed to unsubscribe Resend contact:', updated.error.message);
       }
     } catch (error) {
-      console.error('Failed to remove from Resend audience:', error);
+      console.error('Failed to unsubscribe Resend contact:', error);
     }
   }
 

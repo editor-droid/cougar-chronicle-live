@@ -3,18 +3,23 @@
 import { useEffect, useMemo, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { DONATION_CAMPAIGN, DONATION_SOURCE } from '@/lib/donations';
+import { DONATION_CAMPAIGN, DONATION_SOURCE, parseDonationAmount } from '@/lib/donations';
 import { track } from '@/lib/ga-client';
+
+const DONATE_PRESETS = [10, 25, 50, 100];
 
 function DonateForm() {
   const searchParams = useSearchParams();
-  const [amount, setAmount] = useState<number>(25);
-  const [customAmount, setCustomAmount] = useState<string>('');
-  const [showThanks, setShowThanks] = useState(false);
-  const [purchased, setPurchased] = useState<string | null>(null);
-
   const from = searchParams.get('from') || '';
   const article = searchParams.get('article') || '';
+  const amountQuery = searchParams.get('amount');
+  const amountFromLink = parseDonationAmount(amountQuery);
+  const [amount, setAmount] = useState<number>(amountFromLink ?? 25);
+  const [customAmount, setCustomAmount] = useState<string>(
+    amountFromLink != null && !DONATE_PRESETS.includes(amountFromLink) ? String(amountFromLink) : ''
+  );
+  const [showThanks, setShowThanks] = useState(false);
+  const [purchased, setPurchased] = useState<string | null>(null);
 
   const source = useMemo(() => {
     if (from === DONATION_SOURCE.ARTICLE_END || from === DONATION_SOURCE.ARTICLE_MID) {
@@ -33,6 +38,13 @@ function DonateForm() {
       }),
     [source, article]
   );
+
+  useEffect(() => {
+    const picked = parseDonationAmount(amountQuery);
+    if (picked == null) return;
+    setAmount(picked);
+    setCustomAmount(DONATE_PRESETS.includes(picked) ? '' : String(picked));
+  }, [amountQuery]);
 
   useEffect(() => {
     const success = searchParams.get('success');

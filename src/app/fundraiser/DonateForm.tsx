@@ -13,15 +13,29 @@ type DonateFormProps = {
   sourceFrom?: string;
   articleSlug?: string;
   goal?: number;
+  initialAmount?: number;
 };
+
+const FUNDRAISER_PRESETS = [25, 48, 50, 100, 250];
+
+function startingGift(initialAmount?: number): { amount: number; custom: string } {
+  if (initialAmount == null || initialAmount < 1 || initialAmount > 10_000) {
+    return { amount: 50, custom: '' };
+  }
+  const amount = Math.round(initialAmount);
+  if (FUNDRAISER_PRESETS.includes(amount)) return { amount, custom: '' };
+  return { amount, custom: String(amount) };
+}
 
 export default function DonateForm({
   sourceFrom,
   articleSlug,
   goal = DEFAULT_FUNDRAISER_GOAL,
+  initialAmount,
 }: DonateFormProps = {}) {
-  const [amount, setAmount] = useState<number>(50);
-  const [customAmount, setCustomAmount] = useState<string>('');
+  const start = startingGift(initialAmount);
+  const [amount, setAmount] = useState<number>(start.amount);
+  const [customAmount, setCustomAmount] = useState<string>(start.custom);
   const [isHovered, setIsHovered] = useState<number | null>(null);
 
   const donationSource = sourceFrom || 'fundraiser_page';

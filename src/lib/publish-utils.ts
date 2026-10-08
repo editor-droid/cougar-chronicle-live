@@ -3,50 +3,20 @@ import { getArticleUrl } from '@/lib/routes';
 import { sendPushNotification, topicsForPost } from './push';
 import {
   escapeEmailHtml,
-  getResend,
+  isMarketingConfigured,
   isResendConfigured,
   isValidEmail,
-  NEWSLETTER_FROM,
+  newsletterDonateHtml,
   newsletterEmailFooter,
   newsletterHeroImageHtml,
   newsletterStoryRowHtml,
   sendOneEmail,
   withUtm,
 } from './email';
+import { segmentNameForPost, VIDEO_SEGMENT_NAME } from './marketing-segments';
+import { sendMarketingBroadcast } from './resend-marketing';
 import { subscriberWhereForPost } from './subscriber-prefs';
 import { emailVideoThumbnailUrl } from './videos';
-
-async function sendBatchedBroadcast(
-  emails: string[],
-  subject: string,
-  htmlForEmail: (email: string) => string
-) {
-  const CHUNK_SIZE = 50;
-  for (let i = 0; i < emails.length; i += CHUNK_SIZE) {
-    const chunk = emails.slice(i, i + CHUNK_SIZE);
-    const payloads = chunk.map((email) => ({
-      from: NEWSLETTER_FROM,
-      to: email,
-      subject,
-      html: htmlForEmail(email),
-    }));
-    const resend = getResend();
-    const result = await resend.batch.send(payloads);
-    if (result.error) {
-      console.warn('Batch send failed, falling back one-by-one:', result.error.message);
-      for (const email of chunk) {
-        const one = await sendOneEmail({
-          to: email,
-          subject,
-          html: htmlForEmail(email),
-        });
-        if (!one.ok) console.error('Email fail', email, one.error);
-      }
-    } else {
-      console.log(`[BROADCAST] batch ${i / CHUNK_SIZE + 1} sent=${chunk.length}`);
-    }
-  }
-}
 
 export async function broadcastPostPublication(
   post: any,
@@ -126,8 +96,8 @@ export async function broadcastPostPublication(
       `\n[BROADCAST] Article category=${post.category} format=${post.format} breaking=${!!post.isBreaking} title=${post.title}\n`
     );
 
-    if (!configured) {
-      console.error('[BROADCAST] RESEND_API_KEY missing — not sending list email');
+    if (!isMarketingConfigured()) {
+      console.error('[BROADCAST] Resend marketing is not configured — not sending list email');
     } else {
       // Instant email: wantsInstant + matching topic (or breaking / America 250).
       // Weekly digesters still get the digest cron in addition.
@@ -165,8 +135,16 @@ export async function broadcastPostPublication(
         const bylineHtml = escapeEmailHtml(post.author?.name || post.customAuthor || 'Staff');
         const excerptHtml = escapeEmailHtml(excerpt);
         const articleHrefAttr = escapeEmailHtml(articleHref);
-        await sendBatchedBroadcast(emails, `${subjectPrefix}: ${post.title}`, (email) => {
-          return `
+        const donateHtml =
+          post.showDonateCta === false
+            ? ''
+            : newsletterDonateHtml({
+                origin,
+                campaign: 'newsletter-donate',
+                sourceDetail: post.slug,
+              });
+        const subject = `${subjectPrefix}: ${post.title}`;
+        const html = `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #1A1A1A;">
         <div style="text-align: center; margin-bottom: 30px;">
           <h1 style="color: #1B2253; font-family: Georgia, serif; font-size: 32px; letter-spacing: -0.05em; text-transform: uppercase;">The Cougar Chronicle</h1>
@@ -188,10 +166,20 @@ export async function broadcastPostPublication(
           <a href="${articleHrefAttr}" style="display: inline-block; background-color: #1B2253; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 4px; font-weight: bold;">Read Full Article</a>
         </div>
         ${pastPostsHtml}
-        ${newsletterEmailFooter(origin, email)}
+        ${donateHtml}
+        ${newsletterEmailFooter(origin)}
       </div>`;
+        const sent = await sendMarketingBroadcast({
+          segmentName: segmentNameForPost(post),
+          emails,
+          subject,
+          html,
+          name: subject,
+          previewText: excerpt,
+          idempotencyKey: `post-${post.id}`,
         });
-        console.log(`Instant email sent to ${emails.length} subscribers.`);
+        if (sent.ok) console.log(`Instant email queued for ${sent.recipients} subscribers.`);
+        else console.error('[BROADCAST] marketing send failed', sent.error);
       } else {
         console.log('No instant-email subscribers for this post (digest-only list waits for weekly cron).');
       }
@@ -218,7 +206,6 @@ export async function broadcastVideoPublication(video: {
   externalId?: string | null;
   thumbnailUrl?: string | null;
 }) {
-  const configured = isResendConfigured();
   const origin = process.env.NEXTAUTH_URL || 'https://thecougarchronicle.com';
   const url = `/videos/${video.slug}`;
   const raw = (video.description || 'Watch our latest video from The Cougar Chronicle.').replace(
@@ -229,7 +216,7 @@ export async function broadcastVideoPublication(video: {
 
   console.log(`\n[BROADCAST] Video title=${video.title}\n`);
 
-  if (configured) {
+  if (isMarketingConfigured()) {
     try {
       const subscribers = await prisma.subscriber.findMany({
         where: { isActive: true, wantsVideos: true, wantsInstant: true },
@@ -252,8 +239,8 @@ export async function broadcastVideoPublication(video: {
         const titleHtml = escapeEmailHtml(video.title);
         const excerptHtml = escapeEmailHtml(excerpt);
         const videoHrefAttr = escapeEmailHtml(videoHref);
-        await sendBatchedBroadcast(emails, `New Video: ${video.title}`, (email) => {
-          return `
+        const subject = `New Video: ${video.title}`;
+        const html = `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #1A1A1A;">
         <div style="text-align: center; margin-bottom: 30px;">
           <h1 style="color: #1B2253; font-family: Georgia, serif; font-size: 32px; letter-spacing: -0.05em; text-transform: uppercase;">The Cougar Chronicle</h1>
@@ -267,10 +254,20 @@ export async function broadcastVideoPublication(video: {
         <div style="margin-top: 25px;">
           <a href="${videoHrefAttr}" style="display: inline-block; background-color: #1B2253; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 4px; font-weight: bold;">Watch Video</a>
         </div>
-        ${newsletterEmailFooter(origin, email)}
+        ${newsletterDonateHtml({ origin, campaign: 'newsletter-donate', sourceDetail: video.slug })}
+        ${newsletterEmailFooter(origin)}
       </div>`;
+        const sent = await sendMarketingBroadcast({
+          segmentName: VIDEO_SEGMENT_NAME,
+          emails,
+          subject,
+          html,
+          name: subject,
+          previewText: excerpt,
+          idempotencyKey: `video-${video.slug}`,
         });
-        console.log(`Video email sent to ${emails.length} subscribers.`);
+        if (sent.ok) console.log(`Video email queued for ${sent.recipients} subscribers.`);
+        else console.error('[BROADCAST] video marketing send failed', sent.error);
       } else {
         console.log('No subscribers opted into video emails.');
       }
