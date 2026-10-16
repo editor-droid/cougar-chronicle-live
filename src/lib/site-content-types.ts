@@ -82,6 +82,7 @@ export const DEFAULT_OPEN_ROLES: OpenRole[] = [
   { id: 'b3', title: 'Family Issues', kind: 'beat', isOpen: true, sortOrder: 22 },
   { id: 'b4', title: 'Faith', kind: 'beat', isOpen: true, sortOrder: 23 },
   { id: 'b5', title: 'Print Edition', kind: 'beat', isOpen: true, sortOrder: 24 },
+  { id: 'b6', title: 'Sports Section', kind: 'beat', isOpen: true, sortOrder: 25 },
 ];
 
 /** Matches org chart; Carter Seitz intentionally omitted. */
