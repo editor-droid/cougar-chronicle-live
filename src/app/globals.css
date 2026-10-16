@@ -843,10 +843,10 @@ body:has([data-link-hub-page]) .site-shell > main.container {
 }
 
 /* Article Specific Formatting */
-/* Phones stay under the 2.5rem floor: 5vw never clears 40px below ~800px, so long titles filled the screen. */
+/* Desktop is a fixed newspaper size. The phone size below must stay 1.65rem. */
 .article-headline {
-  font-size: clamp(2.5rem, 5vw, 4rem);
-  line-height: 1.1;
+  font-size: 2.25rem;
+  line-height: 1.15;
   margin-bottom: 1.5rem;
   color: var(--foreground);
 }
