@@ -232,6 +232,7 @@ export default function VolunteerForm({
 
   return (
     <form
+      className="apply-form"
       onSubmit={handleSubmit}
       style={{
         textAlign: 'left',
@@ -272,6 +273,7 @@ export default function VolunteerForm({
       </div>
 
       <div
+        className="apply-contact-row"
         style={{
           marginBottom: '1.5rem',
           display: 'grid',
@@ -314,12 +316,13 @@ export default function VolunteerForm({
             No open positions are listed right now. Email editor@thecougarchronicle.com.
           </p>
         ) : (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+          <div className="apply-interests" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
             {options.map((interest) => {
               const isSelected = formData.interests.includes(interest);
               return (
                 <label
                   key={interest}
+                  className="apply-interest"
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
@@ -399,6 +402,7 @@ export default function VolunteerForm({
             Optional — public tags help us confirm you&apos;re genuine. Fill any you use.
           </p>
           <div
+            className="apply-socials"
             style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
@@ -437,7 +441,7 @@ export default function VolunteerForm({
                 type="text"
                 value={formData.linkedin}
                 onChange={(e) => setFormData({ ...formData, linkedin: e.target.value })}
-                placeholder="linkedin.com/in/…"
+                placeholder="Profile URL"
                 style={{ ...fieldStyle, marginTop: '0.3rem' }}
               />
             </div>
@@ -449,7 +453,7 @@ export default function VolunteerForm({
                 type="text"
                 value={formData.facebook}
                 onChange={(e) => setFormData({ ...formData, facebook: e.target.value })}
-                placeholder="Profile or page URL"
+                placeholder="Profile URL"
                 style={{ ...fieldStyle, marginTop: '0.3rem' }}
               />
             </div>

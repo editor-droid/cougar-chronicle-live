@@ -145,7 +145,7 @@ export default async function RecruitingPage() {
             We are accepting applications
           </p>
           <h1
-            className="font-serif"
+            className="font-serif recruit-hero-title"
             style={{
               fontSize: 'clamp(2rem, 5vw, 2.85rem)',
               margin: '0 0 0.65rem 0',
@@ -157,7 +157,7 @@ export default async function RecruitingPage() {
             Apply to join our team
           </h1>
           <p
-            className="font-sans"
+            className="font-sans recruit-hero-lead"
             style={{ fontSize: '1.05rem', opacity: 0.92, marginBottom: '1.25rem', lineHeight: 1.45 }}
           >
             Utah&apos;s premier independent conservative student newspaper — selective, professional, and rooted in faith.
@@ -254,6 +254,7 @@ export default async function RecruitingPage() {
             More than a byline — real training, a stronger résumé, and doors into journalism, politics, and advocacy.
           </p>
           <div
+            className="recruit-benefits"
             style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
@@ -372,6 +373,7 @@ export default async function RecruitingPage() {
               Press, podcasts, and guest spots — separate from our own Videos library.
             </p>
             <div
+              className="recruit-appearances"
               style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
@@ -505,6 +507,7 @@ export default async function RecruitingPage() {
             Campus, faith, family, and politics — serious work.
           </p>
           <div
+            className="recruit-cover"
             style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
@@ -610,6 +613,7 @@ export default async function RecruitingPage() {
           </a>
 
           <div
+            className="recruit-alumni"
             style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
@@ -679,6 +683,7 @@ export default async function RecruitingPage() {
         {/* Apply form */}
         <div
           id="apply"
+          className="apply-panel"
           style={{
             position: 'relative',
             padding: '1.75rem 1.15rem',

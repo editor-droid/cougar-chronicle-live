@@ -859,6 +859,87 @@ body:has([data-link-hub-page]) .site-shell > main.container {
   }
 }
 
+/* Recruiting on phones: even two-column boxes. Desktop keeps the inline pill layout. */
+@media (max-width: 640px) {
+  .apply-panel {
+    padding: 1.1rem 0.7rem !important;
+  }
+  .apply-form {
+    padding: 1rem 0.85rem !important;
+  }
+  .apply-contact-row {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+  .apply-interests {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    gap: 0.4rem !important;
+  }
+  .apply-interest {
+    min-width: 0 !important;
+    justify-content: center !important;
+    text-align: center !important;
+    white-space: normal !important;
+    overflow-wrap: break-word;
+    padding: 0.45rem 0.4rem !important;
+    border-radius: 0.65rem !important;
+    min-height: 2.75rem;
+    line-height: 1.25;
+  }
+  .apply-interest span {
+    text-align: center;
+    line-height: 1.25;
+  }
+  .apply-socials {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.55rem !important;
+  }
+  .recruit-pick-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+  }
+  .recruit-pick-grid a {
+    min-width: 0 !important;
+    justify-content: center !important;
+    text-align: center !important;
+    white-space: normal !important;
+    overflow-wrap: break-word;
+    padding: 0.55rem 0.45rem !important;
+    min-height: 2.75rem;
+    font-size: 0.8rem !important;
+    line-height: 1.25 !important;
+  }
+  .recruit-hero-title {
+    font-size: 1.85rem !important;
+  }
+  .recruit-hero-lead {
+    font-size: 0.95rem !important;
+  }
+  .recruit-benefits {
+    gap: 0.5rem !important;
+  }
+  .recruit-benefits > * {
+    padding: 0.75rem 0.85rem !important;
+  }
+  /* One row you can swipe, instead of a tall stack of cards. */
+  .recruit-appearances,
+  .recruit-cover,
+  .recruit-alumni {
+    display: flex !important;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 0.65rem !important;
+    padding-bottom: 0.2rem;
+  }
+  .recruit-appearances > *,
+  .recruit-cover > *,
+  .recruit-alumni > * {
+    flex: 0 0 82%;
+    scroll-snap-align: start;
+    min-width: 0;
+  }
+}
+
 .article-page-layout {
   display: grid;
   grid-template-columns: 1fr 300px;
