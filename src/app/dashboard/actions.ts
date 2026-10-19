@@ -10,12 +10,48 @@ import { isResendConfigured, isValidEmail, sendOneEmail } from '@/lib/email';
 import { notifyWriterAssigned } from '@/lib/desk-reminders';
 import { syncArticleVideosToLibrary } from '@/lib/article-videos';
 import { canApprovePosts, canEditAllPosts, canPublishPosts } from '@/lib/roles';
+import { getSectionPath } from '@/lib/categories';
+import { rememberPublishedBefore, wasPublishedBefore } from '@/lib/desk-plan';
 import { computeBreakingUntil, DEFAULT_BREAKING_HOURS } from '@/lib/breaking';
 import { slugifyTitle, sanitizeSlugInput, withUniquenessSuffix } from '@/lib/slug';
 import { mergeAuthors } from '@/lib/merge-authors';
 import { persistArticleMedia, persistMediaUrl } from '@/lib/persist-article-media';
 
 
+
+function revalidateStorySurfaces(post: {
+  slug: string;
+  category?: string | null;
+  isPremium?: boolean | null;
+  printEditionId?: string | null;
+  authorId?: string | null;
+  isAmerica250?: boolean | null;
+  author?: { slug?: string | null } | null;
+}) {
+  revalidatePath('/dashboard');
+  revalidatePath('/');
+  revalidatePath('/news');
+  revalidatePath('/opinion');
+  revalidatePath('/search');
+  revalidatePath('/print-edition');
+  revalidatePath('/feed.xml');
+  revalidatePath('/news-sitemap.xml');
+  revalidatePath('/sitemap.xml');
+  revalidatePath('/llms.txt');
+  if (post.isAmerica250) revalidatePath('/america-250');
+  if (post.category) revalidatePath(getSectionPath(post.category));
+  const url = getArticleUrl({
+    slug: post.slug,
+    isPremium: Boolean(post.isPremium),
+    printEditionId: post.printEditionId,
+  });
+  if (url && url !== '/') revalidatePath(url);
+  revalidatePath(`/article/${post.slug}`);
+  revalidatePath(`/premium-article/${post.slug}`);
+  revalidatePath(`/print-edition/${post.slug}`);
+  if (post.authorId) revalidatePath(`/author/${post.authorId}`);
+  if (post.author?.slug) revalidatePath(`/author/${post.author.slug}`);
+}
 
 /** Create /videos library entries for Stream+YouTube embeds in published posts. */
 async function maybeSyncArticleVideos(post: {
@@ -84,6 +120,17 @@ export async function updatePostState(formData: FormData) {
     if (post.authorId !== session.user.id) throw new Error('You can only modify your own posts');
   }
 
+  // Taking a live story down is the same privilege as publishing it.
+  const unpublishing = post.state === 'PUBLISHED' && newState === 'DRAFT';
+  if (post.state === 'PUBLISHED' && newState !== 'PUBLISHED') {
+    if (!canPublishPosts(role)) {
+      throw new Error('Only admins can unpublish posts');
+    }
+    if (!unpublishing) {
+      throw new Error('Unpublish returns a story to drafts');
+    }
+  }
+
   // Require full editorial checklist before submit / approve / publish
   if (
     newState === 'IN_REVIEW' ||
@@ -116,6 +163,11 @@ export async function updatePostState(formData: FormData) {
   }
 
   const updateData: any = { state: newState };
+  if (unpublishing) {
+    // Next publish stamps a new date. Readers are not emailed again.
+    updateData.publishedAt = null;
+    updateData.deskNotices = rememberPublishedBefore(post.deskNotices);
+  }
   if (newState === 'PUBLISHED') {
     if (!post.publishedAt) {
       updateData.publishedAt = new Date();
@@ -229,19 +281,21 @@ ${cleanContent}`,
           await sendOneEmail({ to: post.author.email, subject, html });
         }
       }
-    } else if (newState === 'PUBLISHED' && post.state !== 'PUBLISHED') {
+    } else if (
+      newState === 'PUBLISHED' &&
+      post.state !== 'PUBLISHED' &&
+      !wasPublishedBefore(post.deskNotices)
+    ) {
       // Fire for ANY first publish (DRAFT/IN_REVIEW/APPROVED → PUBLISHED).
       // Previously only APPROVED→PUBLISHED emailed, so editor "Publish" from draft skipped everyone.
+      // A story that was unpublished and published again keeps its silence.
       await broadcastPostPublication({ ...post, author: post.author });
     }
   } catch (error) {
     console.error("Failed to send notification email", error);
   }
 
-  revalidatePath('/dashboard');
-  revalidatePath('/');
-  revalidatePath('/news-sitemap.xml');
-  revalidatePath('/sitemap.xml');
+  revalidateStorySurfaces(post);
 }
 
 async function ensureUniqueSlug(desired: string, excludeId?: string): Promise<string> {

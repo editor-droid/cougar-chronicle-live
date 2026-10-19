@@ -113,6 +113,7 @@ export default async function Home() {
     where: { isActive: true },
     include: {
       posts: {
+        where: { state: 'PUBLISHED' },
         include: { author: true },
         take: 3
       }

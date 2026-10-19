@@ -6,6 +6,7 @@ import { updatePostState } from './actions';
 import { getArticleUrl } from '@/lib/routes';
 import DashboardHeader from '@/components/DashboardHeader';
 import DraftAssignment from './DraftAssignment';
+import UnpublishButton from './UnpublishButton';
 import { DeskStaffProvider, type DeskPerson } from './DeskStaff';
 
 function formatDeskDate(value: Date | null | undefined): string {
@@ -390,6 +391,7 @@ export default async function DashboardPage(props: {
                             >
                               Edit
                             </Link>
+                            {canPublish ? <UnpublishButton postId={post.id} /> : null}
                           </div>
                         </td>
                       </tr>

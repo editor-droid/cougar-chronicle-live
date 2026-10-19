@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import { FileDown, Loader2, X, Settings, Image as ImageIcon, CheckCircle2, PanelRightClose, PanelRightOpen, ArrowLeft, Wand2, ListChecks, Eye } from 'lucide-react';
 import styles from './EditorForm.module.css';
 import { sanitizeSlugInput, slugifyTitle, assessSlug } from '@/lib/slug';
+import { wasPublishedBefore } from '@/lib/desk-plan';
 import { displayMediaSrc, rewriteMediaUrl, rewriteMediaUrlsInHtml } from '@/lib/media-url';
 import { uploadImageFile } from '@/lib/editor-upload';
 
@@ -354,6 +355,33 @@ export default function EditorForm({
     }
   };
 
+  const articlePayload = (stamp: string | null | undefined) => ({
+    id: post?.id,
+    title,
+    slug,
+    category,
+    format,
+    content,
+    imageUrl,
+    authorId: assignedAuthorId,
+    seoTitle,
+    seoDescription,
+    seoKeywords,
+    keyInsights,
+    featuredImageAlt,
+    customAuthor,
+    isPremium,
+    showDonateCta,
+    isAmerica250,
+    isBreaking,
+    breakingHours: isBreaking ? breakingHours || 24 : null,
+    printEditionId: printEditionId || null,
+    printEditionOrder,
+    imageCaption,
+    editorChecklist: checklist,
+    publishedAt: stamp,
+  });
+
   const handleSaveData = async (newState?: string) => {
     // Gate submit / approve / publish on a complete checklist
     if (newState && PUBLISH_FLOW_STATES.has(newState) && !isChecklistComplete(checklist)) {
@@ -367,32 +395,7 @@ export default function EditorForm({
       const saveRes = await fetch('/api/dashboard/posts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: post?.id,
-          title,
-          slug,
-          category,
-          format,
-          content,
-          imageUrl,
-          authorId: assignedAuthorId,
-          seoTitle,
-          seoDescription,
-          seoKeywords,
-          keyInsights,
-          featuredImageAlt,
-          customAuthor,
-          isPremium,
-          showDonateCta,
-          isAmerica250,
-          isBreaking,
-          breakingHours: isBreaking ? breakingHours || 24 : null,
-          printEditionId: printEditionId || null,
-          printEditionOrder,
-          imageCaption,
-          editorChecklist: checklist,
-          publishedAt: publishedAt || undefined,
-        }),
+        body: JSON.stringify(articlePayload(publishedAt || undefined)),
       });
       const saveJson = await saveRes.json().catch(() => ({}));
       if (!saveRes.ok) {
@@ -434,6 +437,50 @@ export default function EditorForm({
     e.preventDefault();
     if (!content) return;
     await handleSaveData();
+  };
+
+  const handleUnpublish = async () => {
+    if (!post?.id || isSubmitting) return;
+    const confirmed = window.confirm(
+      'Unpublish this story? It leaves the site and returns to Drafts. The publish date is cleared until you publish it again.'
+    );
+    if (!confirmed) return;
+
+    setIsSubmitting(true);
+    try {
+      const stateRes = await fetch('/api/dashboard/posts/state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ postId: post.id, newState: 'DRAFT' }),
+      });
+      const stateJson = await stateRes.json().catch(() => ({}));
+      if (!stateRes.ok) {
+        throw new Error(
+          (stateJson as { error?: string }).error || `Failed to unpublish (${stateRes.status})`
+        );
+      }
+      setPublishedAt('');
+
+      const saveRes = await fetch('/api/dashboard/posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(articlePayload(null)),
+      });
+      const saveJson = await saveRes.json().catch(() => ({}));
+      if (!saveRes.ok) {
+        throw new Error(
+          (saveJson as { error?: string }).error ||
+            'The story is back in drafts, but the latest edits did not save. Press Save Draft.'
+        );
+      }
+
+      router.push('/dashboard');
+      router.refresh();
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Failed to unpublish.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Toggle Switch Component
@@ -516,6 +563,17 @@ export default function EditorForm({
           <button type="button" disabled={isSubmitting} onClick={handleSubmit} className={`${styles.headerButton} ${styles.btnSave}`}>
             {isSubmitting ? 'Saving...' : 'Save Draft'}
           </button>
+
+          {userRole === 'ADMIN' && post?.state === 'PUBLISHED' && (
+            <button
+              type="button"
+              onClick={handleUnpublish}
+              disabled={isSubmitting}
+              className={`${styles.headerButton} ${styles.btnUnpublish}`}
+            >
+              Unpublish
+            </button>
+          )}
 
           {/* Workflow: writers submit → editors approve → admins publish */}
           {userRole === 'WRITER' && (!post || post.state === 'DRAFT') && (
@@ -847,7 +905,9 @@ export default function EditorForm({
                 <div className={styles.panelCard}>
                   <p className={styles.panelCardTitle}>Publishing</p>
                   <p className={styles.panelHint}>
-                    When this story should show as published. Leave blank until ready.
+                    {wasPublishedBefore(post?.deskNotices) && post?.state !== 'PUBLISHED'
+                      ? 'This story was unpublished. Leave the date blank. Publishing again stamps the new date and time.'
+                      : 'When this story should show as published. Leave blank until ready.'}
                   </p>
                   <input
                     type="datetime-local"

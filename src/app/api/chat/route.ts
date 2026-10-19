@@ -21,9 +21,9 @@ export async function POST(req: Request) {
       const slug = pathname.split('/').pop();
       const currentArticle = await prisma.post.findUnique({
         where: { slug },
-        select: { title: true, content: true }
+        select: { title: true, content: true, state: true }
       });
-      if (currentArticle) {
+      if (currentArticle?.state === 'PUBLISHED') {
         currentPageContext = `\n\n--- CURRENT PAGE CONTEXT ---\nThe user is currently reading this article:\nTitle: ${currentArticle.title}\nContent: ${currentArticle.content?.substring(0, 3000)}\n\nYou should prioritize answering questions based on this article if the question is related to it.`;
       }
     }
@@ -42,13 +42,14 @@ export async function POST(req: Request) {
     // Execute queries in parallel
     const [latestArticles, relevantArticles] = await Promise.all([
       prisma.post.findMany({
+        where: { state: 'PUBLISHED' },
         orderBy: { createdAt: 'desc' },
         take: 5,
         select: { title: true, content: true, createdAt: true, category: true, slug: true, isPremium: true, printEditionId: true }
       }),
       keywords.length > 0 ? prisma.post.findMany({
         // @ts-ignore
-        where: { OR: orConditions.flatMap(c => c.OR) },
+        where: { state: 'PUBLISHED', OR: orConditions.flatMap(c => c.OR) },
         orderBy: { createdAt: 'desc' },
         take: 5,
         select: { title: true, content: true, createdAt: true, category: true, slug: true, isPremium: true, printEditionId: true }

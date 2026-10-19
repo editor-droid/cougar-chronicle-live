@@ -72,14 +72,14 @@ export default async function AccountPage() {
 
   // 2. Get purchased digital articles via ArticleToken
   const tokens = await prisma.articleToken.findMany({
-    where: { email },
+    where: { email, post: { state: 'PUBLISHED' } },
     include: { post: true },
     orderBy: { createdAt: 'desc' }
   });
 
   // 3. Get favorites (articles + videos)
   const favorites = await prisma.favorite.findMany({
-    where: { userId: session.user.id },
+    where: { userId: session.user.id, post: { state: 'PUBLISHED' } },
     include: { post: true },
     orderBy: { createdAt: 'desc' }
   });

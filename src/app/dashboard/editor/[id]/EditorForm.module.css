@@ -131,6 +131,12 @@
   background-color: #16a34a;
   color: white;
 }
+.btnUnpublish {
+  border-color: #fecaca;
+  color: #991b1b;
+  background: #fff;
+}
+.btnUnpublish:hover { background-color: #fef2f2; }
 
 .editorContent {
   display: flex;

@@ -18,9 +18,14 @@ export async function restorePurchases(email: string) {
       return { error: 'We could not find any purchases associated with that email address.' };
     }
 
+    const live = tokens.filter((t) => t.post.state === 'PUBLISHED');
+    if (live.length === 0) {
+      return { error: 'Those articles are not on the site right now.' };
+    }
+
     const resend = new Resend(process.env.RESEND_API_KEY);
     
-    let linksHtml = tokens.map(t => {
+    let linksHtml = live.map(t => {
       const link = `${process.env.NEXTAUTH_URL}/premium-article/${t.post.slug}?token=${t.token}`;
       return `<li><strong>${t.post.title}:</strong> <br/><a href="${link}">${link}</a></li>`;
     }).join('<br/>');

@@ -28,6 +28,7 @@ export default async function PrintEditionPage() {
     where: { isActive: true },
     include: {
       posts: {
+        where: { state: 'PUBLISHED' },
         include: { author: true }
       }
     },

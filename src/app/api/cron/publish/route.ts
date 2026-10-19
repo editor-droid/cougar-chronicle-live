@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { broadcastPostPublication } from '@/lib/publish-utils';
 import { syncArticleVideosToLibrary } from '@/lib/article-videos';
 import { runDeskReminders } from '@/lib/desk-reminders';
+import { wasPublishedBefore } from '@/lib/desk-plan';
 
 export const dynamic = 'force-dynamic';
 
@@ -62,8 +63,10 @@ export async function GET(request: Request) {
         console.error('Failed to sync article videos for', post.id, e);
       }
 
-      // 3. Fire the broadcast emails
-      await broadcastPostPublication(post);
+      // First publication notifies readers. A story returned from drafts does not.
+      if (!wasPublishedBefore(post.deskNotices)) {
+        await broadcastPostPublication(post);
+      }
       
       publishedCount++;
     }

@@ -87,6 +87,19 @@ export function parseDeskNotices(raw: string | null | undefined): string[] {
   }
 }
 
+/** Not a reminder. Marks a story that was live, then returned to drafts. */
+export const PUBLISHED_BEFORE_NOTICE = 'published-before';
+
+export function wasPublishedBefore(raw: string | null | undefined): boolean {
+  return parseDeskNotices(raw).includes(PUBLISHED_BEFORE_NOTICE);
+}
+
+export function rememberPublishedBefore(raw: string | null | undefined): string {
+  const notices = parseDeskNotices(raw);
+  if (notices.includes(PUBLISHED_BEFORE_NOTICE)) return JSON.stringify(notices);
+  return JSON.stringify([...notices, PUBLISHED_BEFORE_NOTICE]);
+}
+
 export function planDeskReminders(story: DeskStorySnapshot, today: string): DeskReminderPlan {
   if (!story.targetDate || story.state === 'PUBLISHED') return { reasons: [], keys: [] };
 
