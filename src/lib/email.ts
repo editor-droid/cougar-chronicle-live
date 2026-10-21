@@ -65,6 +65,25 @@ export function isValidEmail(email: unknown): email is string {
   if (/sample@email\.tst/i.test(e)) return false;
   if (/(sleep\s*\(|waitfor|pg_sleep|xor\s*\(|\bunion\b|\bselect\b|\bdrop\b)/i.test(e)) return false;
   if (/['"`;]/.test(e)) return false;
+  // Resend rejects the entire story broadcast if a segment contains @example.com.
+  const domain = e.slice(e.lastIndexOf('@') + 1).toLowerCase();
+  if (
+    domain === 'example.com' ||
+    domain.endsWith('.example.com') ||
+    domain === 'example.org' ||
+    domain.endsWith('.example.org') ||
+    domain === 'example.net' ||
+    domain.endsWith('.example.net') ||
+    domain.endsWith('.example') ||
+    domain === 'test' ||
+    domain.endsWith('.test') ||
+    domain === 'invalid' ||
+    domain.endsWith('.invalid') ||
+    domain === 'localhost' ||
+    domain.endsWith('.localhost')
+  ) {
+    return false;
+  }
   return true;
 }
 
