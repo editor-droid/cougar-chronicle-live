@@ -67,9 +67,13 @@ export default function TwitterEmbedHydrator({
   watch?: string;
 }) {
   useEffect(() => {
-    const root = document.querySelector(rootSelector);
-    if (!root) return;
-    if (!root.querySelector('.twitter-tweet, .tweet-embed, [data-tweet-embed]')) return;
+    // Long stories render as more than one .article-content (a donate blurb
+    // sits between the halves). querySelector would only see the first half
+    // and skip every embed that landed in the second.
+    const roots = Array.from(document.querySelectorAll(rootSelector)).filter(
+      (root) => root.querySelector('.twitter-tweet, .tweet-embed, [data-tweet-embed]')
+    );
+    if (roots.length === 0) return;
 
     let cancelled = false;
 
@@ -78,7 +82,9 @@ export default function TwitterEmbedHydrator({
         await loadWidgetsScript();
         if (cancelled) return;
         const run = () => {
-          window.twttr?.widgets?.load(root as HTMLElement);
+          for (const root of roots) {
+            window.twttr?.widgets?.load(root as HTMLElement);
+          }
         };
         if (window.twttr?.ready) {
           window.twttr.ready(run);

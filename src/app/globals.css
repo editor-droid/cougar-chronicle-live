@@ -1280,7 +1280,15 @@ body:has([data-link-hub-page]) .site-shell > main.container {
   width: 100% !important;
   max-width: 100% !important;
   margin: 1.75rem auto !important;
-  overflow: hidden;
+  align-items: flex-start;
+}
+
+.article-content .tweet-embed > *,
+.article-content [data-tweet-embed] > *,
+.rich-text-preview-pane .tweet-embed > *,
+.rich-text-preview-pane [data-tweet-embed] > * {
+  flex: 0 0 auto;
+  max-width: min(100%, 550px);
 }
 
 .article-content .tweet-embed .twitter-tweet,
