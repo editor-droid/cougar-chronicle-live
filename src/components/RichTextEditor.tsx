@@ -193,7 +193,7 @@ function EmbedDialog({
     provider: EmbedProvider;
     aspectRatio: string;
   }) => void;
-  onInsertLink: (url: string) => void;
+  onInsertLink: (url: string) => boolean;
   onInsertTweet: (attrs: TweetEmbedAttrs) => void;
   mode: EmbedDialogMode;
   initialUrl?: string;
@@ -456,7 +456,7 @@ function EmbedDialog({
           : "Insert video";
 
   const placeholder = isLink
-    ? "https://example.com"
+    ? "https://… or /story"
     : isTweet
       ? "x.com/…/status/… or twitter.com/…"
       : preferredProvider === "instagram"
@@ -472,13 +472,16 @@ function EmbedDialog({
       return;
     }
     if (isLink) {
-      try {
-        new URL(trimmed);
-        onInsertLink(trimmed);
-        onClose();
-      } catch {
-        setError("Enter a valid URL (https://…)");
+      const href = formatHref(trimmed);
+      if (!href) {
+        setError("Enter a link");
+        return;
       }
+      if (!onInsertLink(href)) {
+        setError("Highlight the words you want to link, then try again.");
+        return;
+      }
+      onClose();
       return;
     }
     if (isTweet) {
@@ -1536,13 +1539,14 @@ function LinkInput({
   onCancel,
 }: {
   initialUrl: string;
-  onSave: (url: string) => void;
+  onSave: (url: string) => boolean;
   onCancel: () => void;
 }) {
   const [url, setUrl] = useState(initialUrl);
   const [suggestions, setSuggestions] = useState<{ title: string; url: string }[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [error, setError] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -1568,11 +1572,21 @@ function LinkInput({
   }, [url]);
 
   const handleSave = (finalUrl: string) => {
-    onSave(formatUrl(finalUrl));
+    const href = formatUrl(finalUrl);
+    if (!href) {
+      setError("Enter a link");
+      return;
+    }
+    if (!onSave(href)) {
+      setError("Highlight the words you want to link, then try again.");
+      return;
+    }
+    setError("");
   };
 
   return (
     <div
+      data-link-popover=""
       style={{ position: "relative" }}
       onMouseDown={(e) => {
         const tag = (e.target as HTMLElement).tagName;
@@ -1595,7 +1609,10 @@ function LinkInput({
         <input
           type="text"
           value={url}
-          onChange={(e) => setUrl(e.target.value)}
+          onChange={(e) => {
+            setUrl(e.target.value);
+            setError("");
+          }}
           placeholder="Type URL or / to search pages"
           style={{
             padding: "0.25rem 0.5rem",
@@ -1656,6 +1673,11 @@ function LinkInput({
           <X size={14} />
         </button>
       </div>
+      {error && (
+        <p className="text-xs font-sans" style={{ color: "#b91c1c", margin: "0.35rem 0 0" }}>
+          {error}
+        </p>
+      )}
 
       {showSuggestions && suggestions.length > 0 && (
         <div
@@ -1752,11 +1774,11 @@ function FloatingBubbleToolbar({
         <LinkInput 
           initialUrl={url}
           onSave={(finalUrl) => {
+            const ok = applyLink(editor, finalUrl, linkRange.current);
+            if (!ok) return false;
             insertingRef.current = false;
-            if (finalUrl) {
-              applyLink(editor, finalUrl, linkRange.current);
-            }
             setIsInsertingLink(false);
+            return true;
           }}
           onCancel={() => {
             insertingRef.current = false;
@@ -1955,15 +1977,16 @@ function LinkBubbleMenu({ editor }: { editor: Editor }) {
         <LinkInput 
           initialUrl={url}
           onSave={(finalUrl) => {
-            if (finalUrl) {
-              applyLink(editor, finalUrl, linkRange.current);
-            }
+            const ok = applyLink(editor, finalUrl, linkRange.current);
+            if (!ok) return false;
             setIsEditing(false);
+            return true;
           }}
           onCancel={() => setIsEditing(false)}
         />
       ) : (
         <div
+          data-link-popover=""
           style={{
             display: "flex",
             gap: "0.5rem",
@@ -2304,9 +2327,10 @@ export const RichTextEditor = forwardRef<
 
   const handleInsertLink = useCallback(
     (url: string) => {
-      if (!editor) return;
-      applyLink(editor, url, pendingLinkRange.current);
-      pendingLinkRange.current = null;
+      if (!editor) return false;
+      const ok = applyLink(editor, url, pendingLinkRange.current);
+      if (ok) pendingLinkRange.current = null;
+      return ok;
     },
     [editor]
   );
@@ -2410,13 +2434,16 @@ export const RichTextEditor = forwardRef<
           }
         >
           {showEditor && (
-            <div 
+            <div
               className="relative"
               onClickCapture={(e) => {
-                const target = e.target as HTMLElement;
-                if (target.closest('a')) {
-                  e.preventDefault();
-                }
+                const anchor = (e.target as HTMLElement).closest('a');
+                if (!anchor) return;
+                // The link popover's own URL, and Cmd/Ctrl-click, should open.
+                // A plain click stays in the editor so the caret is not lost.
+                const modified = e.metaKey || e.ctrlKey || e.shiftKey || e.altKey;
+                if (anchor.closest('[data-link-popover]') || modified) return;
+                e.preventDefault();
               }}
             >
               <EditorContent

@@ -22,8 +22,17 @@ export function unwrapGoogleRedirect(href: string): string {
   return trimmed;
 }
 
+/** Drop characters Word and Google Docs leave on a copied URL. */
+function cleanUrlInput(url: string): string {
+  return String(url || '')
+    .replace(/[\u200B-\u200D\uFEFF\u2060\u00A0]/g, '')
+    .trim()
+    .replace(/^[<"'“”‘’]+|[>"'“”‘’]+$/g, '')
+    .trim();
+}
+
 export function formatHref(url: string): string {
-  const trimmed = unwrapGoogleRedirect(url.trim());
+  const trimmed = unwrapGoogleRedirect(cleanUrlInput(url));
   if (!trimmed) return '';
   if (
     trimmed.startsWith('/') ||
@@ -44,7 +53,7 @@ export function rewriteHtmlAnchors(html: string): string {
   if (!html || !/href=/i.test(html)) return html;
   return html.replace(/\bhref=(["'])(.*?)\1/gi, (_m, quote: string, href: string) => {
     const decoded = href.replace(/&amp;/g, '&');
-    const next = unwrapGoogleRedirect(decoded);
+    const next = formatHref(decoded) || unwrapGoogleRedirect(decoded);
     return `href=${quote}${next.replace(/&/g, '&amp;')}${quote}`;
   });
 }
@@ -121,9 +130,11 @@ function linkSpansBetween(doc: PMNode, from: number, to: number): LinkSpan[] {
 
 /**
  * Range that may receive a new href.
- * `setLink` on a wide selection paints that href onto every anchor in it.
- * Several anchors → only the one under `range.from`.
- * A select-all → nothing, unless the whole document is that single anchor.
+ * A selection the writer actually made is linked as they highlighted it,
+ * even when that highlight already contains other anchors.
+ * A select-all is not. The URL field blurs the editor and Chrome often
+ * turns that blur into a selection of the whole article; painting it would
+ * point every existing link at the new URL.
  */
 export function linkEditRange(doc: PMNode, range: LinkRange): LinkRange | null {
   const requested = clampRange(doc, range);
@@ -133,25 +144,21 @@ export function linkEditRange(doc: PMNode, range: LinkRange): LinkRange | null {
   const spans = linkSpansBetween(doc, from, to);
   const size = doc.content.size;
   const coversDocument = from <= 1 && to >= size - 1;
-
-  if (spans.length === 0) return requested;
-
-  // A select-all (or any range that already covers every anchor) must not
-  // be painted with one href. Only an anchor the range actually sits inside
-  // is eligible, and only when the range does not run past it.
-  if (coversDocument) {
-    const only = spans.length === 1 ? spans[0] : null;
-    if (only && from >= only.from && to <= only.to) return { from: only.from, to: only.to };
-    return null;
-  }
+  const coversAlmostAll = size > 0 && (to - from) / size >= 0.9;
 
   if (spans.length === 1) {
     const only = spans[0];
     if (from >= only.from && to <= only.to) return { from: only.from, to: only.to };
-    return requested;
   }
 
-  return linkRangeAt(doc, from);
+  if (spans.length === 0) return requested;
+
+  // Accidental select-all: do not retarget the article's existing links.
+  if (coversDocument || (coversAlmostAll && spans.length > 1)) {
+    return null;
+  }
+
+  return requested;
 }
 
 /** Snapshot the range that should receive the link — call this BEFORE focus leaves the editor. */
