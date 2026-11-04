@@ -164,8 +164,8 @@ export default function RootLayout({
               <a href="/politics" className="nav-link font-sans">Politics</a>
               <a href="/family" className="nav-link font-sans">Family</a>
               <a href="/faith" className="nav-link font-sans">Faith</a>
+              <a href="/sports" className="nav-link font-sans">Sports</a>
               <a href="/print-edition" className="nav-link font-sans">Print</a>
-              <a href="/america-250" className="nav-link font-sans" style={{ color: 'var(--primary)', fontWeight: 600 }}>America 250</a>
             </nav>
           </header>
 
@@ -211,8 +211,8 @@ export default function RootLayout({
                 <li><a href="/politics" style={{ color: 'white', opacity: 0.8, textDecoration: 'none' }}>Politics</a></li>
                 <li><a href="/family" style={{ color: 'white', opacity: 0.8, textDecoration: 'none' }}>Family</a></li>
                 <li><a href="/faith" style={{ color: 'white', opacity: 0.8, textDecoration: 'none' }}>Faith</a></li>
+                <li><a href="/sports" style={{ color: 'white', opacity: 0.8, textDecoration: 'none' }}>Sports</a></li>
                 <li><a href="/print-edition" style={{ color: 'white', opacity: 0.8, textDecoration: 'none' }}>Print</a></li>
-                <li><a href="/america-250" style={{ color: 'white', opacity: 0.8, textDecoration: 'none' }}>America 250</a></li>
                 <li><a href="/videos" style={{ color: 'white', opacity: 0.8, textDecoration: 'none' }}>Videos</a></li>
               </ul>
             </div>

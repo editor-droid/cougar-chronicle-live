@@ -45,7 +45,7 @@ export default async function Home() {
   };
 
   // Format aggregates (not topic categories)
-  const [newsPosts, opinionPosts, campusPosts, politicsPosts, familyPosts, faithPosts] =
+  const [newsPosts, opinionPosts, campusPosts, politicsPosts, familyPosts, faithPosts, sportsPosts] =
     await Promise.all([
       prisma.post.findMany({
         where: { ...publishedNotPrint, format: 'news' },
@@ -80,6 +80,12 @@ export default async function Home() {
       }),
       prisma.post.findMany({
         where: { ...publishedNotPrint, category: 'faith' },
+        orderBy: { publishedAt: { sort: 'desc', nulls: 'last' } },
+        include: { author: true },
+        take: 4,
+      }),
+      prisma.post.findMany({
+        where: { ...publishedNotPrint, category: 'sports' },
         orderBy: { publishedAt: { sort: 'desc', nulls: 'last' } },
         include: { author: true },
         take: 4,
@@ -228,6 +234,7 @@ export default async function Home() {
               { key: 'politics', label: 'Politics', href: '/politics', posts: politicsPosts, style: 'grid' as const },
               { key: 'family', label: 'Family', href: '/family', posts: familyPosts, style: 'grid' as const },
               { key: 'faith', label: 'Faith', href: '/faith', posts: faithPosts, style: 'grid' as const },
+              { key: 'sports', label: 'Sports', href: '/sports', posts: sportsPosts, style: 'grid' as const },
             ] as const
           ).map((band) => {
             if (band.posts.length === 0) return null;

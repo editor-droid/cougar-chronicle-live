@@ -27,7 +27,7 @@ if (typeof window !== 'undefined') {
 export function contentGroupFromPath(pathname: string): string {
   if (!pathname || pathname === '/') return 'home';
   const grouped = pathname.match(
-    /^\/(news|opinion|campus|politics|family|faith|videos|print-edition)(\/|$)/
+    /^\/(news|opinion|campus|politics|family|faith|sports|videos|print-edition)(\/|$)/
   );
   if (grouped?.[1]) return grouped[1];
   if (pathname.startsWith('/byu-')) return 'byu-hub';

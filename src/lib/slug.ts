@@ -31,6 +31,7 @@ export const RESERVED_SLUGS = new Set([
   'family',
   'family-issues',
   'politics',
+  'sports',
   'print',
   'print-edition',
   'article',

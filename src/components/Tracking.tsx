@@ -99,7 +99,7 @@ export default function Tracking() {
             var p = window.location.pathname;
             var g = 'article';
             if (!p || p === '/') g = 'home';
-            else if (/^\\/(news|opinion|campus|politics|family|faith|videos|print-edition)(\\/|$)/.test(p)) g = p.split('/')[1];
+            else if (/^\\/(news|opinion|campus|politics|family|faith|sports|videos|print-edition)(\\/|$)/.test(p)) g = p.split('/')[1];
             else if (p.indexOf('/byu-') === 0) g = 'byu-hub';
             gtag('config', '${GA_MEASUREMENT_ID}', {
               page_path: p,

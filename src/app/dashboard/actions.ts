@@ -10,7 +10,7 @@ import { isResendConfigured, isValidEmail, sendOneEmail } from '@/lib/email';
 import { notifyWriterAssigned } from '@/lib/desk-reminders';
 import { syncArticleVideosToLibrary } from '@/lib/article-videos';
 import { canApprovePosts, canEditAllPosts, canPublishPosts } from '@/lib/roles';
-import { getSectionPath } from '@/lib/categories';
+import { getSectionPath, isTopicCategory } from '@/lib/categories';
 import { rememberPublishedBefore, wasPublishedBefore } from '@/lib/desk-plan';
 import { computeBreakingUntil, DEFAULT_BREAKING_HOURS } from '@/lib/breaking';
 import { slugifyTitle, sanitizeSlugInput, withUniquenessSuffix } from '@/lib/slug';
@@ -351,8 +351,8 @@ export async function savePost(data: any) {
         slug,
         category: (() => {
           const c = String(data.category || '').toLowerCase();
-          if (['campus', 'politics', 'family', 'faith'].includes(c)) return c;
-          throw new Error('Category must be campus, politics, family, or faith');
+          if (isTopicCategory(c)) return c;
+          throw new Error('Category must be campus, politics, family, faith, or sports');
         })(),
         format: data.format === 'opinion' ? 'opinion' : 'news',
         content,
@@ -409,8 +409,8 @@ export async function savePost(data: any) {
         slug,
         category: (() => {
           const c = String(data.category || '').toLowerCase();
-          if (['campus', 'politics', 'family', 'faith'].includes(c)) return c;
-          throw new Error('Category must be campus, politics, family, or faith');
+          if (isTopicCategory(c)) return c;
+          throw new Error('Category must be campus, politics, family, faith, or sports');
         })(),
         format: data.format === 'opinion' ? 'opinion' : 'news',
         content,

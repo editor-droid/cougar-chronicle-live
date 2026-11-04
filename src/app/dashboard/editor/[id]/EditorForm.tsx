@@ -12,6 +12,7 @@ import { sanitizeSlugInput, slugifyTitle, assessSlug } from '@/lib/slug';
 import { wasPublishedBefore } from '@/lib/desk-plan';
 import { displayMediaSrc, rewriteMediaUrl, rewriteMediaUrlsInHtml } from '@/lib/media-url';
 import { uploadImageFile } from '@/lib/editor-upload';
+import { EDITOR_CATEGORIES, isTopicCategory } from '@/lib/categories';
 
 type ChecklistKey = 'spellcheck' | 'seo' | 'formatting' | 'oneWordLinks' | 'ready';
 
@@ -116,9 +117,7 @@ export default function EditorForm({
 
   const [title, setTitle] = useState(post?.title || '');
   const [category, setCategory] = useState(
-    ['campus', 'politics', 'family', 'faith'].includes(post?.category || '')
-      ? post!.category
-      : 'campus'
+    isTopicCategory(post?.category || '') ? post!.category : 'campus'
   );
   const [format, setFormat] = useState<'news' | 'opinion'>(
     post?.format === 'opinion' ? 'opinion' : 'news'
@@ -852,7 +851,7 @@ export default function EditorForm({
                   <div className={styles.inputGroup}>
                     <label className={styles.inputLabel}>Category (topic) *</label>
                     <select
-                      value={['campus', 'politics', 'family', 'faith'].includes(category) ? category : ''}
+                      value={isTopicCategory(category) ? category : ''}
                       onChange={(e) => setCategory(e.target.value)}
                       className={styles.textInput}
                       required
@@ -860,17 +859,18 @@ export default function EditorForm({
                       <option value="" disabled>
                         Select a category…
                       </option>
-                      <option value="campus">Campus</option>
-                      <option value="politics">Politics</option>
-                      <option value="family">Family Issues</option>
-                      <option value="faith">Faith</option>
+                      {EDITOR_CATEGORIES.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
                     </select>
                     <p className={styles.panelHint} style={{ marginTop: '0.35rem' }}>
                       Required topic hub. News and Opinion are not categories — set Format below.
                     </p>
-                    {!['campus', 'politics', 'family', 'faith'].includes(category) && (
+                    {!isTopicCategory(category) && (
                       <p className={styles.panelHint} style={{ marginTop: '0.35rem', color: '#b45309' }}>
-                        This post still has category &quot;{category || 'unset'}&quot;. Pick Campus, Politics, Family, or Faith before saving.
+                        This post still has category &quot;{category || 'unset'}&quot;. Pick Campus, Politics, Family, Faith, or Sports before saving.
                       </p>
                     )}
                   </div>

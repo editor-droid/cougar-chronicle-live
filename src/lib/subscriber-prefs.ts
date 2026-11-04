@@ -3,7 +3,8 @@
  *
  * Account checkboxes: News, Campus, Politics, Faith, Opinion.
  * Posts use `format` (news | opinion) plus a topic `category`
- * (campus | politics | family | faith | news | …).
+ * (campus | politics | family | faith | sports | news | …).
+ * Sports, like family, stays on the News email list.
  *
  * Opinion format always maps to Opinion, even if the topic is campus/politics.
  * Campus / Politics only apply to news-format stories in those sections.

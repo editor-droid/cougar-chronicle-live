@@ -2,9 +2,9 @@
  * Public news sections — gold-standard URL structure.
  *
  * Canonical paths are top-level (like major newsrooms):
- *   /news  /opinion  /campus  /politics  /family  /faith
+ *   /news  /opinion  /campus  /politics  /family  /faith  /sports
  *
- * Nav order (public): News · Opinion · Campus · Politics · Family · Faith · Print
+ * Nav order (public): News · Opinion · Campus · Politics · Family · Faith · Sports · Print
  *
  * Legacy /category/{slug} permanently redirects to these.
  * Article permalinks are flat /{story-slug} (stable if section changes).
@@ -109,6 +109,22 @@ export const PUBLIC_SECTIONS = [
       'Gospel-centered news',
     ],
   },
+  {
+    slug: 'sports',
+    label: 'Sports',
+    navLabel: 'Sports',
+    title: 'Sports',
+    description:
+      'BYU athletics and student sports — independent coverage for Cougar fans in Provo.',
+    keywords: [
+      'BYU sports',
+      'BYU football',
+      'BYU basketball',
+      'Cougar athletics',
+      'Brigham Young University sports',
+      'Provo sports news',
+    ],
+  },
 ] as const;
 
 export type PublicSectionSlug = (typeof PUBLIC_SECTIONS)[number]['slug'];
@@ -117,7 +133,7 @@ export const SECTION_SLUGS: readonly PublicSectionSlug[] = PUBLIC_SECTIONS.map((
 
 /**
  * Public header/footer order (Print is separate — product path /print-edition).
- * Matches: News · Opinion · Campus · Politics · Family · Faith · Print
+ * Matches: News · Opinion · Campus · Politics · Family · Faith · Sports · Print
  */
 export const NAV_SECTION_ORDER: readonly PublicSectionSlug[] = [
   'news',
@@ -126,11 +142,12 @@ export const NAV_SECTION_ORDER: readonly PublicSectionSlug[] = [
   'politics',
   'family',
   'faith',
+  'sports',
 ] as const;
 
 /**
  * Dual taxonomy:
- * - category = topic hub (campus, politics, family, faith, news, …)
+ * - category = topic hub (campus, politics, family, faith, sports, …)
  * - format   = content type for aggregates: news | opinion
  *
  * /faith → category=faith (all formats)
@@ -151,6 +168,7 @@ export const TOPIC_CATEGORY_SLUGS = [
   'politics',
   'family',
   'faith',
+  'sports',
 ] as const;
 export type TopicCategorySlug = (typeof TOPIC_CATEGORY_SLUGS)[number];
 
@@ -160,7 +178,12 @@ export const EDITOR_CATEGORIES = [
   { value: 'politics', label: 'Politics' },
   { value: 'family', label: 'Family Issues' },
   { value: 'faith', label: 'Faith' },
+  { value: 'sports', label: 'Sports' },
 ] as const;
+
+export function isTopicCategory(value: string): value is TopicCategorySlug {
+  return (TOPIC_CATEGORY_SLUGS as readonly string[]).includes(value);
+}
 
 export const EDITOR_FORMATS = [
   { value: 'news', label: 'News' },

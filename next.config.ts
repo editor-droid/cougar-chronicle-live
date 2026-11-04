@@ -121,7 +121,7 @@ const nextConfig: NextConfig = {
         destination: '/dashboard/appearances',
         permanent: false,
       },
-      // Canonical sections: /news /opinion /campus /politics /family /faith
+      // Canonical sections: /news /opinion /campus /politics /family /faith /sports
       // Legacy /category/* permanently redirects (see category/[slug] + these)
       {
         source: '/category/news',
@@ -151,6 +151,11 @@ const nextConfig: NextConfig = {
       {
         source: '/category/family',
         destination: '/family',
+        permanent: true,
+      },
+      {
+        source: '/category/sports',
+        destination: '/sports',
         permanent: true,
       },
       {
