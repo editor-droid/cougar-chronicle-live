@@ -1,16 +1,16 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { rateLimit } from '@/lib/rate-limit';
+import { getClientIp, rateLimit } from '@/lib/rate-limit';
 import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_fallback_key_so_build_does_not_crash');
 
 export async function POST(req: Request) {
   try {
-    const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
+    const ip = getClientIp(req);
     // Honeypot + rate limit protects the form. 
     // The bigger past issue was the admin email being publicly visible on the site and harvested for external spam lists.
-    const { success } = rateLimit(ip, 5, 5 * 60 * 1000); // 5 per 5 minutes
+    const { success } = rateLimit(`contact:${ip}`, 5, 5 * 60 * 1000); // 5 per 5 minutes
     if (!success) {
       return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
     }

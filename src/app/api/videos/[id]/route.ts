@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import prisma from '@/lib/prisma';
+import { canEditLibraryVideo } from '@/lib/roles';
 import {
   parseYoutubeId,
   streamContentUrl,
@@ -11,11 +12,11 @@ import {
   youtubeWatchUrl,
 } from '@/lib/videos';
 
-async function requireEditor() {
+async function requireVideoEditor() {
   const session = await auth();
   if (!session?.user) return { error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) };
-  const role = session.user.role;
-  if (role !== 'ADMIN' && role !== 'EDITOR' && role !== 'WRITER') {
+  // Video has no owner field, so writers cannot edit or delete library videos.
+  if (!canEditLibraryVideo(session.user.role)) {
     return { error: NextResponse.json({ error: 'Forbidden' }, { status: 403 }) };
   }
   return { session };
@@ -26,7 +27,7 @@ export async function PATCH(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const gate = await requireEditor();
+    const gate = await requireVideoEditor();
     if ('error' in gate && gate.error) return gate.error;
 
     const { id } = await context.params;
@@ -107,7 +108,7 @@ export async function DELETE(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const gate = await requireEditor();
+    const gate = await requireVideoEditor();
     if ('error' in gate && gate.error) return gate.error;
 
     const { id } = await context.params;

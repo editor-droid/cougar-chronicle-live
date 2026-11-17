@@ -4,7 +4,11 @@ export async function uploadImageFile(file: File): Promise<string> {
   const response = await fetch('/api/upload', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ filename: file.name, contentType: file.type || 'image/jpeg' }),
+    body: JSON.stringify({
+      filename: file.name,
+      contentType: file.type || 'image/jpeg',
+      size: file.size,
+    }),
   });
   if (!response.ok) throw new Error('Failed to get upload URL');
   const { uploadUrl, publicUrl } = await response.json();

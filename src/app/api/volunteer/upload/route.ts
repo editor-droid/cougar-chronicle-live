@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { rateLimit } from '@/lib/rate-limit';
+import { getClientIp, rateLimit } from '@/lib/rate-limit';
 
 const s3Client = new S3Client({
   region: 'auto',
@@ -20,10 +20,7 @@ const ALLOWED_TYPES = new Set([
 /** Public, rate-limited presign for application writing-sample PDFs only. */
 export async function POST(request: Request) {
   try {
-    const ip =
-      request.headers.get('x-forwarded-for') ||
-      request.headers.get('x-real-ip') ||
-      'unknown';
+    const ip = getClientIp(request);
     const { success } = rateLimit(`vol-upload:${ip}`, 8, 15 * 60 * 1000);
     if (!success) {
       return NextResponse.json(

@@ -3,12 +3,16 @@ import { auth } from '@/auth';
 import { cacheRemoteImageToR2 } from '@/lib/r2-put';
 import { rateLimit } from '@/lib/rate-limit';
 import { isSharedMediaUrl, rewriteMediaUrl } from '@/lib/media-url';
+import { REHOST_IMAGE_TYPES, staffCanUpload } from '@/lib/upload-policy';
 
 export async function POST(request: Request) {
   try {
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (!staffCanUpload(session.user.role)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const { success } = rateLimit(`rehost:${session.user.id}`, 40, 15 * 60 * 1000);
@@ -39,7 +43,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unsupported image URL' }, { status: 400 });
     }
 
-    const publicUrl = await cacheRemoteImageToR2(url, 'blog-images');
+    const publicUrl = await cacheRemoteImageToR2(url, 'blog-images', {
+      allowedContentTypes: REHOST_IMAGE_TYPES,
+    });
     if (!publicUrl) {
       return NextResponse.json(
         { error: 'Could not copy that image into Chronicle storage' },
@@ -51,7 +57,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error('Image rehost failed', error);
     return NextResponse.json(
-      { error: (error as Error).message },
+      { error: 'Could not copy that image into Chronicle storage' },
       { status: 500 }
     );
   }
