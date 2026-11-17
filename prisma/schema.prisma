@@ -99,6 +99,7 @@ model Post {
   printEdition      PrintEdition?  @relation(fields: [printEditionId], references: [id])
   articleTokens     ArticleToken[]
   favorites         Favorite[]
+  dailyViews        PostViewDaily[]
 
   @@index([category])
   @@index([format])
@@ -240,6 +241,18 @@ model Favorite {
   post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@unique([userId, postId])
+}
+
+/// One row per post per UTC day. POST /api/views increments this with Post.views.
+model PostViewDaily {
+  postId String
+  /// UTC calendar date (no time-of-day).
+  date   DateTime @db.Date
+  count  Int      @default(0)
+  post   Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@id([postId, date])
+  @@index([date, count(sort: Desc)])
 }
 
 /// Saved /videos/[slug] entries (mirrors article Favorite).

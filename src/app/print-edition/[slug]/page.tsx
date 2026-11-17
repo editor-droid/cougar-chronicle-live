@@ -7,7 +7,8 @@ import { cookies } from 'next/headers';
 import Link from 'next/link';
 import ClientLightbox from './ClientLightbox';
 import ArticleByline from '@/components/ArticleByline';
-import ArticleBody from '@/components/ArticleBody';
+import ArticleDonateBlocks from '@/components/ArticleDonateBlocks';
+import MostReadList from '@/components/MostReadList';
 import KeyTakeaways from '@/components/KeyTakeaways';
 import ShareButton from '@/components/ShareButton';
 import RelatedStories from '@/components/RelatedStories';
@@ -108,12 +109,6 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
   const prevPost = currentIndex > 0 ? allEditionPosts[currentIndex - 1] : null;
   const nextPost = currentIndex >= 0 && currentIndex < allEditionPosts.length - 1 ? allEditionPosts[currentIndex + 1] : null;
 
-  const topPosts = await prisma.post.findMany({
-    where: { state: 'PUBLISHED', id: { not: post.id } },
-    orderBy: { views: 'desc' },
-    take: 5
-  });
-
   const relatedPosts = await getRelatedPosts(post, 3);
 
   const htmlContent = post.content
@@ -197,10 +192,12 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
           <KeyTakeaways content={post.keyInsights || ''} />
 
           {hasAccess ? (
-            <ArticleBody
+            <ArticleDonateBlocks
               className="font-serif article-content"
               style={{ fontSize: '1.125rem', lineHeight: 1.8, color: 'var(--foreground)' }}
               html={htmlContent}
+              articleSlug={post.slug}
+              showDonate={false}
             />
           ) : (
             <>
@@ -289,25 +286,7 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
 
       {/* Sidebar */}
       <aside className="article-sidebar">
-        <h2 className="widget-title">Most Read</h2>
-        <ol className="trending-list-dense">
-          {topPosts.map((tp, i) => (
-            <li key={tp.id}>
-              <span className="rank">{i + 1}</span>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span className="font-sans text-xs" style={{ color: 'var(--primary)', fontWeight: 'bold', textTransform: 'uppercase' }}>{tp.category}</span>
-                  {tp.printEditionId && (
-                    <span style={{ fontSize: '0.55rem', textTransform: 'uppercase', fontWeight: 700, backgroundColor: 'var(--surface-hover)', padding: '0.1rem 0.3rem', borderRadius: '0.25rem', border: '1px solid var(--border)', color: 'var(--foreground)' }}>🗞️ Print</span>
-                  )}
-                </div>
-                <Link href={getArticleUrl(tp)} className="font-serif" style={{ fontSize: '1.1rem', lineHeight: 1.3, fontWeight: 600 }}>
-                  {tp.title}
-                </Link>
-              </div>
-            </li>
-          ))}
-        </ol>
+        <MostReadList variant="sidebar" take={5} excludeIds={[post.id]} />
 
         <div className="newsletter-box" style={{ marginTop: '3rem', borderRadius: '0.5rem' }}>
           <h3 className="font-serif" style={{ color: 'white' }}>The Cougar Chronicle</h3>

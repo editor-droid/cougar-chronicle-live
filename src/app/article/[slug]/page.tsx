@@ -25,6 +25,7 @@ import { buildArticleBreadcrumbJsonLd } from '@/lib/section-seo';
 import { categoryLabel, formatLabel, getSectionPath } from '@/lib/categories';
 import SubscribeForm from '@/components/SubscribeForm';
 import ArticleViewBeacon from '@/components/ArticleViewBeacon';
+import MostReadList from '@/components/MostReadList';
 
 export async function generateMetadata(
   { params }: { params: Promise<{ slug: string }> },
@@ -86,16 +87,6 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
       isPremium: false
     },
     orderBy: { createdAt: 'desc' }
-  });
-
-  const topPosts = await prisma.post.findMany({
-    where: { 
-      state: 'PUBLISHED', 
-      id: { not: post.id },
-      printEditionId: null // Keep print editions out of the trending sidebar
-    },
-    orderBy: { views: 'desc' },
-    take: 5
   });
 
   const sidebarVideos = await prisma.video.findMany({
@@ -321,25 +312,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 
       {/* Sidebar */}
       <aside className="article-sidebar">
-        <h2 className="widget-title">Most Read</h2>
-        <ol className="trending-list-dense">
-          {topPosts.map((tp, i) => (
-            <li key={tp.id}>
-              <span className="rank">{i + 1}</span>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span className="font-sans text-xs" style={{ color: 'var(--primary)', fontWeight: 'bold', textTransform: 'uppercase' }}>{tp.category}</span>
-                  {tp.printEditionId && (
-                    <span style={{ fontSize: '0.55rem', textTransform: 'uppercase', fontWeight: 700, backgroundColor: 'var(--surface-hover)', padding: '0.1rem 0.3rem', borderRadius: '0.25rem', border: '1px solid var(--border)', color: 'var(--foreground)' }}>🗞️ Print</span>
-                  )}
-                </div>
-                <Link href={getArticleUrl(tp)} className="font-serif" style={{ fontSize: '1.1rem', lineHeight: 1.3, fontWeight: 600 }}>
-                  {tp.title}
-                </Link>
-              </div>
-            </li>
-          ))}
-        </ol>
+        <MostReadList variant="sidebar" take={5} excludePrint excludeIds={[post.id]} />
 
         {sidebarVideos.length > 0 && (
           <div style={{ marginTop: '2.5rem' }}>

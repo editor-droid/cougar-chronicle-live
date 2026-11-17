@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Suspense } from 'react'
 
 import ChatbotLauncher from '@/components/ChatbotLauncher';
+import NewsletterStickyBar from '@/components/NewsletterStickyBar';
 import SubscribeModal from '@/components/SubscribeModal';
 import SearchBar from '@/components/SearchBar';
 import MobileMenu from '@/components/MobileMenu';
@@ -177,6 +178,7 @@ export default function RootLayout({
         </div>
 
         <ChatbotLauncher />
+        <NewsletterStickyBar />
         <PushManagerLoader />
         {/* Required for sonner toasts (push prompt, favorites, etc.) */}
         <Toaster
