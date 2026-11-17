@@ -1,6 +1,5 @@
 import prisma from '@/lib/prisma';
 import { notFound, redirect } from 'next/navigation';
-import { after } from 'next/server';
 import Image from 'next/image';
 import type { Metadata, ResolvingMetadata } from 'next';
 import Link from 'next/link';
@@ -25,6 +24,7 @@ import { buildArticleMetadata } from '@/lib/article-metadata';
 import { buildArticleBreadcrumbJsonLd } from '@/lib/section-seo';
 import { categoryLabel, formatLabel, getSectionPath } from '@/lib/categories';
 import SubscribeForm from '@/components/SubscribeForm';
+import ArticleViewBeacon from '@/components/ArticleViewBeacon';
 
 export async function generateMetadata(
   { params }: { params: Promise<{ slug: string }> },
@@ -64,10 +64,6 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
   if (post.printEditionId || post.isPremium) {
     redirect(getArticleUrl(post));
   }
-
-  after(async () => {
-    await prisma.post.update({ where: { id: post.id }, data: { views: { increment: 1 } } }).catch(() => {});
-  });
 
   const hasAccess = !post.isPremium;
 
@@ -122,6 +118,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 
   return (
     <div className="article-page-layout">
+      <ArticleViewBeacon postId={post.id} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
