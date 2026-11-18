@@ -120,10 +120,11 @@ export function htmlWordCount(html: string): number {
 }
 
 /**
- * Split HTML near the midpoint at a paragraph close (`</p>`).
- * Returns null if no good break is found.
+ * Offset just after the paragraph close nearest the midpoint.
+ * Null when the story is too short or has no balanced break.
+ * Same choice `splitHtmlNearMidpoint` trims into before/after strings.
  */
-export function splitHtmlNearMidpoint(html: string): { before: string; after: string } | null {
+export function htmlSplitOffsetNearMidpoint(html: string): number | null {
   if (!html || html.length < 400) return null;
 
   const closes: number[] = [];
@@ -158,7 +159,17 @@ export function splitHtmlNearMidpoint(html: string): { before: string; after: st
   const before = html.slice(0, best).trim();
   const after = html.slice(best).trim();
   if (!before || !after) return null;
-  return { before, after };
+  return best;
+}
+
+/**
+ * Split HTML near the midpoint at a paragraph close (`</p>`).
+ * Returns null if no good break is found.
+ */
+export function splitHtmlNearMidpoint(html: string): { before: string; after: string } | null {
+  const best = htmlSplitOffsetNearMidpoint(html);
+  if (best == null) return null;
+  return { before: html.slice(0, best).trim(), after: html.slice(best).trim() };
 }
 
 export function shouldInsertMidArticleDonate(html: string): boolean {

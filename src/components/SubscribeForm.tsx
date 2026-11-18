@@ -2,8 +2,16 @@
 
 import { useState } from 'react';
 import { track } from '@/lib/ga-client';
+import { NEWSLETTER_JOINED_KEY } from '@/lib/newsletter-signup';
 
-export default function SubscribeForm({ onSuccess }: { onSuccess?: () => void }) {
+export default function SubscribeForm({
+  onSuccess,
+  layout = 'card',
+}: {
+  onSuccess?: () => void;
+  /** `bar` is the compact mobile strip. `card` is the existing stacked form. */
+  layout?: 'card' | 'bar';
+}) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [honeypot, setHoneypot] = useState(''); // honeypot
@@ -30,6 +38,11 @@ export default function SubscribeForm({ onSuccess }: { onSuccess?: () => void })
         setName('');
         
         if (typeof window !== 'undefined') {
+          try {
+            window.localStorage.setItem(NEWSLETTER_JOINED_KEY, '1');
+          } catch {
+            // Private mode still counts as a successful signup.
+          }
           track('generate_lead', { currency: 'USD', value: 0 });
           track('sign_up', { method: 'newsletter' });
           if (window.fbq) {
@@ -51,6 +64,36 @@ export default function SubscribeForm({ onSuccess }: { onSuccess?: () => void })
       setMessage('An error occurred. Please try again.');
     }
   };
+
+  if (layout === 'bar') {
+    return (
+      <form onSubmit={handleSubmit} className="nl-sticky-form">
+        <p className="nl-sticky-label font-sans">Daily briefing</p>
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Email address"
+          aria-label="Email address"
+          required
+          autoComplete="email"
+        />
+        <input
+          type="text"
+          value={honeypot}
+          onChange={(e) => setHoneypot(e.target.value)}
+          className="nl-sticky-hp"
+          tabIndex={-1}
+          autoComplete="off"
+          aria-hidden="true"
+        />
+        <button type="submit" disabled={status === 'loading'}>
+          {status === 'loading' ? 'Sending' : status === 'success' ? 'Joined' : 'Join'}
+        </button>
+        {status === 'error' && <span className="nl-sticky-msg">{message}</span>}
+      </form>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', width: '100%', maxWidth: '400px', margin: '0 auto' }}>
