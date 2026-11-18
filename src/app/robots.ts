@@ -8,7 +8,7 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: '*',
       allow: '/',
       // Premium/print HTML teasers are indexable (paywall body). Block staff tools only.
-      disallow: ['/dashboard/', '/login', '/account', '/api/', '/restore-purchases'],
+      disallow: ['/dashboard/', '/login', '/account', '/api/', '/restore-purchases', '/preview/'],
     },
     sitemap: [`${baseUrl}/sitemap.xml`, `${baseUrl}/news-sitemap.xml`],
   };

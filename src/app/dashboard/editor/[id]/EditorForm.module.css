@@ -840,3 +840,78 @@
 .checklistItemDone .checklistStep {
   color: #86efac;
 }
+
+.saveStatus {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #9ca3af;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.recoveryBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 0 0 1rem;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  border-radius: 0.75rem;
+  color: #374151;
+  font-size: 0.85rem;
+}
+
+.recoveryActions {
+  display: flex;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.revisionList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.revisionItem {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  padding: 0.7rem 0.8rem;
+  background: white;
+}
+
+.revisionMeta {
+  font-size: 0.75rem;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+.revisionActions {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.45rem;
+}
+
+.revisionView {
+  margin-top: 0.55rem;
+  max-height: 220px;
+  overflow: auto;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: #111827;
+}
+
+.previewPop {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  right: 0;
+  z-index: 20;
+  width: min(22rem, 80vw);
+  padding: 0.85rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.85rem;
+  box-shadow: 0 12px 30px rgba(17, 24, 39, 0.12);
+}

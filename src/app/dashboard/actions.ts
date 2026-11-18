@@ -16,6 +16,7 @@ import { computeBreakingUntil, DEFAULT_BREAKING_HOURS } from '@/lib/breaking';
 import { slugifyTitle, sanitizeSlugInput, withUniquenessSuffix } from '@/lib/slug';
 import { mergeAuthors } from '@/lib/merge-authors';
 import { persistArticleMedia, persistMediaUrl } from '@/lib/persist-article-media';
+import { capturePostRevision } from '@/lib/post-revisions';
 
 
 
@@ -234,6 +235,16 @@ ${cleanContent}`,
     data: updateData
   });
 
+  try {
+    await capturePostRevision({
+      postId: updatedPost.id,
+      authorId: session.user.id,
+      source: 'STATUS',
+    });
+  } catch (error) {
+    console.error('[revisions] status snapshot failed', error);
+  }
+
   if (newState === 'PUBLISHED') {
     await maybeSyncArticleVideos({
       ...post,
@@ -316,9 +327,13 @@ async function ensureUniqueSlug(desired: string, excludeId?: string): Promise<st
   }
 }
 
-export async function savePost(data: any) {
+export async function savePost(
+  data: any,
+  options?: { autosave?: boolean; revalidate?: boolean }
+): Promise<{ id: string; updatedAt: string }> {
   const session = await auth();
   if (!session?.user) throw new Error('Unauthorized');
+  const shouldRevalidate = options?.revalidate !== false;
 
   const role = session.user.role;
   if (role !== 'EDITOR' && role !== 'ADMIN' && role !== 'WRITER') {
@@ -329,10 +344,16 @@ export async function savePost(data: any) {
   const rawSlug = typeof data.slug === 'string' ? data.slug.trim() : '';
   const cleaned = rawSlug ? sanitizeSlugInput(rawSlug) : '';
   const slugSeed = cleaned || slugifyTitle(String(data.title || 'article'), { dropStopWords: true });
+  let saved: { id: string; updatedAt: Date };
 
   if (data.id) {
     const existing = await prisma.post.findUnique({ where: { id: data.id } });
     if (!existing) throw new Error('Post not found');
+
+    // Autosave must not replace what readers are already seeing.
+    if (options?.autosave && existing.state === 'PUBLISHED') {
+      throw new Error('Refusing to autosave a published story');
+    }
     
     if (role === 'WRITER' && existing.authorId !== session.user.id) {
       throw new Error('You can only edit your own posts');
@@ -394,9 +415,12 @@ export async function savePost(data: any) {
       }
     });
     await maybeSyncArticleVideos(updated);
-    revalidatePath(getArticleUrl(updated));
-    revalidatePath(`/article/${updated.slug}`);
-    revalidatePath(`/premium-article/${updated.slug}`);
+    saved = { id: updated.id, updatedAt: updated.updatedAt };
+    if (shouldRevalidate) {
+      revalidatePath(getArticleUrl(updated));
+      revalidatePath(`/article/${updated.slug}`);
+      revalidatePath(`/premium-article/${updated.slug}`);
+    }
   } else {
     const slug = await ensureUniqueSlug(slugSeed);
     const [content, imageUrl] = await Promise.all([
@@ -446,13 +470,28 @@ export async function savePost(data: any) {
         ...(data.publishedAt && { publishedAt: new Date(data.publishedAt) })
       }
     });
-    revalidatePath(getArticleUrl(created));
+    saved = { id: created.id, updatedAt: created.updatedAt };
+    if (shouldRevalidate) revalidatePath(getArticleUrl(created));
   }
 
-  revalidatePath('/dashboard');
-  revalidatePath('/');
-  revalidatePath('/news-sitemap.xml');
-  revalidatePath('/sitemap.xml');
+  if (shouldRevalidate) {
+    revalidatePath('/dashboard');
+    revalidatePath('/');
+    revalidatePath('/news-sitemap.xml');
+    revalidatePath('/sitemap.xml');
+  }
+
+  try {
+    await capturePostRevision({
+      postId: saved.id,
+      authorId: session.user.id,
+      source: options?.autosave ? 'AUTOSAVE' : 'MANUAL',
+    });
+  } catch (error) {
+    console.error('[revisions] save snapshot failed', error);
+  }
+
+  return { id: saved.id, updatedAt: saved.updatedAt.toISOString() };
 }
 
 export async function updateUser(formData: FormData) {

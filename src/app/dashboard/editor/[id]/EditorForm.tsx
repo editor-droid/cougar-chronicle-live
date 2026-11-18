@@ -1,18 +1,23 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { RichTextEditor, RichTextEditorHandle } from '@/components/RichTextEditor';
 import { SeoAnalysisPanel } from '@/components/SeoAnalysisPanel';
 import { AiSpellcheckPanel } from '@/components/AiSpellcheckPanel';
 import { addEditorialNote } from '../../actions';
 import { useRouter } from 'next/navigation';
-import { FileDown, Loader2, X, Settings, Image as ImageIcon, CheckCircle2, PanelRightClose, PanelRightOpen, ArrowLeft, Wand2, ListChecks, Eye } from 'lucide-react';
+import { FileDown, Loader2, X, Settings, Image as ImageIcon, CheckCircle2, PanelRightClose, PanelRightOpen, ArrowLeft, Wand2, ListChecks, Eye, History } from 'lucide-react';
 import styles from './EditorForm.module.css';
 import { sanitizeSlugInput, slugifyTitle, assessSlug } from '@/lib/slug';
 import { wasPublishedBefore } from '@/lib/desk-plan';
 import { displayMediaSrc, rewriteMediaUrl, rewriteMediaUrlsInHtml } from '@/lib/media-url';
 import { uploadImageFile } from '@/lib/editor-upload';
 import { EDITOR_CATEGORIES, isTopicCategory } from '@/lib/categories';
+import type { EditorDraft } from '@/lib/editor-draft';
+import { EditorSaveStatus, setEditorSaveStatus } from '@/components/editor/EditorSaveStatus';
+import { useEditorAutosave } from '@/components/editor/useEditorAutosave';
+import RevisionsPanel from '@/components/editor/RevisionsPanel';
+import PreviewLinkButton from '@/components/editor/PreviewLinkButton';
 
 type ChecklistKey = 'spellcheck' | 'seo' | 'formatting' | 'oneWordLinks' | 'ready';
 
@@ -163,6 +168,76 @@ export default function EditorForm({
   const [focusKeyword, setFocusKeyword] = useState(post?.seoKeywords?.split(',')[0] || '');
   const [isGeneratingSlug, setIsGeneratingSlug] = useState(false);
   const editorRef = useRef<RichTextEditorHandle>(null);
+
+  const applyDraft = useCallback((next: EditorDraft) => {
+    setTitle(next.title);
+    setSlug(next.slug);
+    setSlugLocked(true);
+    setCategory(isTopicCategory(next.category) ? next.category : 'campus');
+    setFormat(next.format === 'opinion' ? 'opinion' : 'news');
+    setContent(next.content);
+    editorRef.current?.getEditor()?.commands.setContent(next.content || '<p></p>', { emitUpdate: false });
+    setImageUrl(next.imageUrl);
+    setAssignedAuthorId(next.authorId || authorId);
+    setSeoTitle(next.seoTitle);
+    setSeoDescription(next.seoDescription);
+    setSeoKeywords(next.seoKeywords);
+    setKeyInsights(next.keyInsights);
+    setFeaturedImageAlt(next.featuredImageAlt);
+    setCustomAuthor(next.customAuthor);
+    setIsPremium(next.isPremium);
+    setShowDonateCta(next.showDonateCta);
+    setIsAmerica250(next.isAmerica250);
+    setIsBreaking(next.isBreaking);
+    setBreakingHours(next.breakingHours === '' ? 24 : next.breakingHours);
+    setPrintEditionId(next.printEditionId);
+    setPrintEditionOrder(next.printEditionOrder);
+    setImageCaption(next.imageCaption);
+    setChecklist({ ...DEFAULT_CHECKLIST, ...next.editorChecklist });
+    setPublishedAt(next.publishedAt);
+    setFocusKeyword((next.seoKeywords || '').split(',')[0] || '');
+  }, [authorId]);
+
+  const serverUpdatedAt = post?.updatedAt ? new Date(post.updatedAt).toISOString() : null;
+  const draft: EditorDraft = {
+    title,
+    slug,
+    category,
+    format,
+    content,
+    imageUrl,
+    authorId: assignedAuthorId,
+    seoTitle,
+    seoDescription,
+    seoKeywords,
+    keyInsights,
+    featuredImageAlt,
+    customAuthor,
+    isPremium,
+    showDonateCta,
+    isAmerica250,
+    isBreaking,
+    breakingHours,
+    printEditionId,
+    printEditionOrder,
+    imageCaption,
+    editorChecklist: checklist,
+    publishedAt,
+  };
+  const autosave = useEditorAutosave({
+    postId: post?.id,
+    postState: post?.state,
+    serverUpdatedAt,
+    authorId,
+    paused: isSubmitting,
+    draft,
+    applyDraft,
+  });
+
+  const restoreRevision = useCallback((next: EditorDraft) => {
+    applyDraft(next);
+    setEditorSaveStatus('Restored · save to keep it');
+  }, [applyDraft]);
 
   const [showImportModal, setShowImportModal] = useState(false);
   const [importUrl, setImportUrl] = useState("");
@@ -418,6 +493,7 @@ export default function EditorForm({
       }
 
       setChecklistGate(false);
+      autosave.markSaved();
       router.push('/dashboard');
       router.refresh();
     } catch (error) {
@@ -473,6 +549,7 @@ export default function EditorForm({
         );
       }
 
+      autosave.markSaved();
       router.push('/dashboard');
       router.refresh();
     } catch (error) {
@@ -539,6 +616,19 @@ export default function EditorForm({
         <h1 className="font-serif" style={{ fontSize: '2.5rem', marginBottom: '2rem', color: '#111827' }}>
           {isNew ? 'Create New Draft' : 'Edit Post'}
         </h1>
+        {autosave.recovery ? (
+          <div className={styles.recoveryBanner} role="status">
+            <span>This browser has a newer unsaved copy of this story.</span>
+            <span className={styles.recoveryActions}>
+              <button type="button" className={`${styles.headerButton} ${styles.btnSave}`} onClick={autosave.acceptRecovery}>
+                Restore
+              </button>
+              <button type="button" className={`${styles.headerButton} ${styles.btnSave}`} onClick={autosave.dismissRecovery}>
+                Dismiss
+              </button>
+            </span>
+          </div>
+        ) : null}
         {/* Status / actions bar (scrolls with page — not sticky) */}
         <header className={styles.header}>
           <div className={styles.headerLeft}>
@@ -551,10 +641,12 @@ export default function EditorForm({
               <span className={styles.statusDot} style={{ backgroundColor: post?.state === 'PUBLISHED' ? '#22c55e' : post?.state === 'IN_REVIEW' ? '#eab308' : '#d1d5db' }}></span>
               <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#374151' }}>{post?.state || 'DRAFT'}</span>
             </div>
+            <EditorSaveStatus className={styles.saveStatus} />
           </div>
         </div>
 
         <div className={styles.headerRight}>
+          <PreviewLinkButton postId={post?.id} postState={post?.state} />
           <button type="button" onClick={() => setShowImportModal(true)} className={`${styles.headerButton} ${styles.btnSave}`}>
             <FileDown size={16} /> Import Doc
           </button>
@@ -712,6 +804,7 @@ export default function EditorForm({
               { id: 'seo', label: 'SEO', icon: <CheckCircle2 size={16} /> },
               { id: 'spellcheck', label: 'AI Edits', icon: <Wand2 size={16} /> },
               { id: 'checklist', label: 'Checklist', icon: <ListChecks size={16} /> },
+              { id: 'history', label: 'History', icon: <History size={16} /> },
               { id: 'notes', label: 'Notes', icon: <FileDown size={16} /> }
             ].map(tab => (
               <button
@@ -1214,6 +1307,19 @@ export default function EditorForm({
                 </div>
               );
             })()}
+
+            {activeTab === 'history' && (
+              <div className={styles.panelRoot}>
+                <div className={`${styles.panelHero} ${styles.panelHeroNavy}`}>
+                  <p className={styles.panelKicker}>History</p>
+                  <h3 className={styles.panelHeroTitle}>Revisions</h3>
+                  <p className={styles.panelHeroHint}>
+                    Manual saves and status changes are kept. Restore loads a copy into the editor. Save to keep it.
+                  </p>
+                </div>
+                <RevisionsPanel postId={post?.id} authorId={authorId} onRestore={restoreRevision} />
+              </div>
+            )}
 
             {activeTab === 'notes' && (
               <div className={styles.panelRoot}>
