@@ -288,13 +288,15 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
 
       {/* Sidebar */}
       <aside className="article-sidebar">
-        <ByuScoresWidget />
         <MostReadList variant="sidebar" take={5} excludeIds={[post.id]} />
 
         <div className="newsletter-box" style={{ marginTop: '3rem', borderRadius: '0.5rem' }}>
           <h3 className="font-serif" style={{ color: 'white' }}>The Cougar Chronicle</h3>
           <p className="font-sans text-sm" style={{ marginBottom: '1.5rem', opacity: 0.9 }}>Get the best conservative journalism delivered to your inbox daily.</p>
           <SubscribeForm />
+        </div>
+        <div style={{ marginTop: '1.75rem' }}>
+          <ByuScoresWidget />
         </div>
       </aside>
     </div>

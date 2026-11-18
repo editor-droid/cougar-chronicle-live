@@ -1,0 +1,255 @@
+{
+  "timestamp": "2026-11-18T04:39:16Z",
+  "status": "success",
+  "season": {
+    "year": 2026,
+    "type": 14225,
+    "name": "First Round",
+    "displayName": "2026 NCAA Division I Women's Soccer",
+    "half": 1
+  },
+  "team": {
+    "id": "20516",
+    "abbreviation": "BYU",
+    "displayName": "BYU Cougars",
+    "recordSummary": null,
+    "seasonSummary": "2026",
+    "standingSummary": null
+  },
+  "events": [
+    {
+      "id": "401886858",
+      "date": "2026-10-08T23:00Z",
+      "name": "BYU at West Virginia",
+      "shortName": "BYU @ WVU",
+      "competitions": [
+        {
+          "id": "401886858",
+          "date": "2026-10-08T23:00Z",
+          "neutralSite": false,
+          "venue": {
+            "fullName": "Dick Dlesk Soccer Stadium"
+          },
+          "competitors": [
+            {
+              "id": "20382",
+              "homeAway": "home",
+              "winner": true,
+              "team": {
+                "id": "20382",
+                "abbreviation": "WVU",
+                "shortDisplayName": "West Virginia",
+                "displayName": "West Virginia Mountaineers",
+                "location": "West Virginia"
+              },
+              "score": {
+                "displayValue": "2",
+                "value": 2.0
+              },
+              "curatedRank": {
+                "current": 16
+              }
+            },
+            {
+              "id": "20516",
+              "homeAway": "away",
+              "winner": false,
+              "team": {
+                "id": "20516",
+                "abbreviation": "BYU",
+                "shortDisplayName": "BYU",
+                "displayName": "BYU Cougars",
+                "location": "BYU"
+              },
+              "score": {
+                "displayValue": "0",
+                "value": 0.0
+              },
+              "curatedRank": {
+                "current": 20
+              }
+            }
+          ],
+          "status": {
+            "displayClock": "90'",
+            "period": 2,
+            "type": {
+              "state": "post",
+              "completed": true,
+              "name": "STATUS_FULL_TIME",
+              "shortDetail": "FT",
+              "detail": "FT",
+              "description": "Full Time"
+            }
+          },
+          "broadcasts": [
+            {
+              "type": {
+                "shortName": "STREAMING"
+              },
+              "media": {
+                "shortName": "ESPN+"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "401887055",
+      "date": "2026-10-22T23:00Z",
+      "name": "BYU at Kansas",
+      "shortName": "BYU @ KU",
+      "competitions": [
+        {
+          "id": "401887055",
+          "date": "2026-10-22T23:00Z",
+          "neutralSite": false,
+          "venue": {
+            "fullName": "Rock Chalk Park"
+          },
+          "competitors": [
+            {
+              "id": "20494",
+              "homeAway": "home",
+              "winner": false,
+              "team": {
+                "id": "20494",
+                "abbreviation": "KU",
+                "shortDisplayName": "Kansas",
+                "displayName": "Kansas Jayhawks",
+                "location": "Kansas"
+              },
+              "score": {
+                "displayValue": "1",
+                "value": 1.0
+              },
+              "curatedRank": {
+                "current": 18
+              }
+            },
+            {
+              "id": "20516",
+              "homeAway": "away",
+              "winner": false,
+              "team": {
+                "id": "20516",
+                "abbreviation": "BYU",
+                "shortDisplayName": "BYU",
+                "displayName": "BYU Cougars",
+                "location": "BYU"
+              },
+              "score": {
+                "displayValue": "1",
+                "value": 1.0
+              },
+              "curatedRank": {
+                "current": 20
+              }
+            }
+          ],
+          "status": {
+            "displayClock": "90'",
+            "period": 2,
+            "type": {
+              "state": "post",
+              "completed": true,
+              "name": "STATUS_FULL_TIME",
+              "shortDetail": "FT",
+              "detail": "FT",
+              "description": "Full Time"
+            }
+          },
+          "broadcasts": [
+            {
+              "type": {
+                "shortName": "STREAMING"
+              },
+              "media": {
+                "shortName": "ESPN+"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "401929895",
+      "date": "2026-11-15T01:00Z",
+      "name": "Baylor at BYU",
+      "shortName": "BAY @ BYU",
+      "competitions": [
+        {
+          "id": "401929895",
+          "date": "2026-11-15T01:00Z",
+          "neutralSite": true,
+          "venue": {
+            "fullName": "Texas Health Mansfield Stadium"
+          },
+          "competitors": [
+            {
+              "id": "20516",
+              "homeAway": "home",
+              "winner": true,
+              "team": {
+                "id": "20516",
+                "abbreviation": "BYU",
+                "shortDisplayName": "BYU",
+                "displayName": "BYU Cougars",
+                "location": "BYU"
+              },
+              "score": {
+                "displayValue": "3",
+                "value": 3.0
+              },
+              "curatedRank": {
+                "current": 14
+              }
+            },
+            {
+              "id": "20522",
+              "homeAway": "away",
+              "winner": false,
+              "team": {
+                "id": "20522",
+                "abbreviation": "BAY",
+                "shortDisplayName": "Baylor",
+                "displayName": "Baylor Bears",
+                "location": "Baylor"
+              },
+              "score": {
+                "displayValue": "2",
+                "value": 2.0
+              },
+              "curatedRank": {
+                "current": 7
+              }
+            }
+          ],
+          "status": {
+            "displayClock": "90'",
+            "period": 2,
+            "type": {
+              "state": "post",
+              "completed": true,
+              "name": "STATUS_FULL_TIME",
+              "shortDetail": "FT",
+              "detail": "FT",
+              "description": "Full Time"
+            }
+          },
+          "broadcasts": [
+            {
+              "type": {
+                "shortName": "STREAMING"
+              },
+              "media": {
+                "shortName": "ESPN+"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

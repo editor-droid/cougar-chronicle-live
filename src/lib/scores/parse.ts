@@ -147,6 +147,22 @@ function scoreText(score: z.infer<typeof scoreSchema> | undefined): string | nul
   return null;
 }
 
+/**
+ * ESPN marks a soccer draw with `winner: false` on both sides. Equal final
+ * scores and no winner are a draw, so the widget does not print an L.
+ */
+export function decideWinner(
+  usWinner: boolean | null | undefined,
+  themWinner: boolean | null | undefined,
+  usScore: string | null,
+  themScore: string | null,
+): boolean | null {
+  if (usWinner === true) return true;
+  if (themWinner === true) return false;
+  if (usScore != null && usScore === themScore && usWinner === false && themWinner === false) return null;
+  return typeof usWinner === 'boolean' ? usWinner : null;
+}
+
 function gameState(status: z.infer<typeof statusSchema>): GameState {
   const description = `${status.type.description ?? ''} ${status.type.name ?? ''}`;
   if (/postponed|canceled|cancelled/i.test(description) && status.type.state !== 'in') return 'pre';
@@ -289,7 +305,7 @@ export function parseSiteEvent(input: unknown, options: ParseSiteOptions): Score
     opponentRank: ranked(them.curatedRank?.current),
     byuScore: scoreText(us.score),
     opponentScore: scoreText(them.score),
-    byuWinner: typeof us.winner === 'boolean' ? us.winner : null,
+    byuWinner: decideWinner(us.winner, them.winner, scoreText(us.score), scoreText(them.score)),
     byuRank: ranked(us.curatedRank?.current),
     tv: tvFromBroadcasts(competition.geoBroadcasts, competition.broadcasts),
     venue: competition.venue?.fullName ?? null,
@@ -345,7 +361,7 @@ export function parseHydratedCoreEvent(input: {
     opponentRank: null,
     byuScore,
     opponentScore,
-    byuWinner: typeof us.winner === 'boolean' ? us.winner : null,
+    byuWinner: decideWinner(us.winner, them.winner, byuScore, opponentScore),
     byuRank: null,
     tv: tvFromBroadcasts(input.broadcasts),
     venue: competition.venue?.fullName ?? null,

@@ -1945,23 +1945,29 @@ body:has([data-link-hub-page]) .site-shell > main.container {
 
 .byu-scores__tabs {
   display: flex;
-  gap: 0.35rem;
+  flex-wrap: wrap;
+  gap: 0.3rem;
   margin-bottom: 0.65rem;
 }
 
 .byu-scores__tab {
   appearance: none;
+  flex: 1 1 calc(50% - 0.3rem);
+  min-width: 0;
   border: 1px solid var(--border);
   background: transparent;
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: 0.68rem;
+  font-size: 0.62rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
   text-transform: uppercase;
-  padding: 0.28rem 0.5rem;
+  text-align: center;
+  padding: 0.22rem 0.35rem;
   border-radius: 999px;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .byu-scores__tab.is-active {

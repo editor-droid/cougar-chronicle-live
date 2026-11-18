@@ -329,7 +329,6 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 
       {/* Sidebar */}
       <aside className="article-sidebar">
-        <ByuScoresWidget />
         <MostReadList variant="sidebar" result={mostRead} />
 
         {sidebarVideos.length > 0 && (
@@ -356,6 +355,9 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           <h2 className="font-serif" style={{ color: 'white', fontSize: '1.25rem', margin: '0 0 0.5rem 0' }}>The Cougar Chronicle</h2>
           <p className="font-sans text-sm" style={{ marginBottom: '1.5rem', opacity: 0.9 }}>Get the best conservative journalism delivered to your inbox daily.</p>
           <SubscribeForm />
+        </div>
+        <div style={{ marginTop: '1.75rem' }}>
+          <ByuScoresWidget />
         </div>
       </aside>
     </div>

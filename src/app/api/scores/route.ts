@@ -10,7 +10,10 @@ export const revalidate = 1200;
 
 export async function GET() {
   const payload = await getByuScores();
-  if (!payload || (!payload.football && !payload.basketball)) {
+  if (
+    !payload ||
+    (!payload.football && !payload.basketball && !payload.womensBasketball && !payload.soccer)
+  ) {
     return NextResponse.json({ show: false });
   }
 

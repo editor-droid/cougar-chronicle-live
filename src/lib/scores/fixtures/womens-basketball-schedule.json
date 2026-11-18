@@ -1,0 +1,387 @@
+{
+  "timestamp": "2026-11-18T04:37:12Z",
+  "status": "success",
+  "season": {
+    "year": 2027,
+    "type": 2,
+    "name": "Regular Season",
+    "displayName": "2026-27",
+    "half": 1
+  },
+  "team": {
+    "id": "252",
+    "abbreviation": "BYU",
+    "displayName": "BYU Cougars",
+    "recordSummary": "5-0",
+    "seasonSummary": "2026-27",
+    "standingSummary": "1st in Big 12"
+  },
+  "events": [
+    {
+      "id": "401916152",
+      "date": "2026-11-11T18:00Z",
+      "name": "Bethune-Cookman Wildcats at BYU Cougars",
+      "shortName": "BCU @ BYU",
+      "competitions": [
+        {
+          "id": "401916152",
+          "date": "2026-11-11T18:00Z",
+          "neutralSite": false,
+          "venue": {
+            "fullName": "Marriott Center"
+          },
+          "competitors": [
+            {
+              "id": "252",
+              "homeAway": "home",
+              "winner": true,
+              "team": {
+                "id": "252",
+                "abbreviation": "BYU",
+                "shortDisplayName": "BYU",
+                "displayName": "BYU Cougars",
+                "location": "BYU"
+              },
+              "score": {
+                "displayValue": "82",
+                "value": 82.0
+              },
+              "curatedRank": {
+                "current": 99
+              }
+            },
+            {
+              "id": "2065",
+              "homeAway": "away",
+              "winner": false,
+              "team": {
+                "id": "2065",
+                "abbreviation": "BCU",
+                "shortDisplayName": "Bethune",
+                "displayName": "Bethune-Cookman Wildcats",
+                "location": "Bethune-Cookman"
+              },
+              "score": {
+                "displayValue": "56",
+                "value": 56.0
+              },
+              "curatedRank": {
+                "current": 99
+              }
+            }
+          ],
+          "status": {
+            "displayClock": "0:00",
+            "period": 4,
+            "type": {
+              "state": "post",
+              "completed": true,
+              "name": "STATUS_FINAL",
+              "shortDetail": "Final",
+              "detail": "Final",
+              "description": "Final"
+            }
+          },
+          "broadcasts": [
+            {
+              "type": {
+                "shortName": "Streaming"
+              },
+              "media": {
+                "shortName": "ESPN+"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "401916153",
+      "date": "2026-11-14T20:00Z",
+      "name": "New Mexico Lobos at BYU Cougars",
+      "shortName": "UNM @ BYU",
+      "competitions": [
+        {
+          "id": "401916153",
+          "date": "2026-11-14T20:00Z",
+          "neutralSite": false,
+          "venue": {
+            "fullName": "Marriott Center"
+          },
+          "competitors": [
+            {
+              "id": "252",
+              "homeAway": "home",
+              "winner": true,
+              "team": {
+                "id": "252",
+                "abbreviation": "BYU",
+                "shortDisplayName": "BYU",
+                "displayName": "BYU Cougars",
+                "location": "BYU"
+              },
+              "score": {
+                "displayValue": "82",
+                "value": 82.0
+              },
+              "curatedRank": {
+                "current": 99
+              }
+            },
+            {
+              "id": "167",
+              "homeAway": "away",
+              "winner": false,
+              "team": {
+                "id": "167",
+                "abbreviation": "UNM",
+                "shortDisplayName": "New Mexico",
+                "displayName": "New Mexico Lobos",
+                "location": "New Mexico"
+              },
+              "score": {
+                "displayValue": "65",
+                "value": 65.0
+              },
+              "curatedRank": {
+                "current": 99
+              }
+            }
+          ],
+          "status": {
+            "displayClock": "0:00",
+            "period": 4,
+            "type": {
+              "state": "post",
+              "completed": true,
+              "name": "STATUS_FINAL",
+              "shortDetail": "Final",
+              "detail": "Final",
+              "description": "Final"
+            }
+          },
+          "broadcasts": [
+            {
+              "type": {
+                "shortName": "Streaming"
+              },
+              "media": {
+                "shortName": "ESPN+"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "401916154",
+      "date": "2026-11-18T21:00Z",
+      "name": "Utah State Aggies at BYU Cougars",
+      "shortName": "USU @ BYU",
+      "competitions": [
+        {
+          "id": "401916154",
+          "date": "2026-11-18T21:00Z",
+          "neutralSite": false,
+          "venue": {
+            "fullName": "Marriott Center"
+          },
+          "competitors": [
+            {
+              "id": "252",
+              "homeAway": "home",
+              "winner": null,
+              "team": {
+                "id": "252",
+                "abbreviation": "BYU",
+                "shortDisplayName": "BYU",
+                "displayName": "BYU Cougars",
+                "location": "BYU"
+              },
+              "curatedRank": {
+                "current": 99
+              }
+            },
+            {
+              "id": "328",
+              "homeAway": "away",
+              "winner": null,
+              "team": {
+                "id": "328",
+                "abbreviation": "USU",
+                "shortDisplayName": "Utah State",
+                "displayName": "Utah State Aggies",
+                "location": "Utah State"
+              },
+              "curatedRank": {
+                "current": 99
+              }
+            }
+          ],
+          "status": {
+            "displayClock": "0:00",
+            "period": 0,
+            "type": {
+              "state": "pre",
+              "completed": false,
+              "name": "STATUS_SCHEDULED",
+              "shortDetail": "11/18 - 4:00 PM EST",
+              "detail": "Wed, November 18th at 4:00 PM EST",
+              "description": "Scheduled"
+            }
+          },
+          "broadcasts": [
+            {
+              "type": {
+                "shortName": "Streaming"
+              },
+              "media": {
+                "shortName": "ESPN+"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "401916155",
+      "date": "2026-11-21T21:00Z",
+      "name": "Northern Colorado Bears at BYU Cougars",
+      "shortName": "UNCO @ BYU",
+      "competitions": [
+        {
+          "id": "401916155",
+          "date": "2026-11-21T21:00Z",
+          "neutralSite": false,
+          "venue": {
+            "fullName": "Marriott Center"
+          },
+          "competitors": [
+            {
+              "id": "252",
+              "homeAway": "home",
+              "winner": null,
+              "team": {
+                "id": "252",
+                "abbreviation": "BYU",
+                "shortDisplayName": "BYU",
+                "displayName": "BYU Cougars",
+                "location": "BYU"
+              },
+              "curatedRank": {
+                "current": 99
+              }
+            },
+            {
+              "id": "2458",
+              "homeAway": "away",
+              "winner": null,
+              "team": {
+                "id": "2458",
+                "abbreviation": "UNCO",
+                "shortDisplayName": "N Colorado",
+                "displayName": "Northern Colorado Bears",
+                "location": "Northern Colorado"
+              },
+              "curatedRank": {
+                "current": 99
+              }
+            }
+          ],
+          "status": {
+            "displayClock": "0:00",
+            "period": 0,
+            "type": {
+              "state": "pre",
+              "completed": false,
+              "name": "STATUS_SCHEDULED",
+              "shortDetail": "11/21 - 4:00 PM EST",
+              "detail": "Sat, November 21st at 4:00 PM EST",
+              "description": "Scheduled"
+            }
+          },
+          "broadcasts": [
+            {
+              "type": {
+                "shortName": "Streaming"
+              },
+              "media": {
+                "shortName": "ESPN+"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "401923132",
+      "date": "2026-11-25T01:00Z",
+      "name": "BYU Cougars at Utah Valley Wolverines",
+      "shortName": "BYU @ UVU",
+      "competitions": [
+        {
+          "id": "401923132",
+          "date": "2026-11-25T01:00Z",
+          "neutralSite": false,
+          "venue": {
+            "fullName": "UCCU Center"
+          },
+          "competitors": [
+            {
+              "id": "3084",
+              "homeAway": "home",
+              "winner": null,
+              "team": {
+                "id": "3084",
+                "abbreviation": "UVU",
+                "shortDisplayName": "Utah Valley",
+                "displayName": "Utah Valley Wolverines",
+                "location": "Utah Valley"
+              },
+              "curatedRank": {
+                "current": 99
+              }
+            },
+            {
+              "id": "252",
+              "homeAway": "away",
+              "winner": null,
+              "team": {
+                "id": "252",
+                "abbreviation": "BYU",
+                "shortDisplayName": "BYU",
+                "displayName": "BYU Cougars",
+                "location": "BYU"
+              },
+              "curatedRank": {
+                "current": 99
+              }
+            }
+          ],
+          "status": {
+            "displayClock": "0:00",
+            "period": 0,
+            "type": {
+              "state": "pre",
+              "completed": false,
+              "name": "STATUS_SCHEDULED",
+              "shortDetail": "11/24 - 8:00 PM EST",
+              "detail": "Tue, November 24th at 8:00 PM EST",
+              "description": "Scheduled"
+            }
+          },
+          "broadcasts": [
+            {
+              "type": {
+                "shortName": "Streaming"
+              },
+              "media": {
+                "shortName": "ESPN+"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

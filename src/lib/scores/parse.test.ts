@@ -3,8 +3,8 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { buildSport, chooseRevalidateSeconds, selectGames } from './assemble';
-import { COLD_REVALIDATE_SECONDS, HOT_REVALIDATE_SECONDS, SCHEDULE_URL } from './constants';
+import { buildSport, chooseRevalidateSeconds, preferredSport, selectGames } from './assemble';
+import { BYU_WSOC_TEAM_ID, COLD_REVALIDATE_SECONDS, HOT_REVALIDATE_SECONDS, SCHEDULE_URL } from './constants';
 import { footballSeasonYear, formatDenver, formatResult } from './format';
 import {
   findStatBroadcastUrl,
@@ -131,6 +131,75 @@ describe('ESPN score parsers', () => {
     }), null);
   });
 
+  it('splits the women’s basketball schedule into last result, next game, and the games after that', () => {
+    const doc = scheduleDocumentSchema.parse(load('womens-basketball-schedule.json'));
+    const games = (doc.events ?? [])
+      .map((event) => parseSiteEvent(event, { teamId: '252', source: 'event' }))
+      .filter((game): game is NonNullable<typeof game> => game !== null);
+    const sport = buildSport({
+      key: 'womens-basketball',
+      label: "Women's Basketball",
+      games,
+      record: doc.team?.recordSummary ?? null,
+      standing: doc.team?.standingSummary ?? null,
+      scheduleUrl: SCHEDULE_URL['womens-basketball'],
+    });
+    assert.ok(sport);
+    assert.equal(sport.record, '5-0');
+    assert.equal(sport.standing, '1st in Big 12');
+    assert.equal(sport.last?.opponent, 'New Mexico');
+    assert.equal(sport.last && formatResult(sport.last), 'W 82–65');
+    assert.equal(sport.next?.opponent, 'Utah State');
+    assert.equal(sport.next?.homeAway, 'home');
+    assert.equal(sport.next?.tv, 'ESPN+');
+    assert.deepEqual(sport.upcoming.map((game) => game.opponentAbbrev), ['UNCO', 'UVU']);
+    assert.equal(sport.live, null);
+  });
+
+  it('reads women’s soccer with team 20516, including a draw and a final', () => {
+    const doc = scheduleDocumentSchema.parse(load('womens-soccer-schedule.json'));
+    const games = (doc.events ?? [])
+      .map((event) => parseSiteEvent(event, { teamId: BYU_WSOC_TEAM_ID, source: 'event' }))
+      .filter((game): game is NonNullable<typeof game> => game !== null);
+    const sport = buildSport({
+      key: 'womens-soccer',
+      label: "Women's Soccer",
+      games,
+      record: doc.team?.recordSummary ?? null,
+      standing: doc.team?.standingSummary ?? null,
+      scheduleUrl: SCHEDULE_URL['womens-soccer'],
+    });
+    assert.ok(sport);
+    assert.equal(sport.record, null);
+    assert.equal(sport.next, null);
+    assert.equal(sport.last?.opponent, 'Baylor');
+    assert.equal(sport.last?.opponentRank, 7);
+    assert.equal(sport.last?.byuRank, 14);
+    assert.equal(sport.last?.homeAway, 'home');
+    assert.equal(sport.last?.neutral, true);
+    assert.equal(sport.last?.tv, 'ESPN+');
+    assert.equal(sport.last && formatResult(sport.last), 'W 3–2');
+
+    const draw = games.find((game) => game.opponent === 'Kansas');
+    const loss = games.find((game) => game.opponent === 'West Virginia');
+    assert.ok(draw);
+    assert.equal(draw.byuWinner, null);
+    assert.equal(formatResult(draw), '1–1');
+    assert.equal(draw.homeAway, 'away');
+    assert.ok(loss);
+    assert.equal(loss && formatResult(loss), 'L 0–2');
+
+    assert.equal(parseSiteEvent(doc.events?.[2], { teamId: '252', source: 'event' }), null);
+    assert.equal(buildSport({
+      key: 'womens-soccer',
+      label: "Women's Soccer",
+      games: [],
+      record: null,
+      standing: null,
+      scheduleUrl: SCHEDULE_URL['womens-soccer'],
+    }), null);
+  });
+
   it('uses a StatBroadcast URL only when the payload already contains one', () => {
     assert.equal(findStatBroadcastUrl(load('football-schedule.json')), null);
     assert.equal(
@@ -177,5 +246,53 @@ describe('score refresh window', () => {
       scheduleUrl: SCHEDULE_URL.football,
     });
     assert.equal(chooseRevalidateSeconds([liveSport], NOW), HOT_REVALIDATE_SECONDS);
+  });
+
+  it('opens the sport with a live game, otherwise the soonest next game', () => {
+    const footballDoc = scheduleDocumentSchema.parse(load('football-schedule.json'));
+    const footballNext = parseSiteEvent(footballDoc.events?.[0], { teamId: '252', source: 'event' });
+    const hoopsDoc = scheduleDocumentSchema.parse(load('womens-basketball-schedule.json'));
+    const hoopsGames = (hoopsDoc.events ?? [])
+      .map((event) => parseSiteEvent(event, { teamId: '252', source: 'event' }))
+      .filter((game): game is NonNullable<typeof game> => game !== null);
+    assert.ok(footballNext);
+    const football = buildSport({
+      key: 'football',
+      label: 'Football',
+      games: [footballNext],
+      record: '8-2',
+      standing: null,
+      scheduleUrl: SCHEDULE_URL.football,
+    });
+    const hoops = buildSport({
+      key: 'womens-basketball',
+      label: "Women's Basketball",
+      games: hoopsGames,
+      record: '5-0',
+      standing: null,
+      scheduleUrl: SCHEDULE_URL['womens-basketball'],
+    });
+    const soccer = buildSport({
+      key: 'womens-soccer',
+      label: "Women's Soccer",
+      games: [],
+      record: null,
+      standing: null,
+      scheduleUrl: SCHEDULE_URL['womens-soccer'],
+    });
+    assert.equal(soccer, null);
+    assert.ok(football && hoops);
+    assert.equal(preferredSport([football, hoops].filter((sport) => sport !== null))?.key, 'womens-basketball');
+
+    const liveFootball = buildSport({
+      key: 'football',
+      label: 'Football',
+      games: [{ ...footballNext, state: 'in' }],
+      record: '8-2',
+      standing: null,
+      scheduleUrl: SCHEDULE_URL.football,
+    });
+    assert.ok(liveFootball);
+    assert.equal(preferredSport([liveFootball, hoops])?.key, 'football');
   });
 });
