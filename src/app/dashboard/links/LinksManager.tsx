@@ -173,6 +173,7 @@ export default function LinksManager() {
         body: JSON.stringify({
           filename: file.name,
           contentType: file.type || 'image/jpeg',
+          size: file.size,
         }),
       });
       const { uploadUrl, publicUrl } = await prep.json();

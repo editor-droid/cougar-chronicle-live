@@ -13,13 +13,13 @@ import { segmentNameForDigest } from '@/lib/marketing-segments';
 import { sendMarketingBroadcast } from '@/lib/resend-marketing';
 import { digestAudienceMask, subscriberMatchesPost } from '@/lib/subscriber-prefs';
 import { emailVideoThumbnailUrl } from '@/lib/videos';
+import { isCronAuthorized } from '@/lib/cron-auth';
 
 export const dynamic = 'force-dynamic';
 
 /** Weekly digest for subscribers with wantsDigest (and not instant-only). */
 export async function GET(request: Request) {
-  const authHeader = request.headers.get('authorization');
-  if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isCronAuthorized(request.headers.get('authorization'), process.env.CRON_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
