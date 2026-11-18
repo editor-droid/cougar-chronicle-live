@@ -45,7 +45,7 @@ export default function RegisterPage() {
         router.push('/login?registered=true');
       } else {
         // Success! Go to dashboard
-        router.push('/dashboard');
+        router.push('/account');
         router.refresh();
       }
     } catch (err: any) {
@@ -99,6 +99,7 @@ export default function RegisterPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              minLength={8}
               placeholder="••••••••"
               style={{ width: '100%', padding: '0.75rem', borderRadius: '0.25rem', border: '1px solid var(--border)', fontFamily: 'var(--font-sans)' }}
             />

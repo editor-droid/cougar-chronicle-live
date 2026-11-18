@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { X } from 'lucide-react';
+import { MIN_NEW_PASSWORD_LENGTH } from '@/lib/passwords';
 
 type Mode = 'register' | 'signin';
 
@@ -299,7 +300,7 @@ export default function AuthPromptModal({
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              minLength={6}
+              minLength={mode === 'register' ? MIN_NEW_PASSWORD_LENGTH : undefined}
               placeholder="••••••••"
               autoComplete={
                 mode === 'register' ? 'new-password' : 'current-password'

@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
 import { runDeskReminders } from '@/lib/desk-reminders';
+import { isCronAuthorized } from '@/lib/cron-auth';
 
 export const dynamic = 'force-dynamic';
 
 /** Daily drafts-desk reminders. Safe to call more often: each reminder is sent once. */
 export async function GET(request: Request) {
-  const authHeader = request.headers.get('authorization');
-  if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isCronAuthorized(request.headers.get('authorization'), process.env.CRON_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

@@ -34,3 +34,20 @@ export function canPublishPosts(role: StaffRole | null | undefined): boolean {
 export function canAccessDashboard(role: StaffRole | null | undefined): boolean {
   return role === 'ADMIN' || role === 'EDITOR' || role === 'WRITER';
 }
+
+/**
+ * Public registration is always a reader. `purpose` is ignored on purpose:
+ * staff roles are assigned by an admin (dashboard user management / desk writer).
+ */
+export function publicRegistrationRole(purpose?: unknown): 'USER' {
+  void purpose;
+  return 'USER';
+}
+
+/**
+ * Edit or delete a library video.
+ * `Video` has no owner/author column, so this cannot be scoped to "own videos".
+ */
+export function canEditLibraryVideo(role: StaffRole | null | undefined): boolean {
+  return role === 'ADMIN' || role === 'EDITOR';
+}

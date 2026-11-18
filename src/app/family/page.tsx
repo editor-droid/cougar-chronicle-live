@@ -4,10 +4,8 @@ import { buildSectionMetadata } from '@/lib/section-seo';
 
 export const metadata: Metadata = buildSectionMetadata('family');
 
-export default async function FamilySectionPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ page?: string; sort?: string }>;
-}) {
-  return <SectionListing slug="family" searchParams={await searchParams} />;
+export const revalidate = 120;
+
+export default async function FamilySectionPage() {
+  return <SectionListing slug="family" />;
 }

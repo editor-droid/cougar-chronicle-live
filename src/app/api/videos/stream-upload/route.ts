@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
+import { canAccessDashboard } from '@/lib/roles';
 
 /**
  * Creates a Cloudflare Stream direct-upload session.
@@ -16,8 +17,13 @@ export async function POST(request: Request) {
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const role = session.user.role;
-    if (role !== 'ADMIN' && role !== 'EDITOR' && role !== 'WRITER') {
+    // Starting an upload creates a new Stream video; it does not edit an
+    // existing library row. Writers use this from the article editor, and
+    // editors/admins use it from the videos desk. Video has no owner column,
+    // so this cannot be limited to "own videos" without a schema change.
+    // Readers stay forbidden. Editing or deleting an existing video is
+    // EDITOR/ADMIN only — see /api/videos/[id].
+    if (!canAccessDashboard(session.user.role)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import prisma from '@/lib/prisma';
 
 /** Historical WordPress / brand tails accidentally baked into post slugs. */
@@ -35,7 +36,7 @@ export function brandSuffixVariants(slug: string): string[] {
 }
 
 /** Published post at this slug, or a brand-suffix alias of it. */
-export async function findPublishedPostBySlug(slug: string) {
+export const findPublishedPostBySlug = cache(async function findPublishedPostBySlug(slug: string) {
   const exact = await prisma.post.findUnique({
     where: { slug },
     include: { author: true },
@@ -52,4 +53,4 @@ export async function findPublishedPostBySlug(slug: string) {
     },
     include: { author: true },
   });
-}
+});

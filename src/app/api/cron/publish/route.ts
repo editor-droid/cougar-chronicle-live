@@ -4,17 +4,14 @@ import { broadcastPostPublication } from '@/lib/publish-utils';
 import { syncArticleVideosToLibrary } from '@/lib/article-videos';
 import { runDeskReminders } from '@/lib/desk-reminders';
 import { wasPublishedBefore } from '@/lib/desk-plan';
+import { revalidateStorySurfaces } from '@/lib/revalidate-content';
+import { isCronAuthorized } from '@/lib/cron-auth';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
-  // Optional: Check authorization headers if you want to secure the cron
-  // Vercel Cron sends a Bearer token in the request header
-  const authHeader = request.headers.get('authorization');
-  if (
-    process.env.CRON_SECRET &&
-    authHeader !== `Bearer ${process.env.CRON_SECRET}`
-  ) {
+  // External trigger sends Authorization: Bearer ${CRON_SECRET}. Missing secret fails closed.
+  if (!isCronAuthorized(request.headers.get('authorization'), process.env.CRON_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -67,7 +64,8 @@ export async function GET(request: Request) {
       if (!wasPublishedBefore(post.deskNotices)) {
         await broadcastPostPublication(post);
       }
-      
+
+      revalidateStorySurfaces(post);
       publishedCount++;
     }
 
