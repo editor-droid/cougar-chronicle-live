@@ -417,10 +417,10 @@ export default async function Home() {
 
         {/* Right widgets column */}
         <div>
-          <ByuScoresWidget />
-          
           {/* Most read today, with the all-time list when the day and week are thin. */}
           <MostReadList variant="home" take={5} excludePrint publishedByNow />
+
+          <ByuScoresWidget />
 
           {/* NEWSLETTER SUBSCRIBE BOX */}
           <div id="subscribe" className="newsletter-box" style={{ padding: '2rem', border: '1px solid var(--border)', borderRadius: '0.5rem', backgroundColor: 'var(--primary)', color: '#fff', textAlign: 'center' }}>
