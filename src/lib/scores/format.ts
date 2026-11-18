@@ -65,6 +65,12 @@ export function periodLabel(period: number | null, sport: SportKey): string | nu
     if (period <= 4) return (['1st', '2nd', '3rd', '4th'] as const)[period - 1];
     return period === 5 ? 'OT' : `${period - 4}OT`;
   }
+  if (sport === 'womens-soccer') {
+    if (period === 1) return '1st';
+    if (period === 2) return '2nd';
+    if (period === 3) return 'ET';
+    return 'PK';
+  }
   if (period === 1) return '1st';
   if (period === 2) return '2nd';
   return period === 3 ? 'OT' : `${period - 2}OT`;

@@ -1,4 +1,4 @@
-export type SportKey = 'football' | 'mens-basketball';
+export type SportKey = 'football' | 'mens-basketball' | 'womens-basketball' | 'womens-soccer';
 
 export type GameState = 'pre' | 'in' | 'post';
 
@@ -46,4 +46,6 @@ export type ByuScoresPayload = {
   revalidateSeconds: number;
   football: SportScores | null;
   basketball: SportScores | null;
+  womensBasketball: SportScores | null;
+  soccer: SportScores | null;
 };

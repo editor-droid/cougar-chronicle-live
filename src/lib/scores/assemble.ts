@@ -47,6 +47,26 @@ export function buildSport(input: {
   };
 }
 
+/**
+ * Live game first. Otherwise the sport whose next game starts soonest.
+ * A sport with only a past result is last, most recent result first.
+ */
+export function preferredSport(sports: SportScores[]): SportScores | null {
+  if (sports.length === 0) return null;
+  const rank = (sport: SportScores): [number, number] => {
+    if (sport.live) return [0, -(Date.parse(sport.live.start) || 0)];
+    if (sport.next) return [1, Date.parse(sport.next.start) || Number.POSITIVE_INFINITY];
+    if (sport.last) return [2, -(Date.parse(sport.last.start) || 0)];
+    return [3, 0];
+  };
+  return sports.reduce((best, sport) => {
+    const [tier, time] = rank(sport);
+    const [bestTier, bestTime] = rank(best);
+    if (tier !== bestTier) return tier < bestTier ? sport : best;
+    return time < bestTime ? sport : best;
+  });
+}
+
 export function chooseRevalidateSeconds(
   sports: Array<SportScores | null>,
   now: number

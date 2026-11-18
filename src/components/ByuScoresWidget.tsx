@@ -1,15 +1,40 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { preferredSport } from '@/lib/scores/assemble';
 import { formatDenver, formatLiveStatus, formatPlace, formatResult } from '@/lib/scores/format';
 import type { ByuScoresPayload, ScoreGame, SportKey, SportScores } from '@/lib/scores/types';
 
 type ScoresResponse = { show: true } & ByuScoresPayload;
 
+const TAB_LABEL: Record<SportKey, string> = {
+  football: 'Football',
+  'mens-basketball': "Men's Hoops",
+  'womens-basketball': "Women's Hoops",
+  'womens-soccer': 'Soccer',
+};
+
+function sportsOf(data: ScoresResponse): SportScores[] {
+  return [data.football, data.basketball, data.womensBasketball, data.soccer].filter(
+    (sport): sport is SportScores => sport != null
+  );
+}
+
 function isScoresResponse(value: unknown): value is ScoresResponse {
   if (!value || typeof value !== 'object') return false;
-  const record = value as { show?: unknown; football?: unknown; basketball?: unknown };
-  return record.show === true && (record.football != null || record.basketball != null);
+  const record = value as {
+    show?: unknown;
+    football?: unknown;
+    basketball?: unknown;
+    womensBasketball?: unknown;
+    soccer?: unknown;
+  };
+  return record.show === true && (
+    record.football != null ||
+    record.basketball != null ||
+    record.womensBasketball != null ||
+    record.soccer != null
+  );
 }
 
 export default function ByuScoresWidget() {
@@ -61,7 +86,9 @@ function ScoresSkeleton() {
       <h2 className="widget-title">BYU Scores</h2>
       <div className="byu-scores__tabs" aria-hidden="true">
         <span className="byu-scores__tab is-active">Football</span>
-        <span className="byu-scores__tab">Men&apos;s Basketball</span>
+        <span className="byu-scores__tab">Men&apos;s Hoops</span>
+        <span className="byu-scores__tab">Women&apos;s Hoops</span>
+        <span className="byu-scores__tab">Soccer</span>
       </div>
       <div className="byu-scores__row byu-scores__placeholder" />
       <div className="byu-scores__row byu-scores__row-next byu-scores__placeholder" />
@@ -70,10 +97,10 @@ function ScoresSkeleton() {
 }
 
 function ScoresCard({ data }: { data: ScoresResponse }) {
-  const sports = [data.football, data.basketball].filter((sport): sport is SportScores => sport !== null);
-  const initial = sports.find((sport) => sport.live)?.key ?? sports[0]?.key ?? 'football';
+  const sports = sportsOf(data);
+  const initial = preferredSport(sports)?.key ?? sports[0]?.key ?? 'football';
   const [active, setActive] = useState<SportKey>(initial);
-  const sport = sports.find((item) => item.key === active) ?? sports[0];
+  const sport = sports.find((item) => item.key === active) ?? preferredSport(sports) ?? sports[0];
   if (!sport) return null;
 
   return (
@@ -93,7 +120,7 @@ function ScoresCard({ data }: { data: ScoresResponse }) {
               className={`byu-scores__tab${item.key === sport.key ? ' is-active' : ''}`}
               onClick={() => setActive(item.key)}
             >
-              {item.key === 'football' ? 'Football' : 'MBB'}
+              {TAB_LABEL[item.key]}
               {item.live ? <span className="byu-scores__tab-live">Live</span> : null}
             </button>
           ))}

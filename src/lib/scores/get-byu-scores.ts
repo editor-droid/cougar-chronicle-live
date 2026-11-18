@@ -3,12 +3,15 @@ import { buildSport, chooseRevalidateSeconds } from './assemble';
 import {
   BASKETBALL_PATH,
   BYU_TEAM_ID,
+  BYU_WSOC_TEAM_ID,
   COLD_REVALIDATE_SECONDS,
   ESPN_CORE,
   ESPN_SITE,
   FOOTBALL_PATH,
   HOT_REVALIDATE_SECONDS,
   SCHEDULE_URL,
+  WOMENS_BASKETBALL_PATH,
+  WOMENS_SOCCER_PATH,
 } from './constants';
 import { espnJson, mapPool, toHttps, type FetchCtx } from './espn';
 import { denverYmd, footballSeasonYear } from './format';
@@ -22,7 +25,7 @@ import {
   scoreboardSchema,
   statusResponseSchema,
 } from './parse';
-import type { ByuScoresPayload, ScoreGame, SportScores } from './types';
+import type { ByuScoresPayload, ScoreGame, SportKey, SportScores } from './types';
 
 const RECENT_MS = 10_000;
 
@@ -31,13 +34,13 @@ let recent: { at: number; payload: ByuScoresPayload } | null = null;
 
 const loadCold = unstable_cache(
   async () => buildByuScores(),
-  ['byu-scores-cold-v1'],
+  ['byu-scores-cold-v2'],
   { revalidate: COLD_REVALIDATE_SECONDS, tags: ['byu-scores'] }
 );
 
 const loadHot = unstable_cache(
   async () => buildByuScores(),
-  ['byu-scores-hot-v1'],
+  ['byu-scores-hot-v2'],
   { revalidate: HOT_REVALIDATE_SECONDS, tags: ['byu-scores'] }
 );
 
@@ -61,7 +64,7 @@ function remember(payload: ByuScoresPayload, now: number) {
 function ageStamp(payload: ByuScoresPayload, now: number): ByuScoresPayload {
   const updated = Date.parse(payload.updatedAt);
   const age = Number.isFinite(updated) ? (now - updated) / 1000 : Number.POSITIVE_INFINITY;
-  const revalidateSeconds = chooseRevalidateSeconds([payload.football, payload.basketball], now);
+  const revalidateSeconds = chooseRevalidateSeconds(sportBlocks(payload), now);
   const stale = payload.stale || age > revalidateSeconds + 15;
   return { ...payload, revalidateSeconds, stale };
 }
@@ -101,26 +104,46 @@ async function buildByuScores(): Promise<ByuScoresPayload> {
   const now = Date.now();
   if (recent && now - recent.at < RECENT_MS) return recent.payload;
 
-  const [footballResult, basketballResult] = await Promise.all([
+  const [footballResult, basketballResult, womensBasketballResult, soccerResult] = await Promise.all([
     loadFootball(now),
-    loadBasketball(now),
+    loadScheduleSport(now, {
+      key: 'mens-basketball',
+      label: "Men's Basketball",
+      path: BASKETBALL_PATH,
+      teamId: BYU_TEAM_ID,
+      scheduleUrl: SCHEDULE_URL['mens-basketball'],
+    }),
+    loadScheduleSport(now, {
+      key: 'womens-basketball',
+      label: "Women's Basketball",
+      path: WOMENS_BASKETBALL_PATH,
+      teamId: BYU_TEAM_ID,
+      scheduleUrl: SCHEDULE_URL['womens-basketball'],
+    }),
+    loadScheduleSport(now, {
+      key: 'womens-soccer',
+      label: "Women's Soccer",
+      path: WOMENS_SOCCER_PATH,
+      teamId: BYU_WSOC_TEAM_ID,
+      scheduleUrl: SCHEDULE_URL['womens-soccer'],
+    }),
   ]);
 
-  if (!footballResult?.block && !basketballResult?.block) {
+  const results = [footballResult, basketballResult, womensBasketballResult, soccerResult];
+  if (!results.some((result) => result?.block)) {
     throw new Error('ESPN returned no BYU scores');
   }
 
   const payload: ByuScoresPayload = {
     updatedAt: new Date(now).toISOString(),
-    stale: Boolean(footballResult?.stale || basketballResult?.stale),
+    stale: results.some((result) => result?.stale),
     revalidateSeconds: COLD_REVALIDATE_SECONDS,
     football: footballResult?.block ?? null,
     basketball: basketballResult?.block ?? null,
+    womensBasketball: womensBasketballResult?.block ?? null,
+    soccer: soccerResult?.block ?? null,
   };
-  payload.revalidateSeconds = chooseRevalidateSeconds(
-    [payload.football, payload.basketball],
-    now
-  );
+  payload.revalidateSeconds = chooseRevalidateSeconds(sportBlocks(payload), now);
   recent = { at: Date.now(), payload };
   return payload;
 }
@@ -146,13 +169,13 @@ async function loadFootball(now: number): Promise<{ block: SportScores | null; s
       if (parsed.success) {
         record = blankToNull(parsed.data.team?.recordSummary);
         standing = blankToNull(parsed.data.team?.standingSummary);
-        games = overlaySite(games, parsed.data.events ?? []);
+        games = overlaySite(games, parsed.data.events ?? [], BYU_TEAM_ID);
       }
     } catch {
       ctx.stale = games.length > 0;
     }
 
-    games = await mergeScoreboard(games, FOOTBALL_PATH, ctx, now);
+    games = await mergeScoreboard(games, FOOTBALL_PATH, BYU_TEAM_ID, ctx, now);
     const block = buildSport({
       key: 'football',
       label: 'Football',
@@ -168,34 +191,43 @@ async function loadFootball(now: number): Promise<{ block: SportScores | null; s
   }
 }
 
-async function loadBasketball(now: number): Promise<{ block: SportScores | null; stale: boolean } | null> {
+async function loadScheduleSport(
+  now: number,
+  spec: {
+    key: SportKey;
+    label: string;
+    path: string;
+    teamId: string;
+    scheduleUrl: string;
+  }
+): Promise<{ block: SportScores | null; stale: boolean } | null> {
   const ctx: FetchCtx = { stale: false };
   try {
     let games: ScoreGame[] = [];
     let record: string | null = null;
     let standing: string | null = null;
     const schedule = await espnJson(
-      `${ESPN_SITE}/${BASKETBALL_PATH}/teams/${BYU_TEAM_ID}/schedule`,
+      `${ESPN_SITE}/${spec.path}/teams/${spec.teamId}/schedule`,
       ctx
     );
     const parsed = scheduleDocumentSchema.safeParse(schedule);
     if (parsed.success) {
       record = blankToNull(parsed.data.team?.recordSummary);
       standing = blankToNull(parsed.data.team?.standingSummary);
-      games = overlaySite([], parsed.data.events ?? []);
+      games = overlaySite([], parsed.data.events ?? [], spec.teamId);
     }
-    games = await mergeScoreboard(games, BASKETBALL_PATH, ctx, now);
+    games = await mergeScoreboard(games, spec.path, spec.teamId, ctx, now);
     const block = buildSport({
-      key: 'mens-basketball',
-      label: "Men's Basketball",
+      key: spec.key,
+      label: spec.label,
       games,
       record,
       standing,
-      scheduleUrl: SCHEDULE_URL['mens-basketball'],
+      scheduleUrl: spec.scheduleUrl,
     });
     return { block, stale: ctx.stale };
   } catch (error) {
-    console.error('[byu-scores] basketball', error instanceof Error ? error.message : 'error');
+    console.error(`[byu-scores] ${spec.key}`, error instanceof Error ? error.message : 'error');
     return null;
   }
 }
@@ -262,10 +294,14 @@ async function resolveRef(value: unknown, ctx: FetchCtx): Promise<unknown> {
   return value;
 }
 
-function overlaySite(games: ScoreGame[], events: unknown[]): ScoreGame[] {
+function sportBlocks(payload: ByuScoresPayload): Array<SportScores | null> {
+  return [payload.football, payload.basketball, payload.womensBasketball, payload.soccer];
+}
+
+function overlaySite(games: ScoreGame[], events: unknown[], teamId: string): ScoreGame[] {
   const byId = new Map(games.map((game) => [game.id, game]));
   for (const raw of events) {
-    const parsed = parseSiteEvent(raw, { teamId: BYU_TEAM_ID, source: 'event' });
+    const parsed = parseSiteEvent(raw, { teamId, source: 'event' });
     if (!parsed) continue;
     const prev = byId.get(parsed.id);
     if (!prev) {
@@ -292,6 +328,7 @@ function overlaySite(games: ScoreGame[], events: unknown[]): ScoreGame[] {
 async function mergeScoreboard(
   games: ScoreGame[],
   sportPath: string,
+  teamId: string,
   ctx: FetchCtx,
   now: number
 ): Promise<ScoreGame[]> {
@@ -313,7 +350,7 @@ async function mergeScoreboard(
 
   const byId = new Map(games.map((game) => [game.id, game]));
   for (const raw of events) {
-    const parsed = parseSiteEvent(raw, { teamId: BYU_TEAM_ID, source: 'scoreboard' });
+    const parsed = parseSiteEvent(raw, { teamId, source: 'scoreboard' });
     if (!parsed) continue;
     const prev = byId.get(parsed.id);
     if (!prev) {
