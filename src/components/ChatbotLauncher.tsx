@@ -8,6 +8,7 @@ import Image from 'next/image';
 const hiddenOn = (pathname: string) =>
   pathname.startsWith('/dashboard') ||
   pathname.startsWith('/admin') ||
+  pathname.startsWith('/preview') ||
   pathname === '/links' ||
   pathname.startsWith('/links/');
 

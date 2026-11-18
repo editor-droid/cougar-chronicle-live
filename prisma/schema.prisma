@@ -44,6 +44,8 @@ model User {
   favorites         Favorite[]
   videoFavorites    VideoFavorite[]
   pushSubscriptions PushSubscription[]
+  postRevisions     PostRevision[]
+  previewTokens     PreviewToken[]
 }
 
 model Post {
@@ -99,6 +101,8 @@ model Post {
   printEdition      PrintEdition?  @relation(fields: [printEditionId], references: [id])
   articleTokens     ArticleToken[]
   favorites         Favorite[]
+  revisions         PostRevision[]
+  previewTokens     PreviewToken[]
   dailyViews        PostViewDaily[]
 
   @@index([category])
@@ -357,4 +361,63 @@ model Video {
   @@index([isActive, showOnHome, sortOrder])
   @@index([isActive, showInSidebar, sortOrder])
   @@index([publishedAt])
+}
+
+/// Point-in-time snapshot of the editable article fields.
+/// authorId is the staff member who saved the snapshot, not the public byline.
+model PostRevision {
+  id               String   @id @default(cuid())
+  postId           String
+  post             Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  title            String
+  content          String?  @db.Text
+  excerpt          String?  @db.Text
+  slug             String?
+  category         String?
+  format           String?
+  imageUrl         String?
+  imageCaption     String?
+  seoTitle         String?
+  seoDescription   String?  @db.Text
+  seoKeywords      String?
+  keyInsights      String?  @db.Text
+  featuredImageAlt String?
+  customAuthor     String?
+  isPremium        Boolean?
+  isAmerica250     Boolean?
+  isBreaking       Boolean?
+  showDonateCta    Boolean?
+  printEditionId   String?
+  printEditionOrder Int?
+  editorChecklist  String?  @db.Text
+  publishedAt      DateTime?
+  /// Public byline user at the time of the snapshot.
+  postAuthorId     String?
+  /// DRAFT | IN_REVIEW | APPROVED | PUBLISHED at snapshot time.
+  state            String?
+  /// MANUAL | AUTOSAVE | STATUS
+  source           String   @default("MANUAL")
+  authorId         String
+  author           User     @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  createdAt        DateTime @default(now())
+
+  @@index([postId, createdAt])
+  @@index([postId, source, createdAt])
+  @@index([authorId])
+}
+
+/// Shareable draft preview. Only the hash of the signed token is stored.
+model PreviewToken {
+  id          String    @id @default(cuid())
+  postId      String
+  post        Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tokenHash   String    @unique
+  createdById String
+  createdBy   User      @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  expiresAt   DateTime
+  revokedAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([postId, createdAt])
+  @@index([expiresAt])
 }

@@ -11,11 +11,12 @@ const FB_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID || '1269599180626709';
 export default function Tracking() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const hideTracking = pathname.startsWith('/preview');
   const trackedPurchase = useRef(false);
   const isFirstPath = useRef(true);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (hideTracking || typeof window === 'undefined') return;
 
     // Initial page_view is sent by gtag config (so bounces still count).
     // SPA navigations send an explicit page_view with content grouping.
@@ -32,12 +33,12 @@ export default function Tracking() {
     if (window.fbq) {
       window.fbq('track', 'PageView');
     }
-  }, [pathname]);
+  }, [pathname, hideTracking]);
 
   useEffect(() => {
     const purchaseVal = searchParams.get('purchase');
 
-    if (purchaseVal && !trackedPurchase.current && typeof window !== 'undefined') {
+    if (!hideTracking && purchaseVal && !trackedPurchase.current && typeof window !== 'undefined') {
       trackedPurchase.current = true;
       const value = parseFloat(purchaseVal);
 
@@ -56,13 +57,13 @@ export default function Tracking() {
 
       console.log(`[Tracking] Purchase event fired for $${value}`);
     }
-  }, [searchParams]);
+  }, [searchParams, hideTracking]);
 
   useEffect(() => {
     let scrollTracked = false;
 
     const handleScroll = () => {
-      if (scrollTracked) return;
+      if (hideTracking || scrollTracked) return;
 
       const scrollPosition = window.scrollY + window.innerHeight;
       const documentHeight = document.documentElement.scrollHeight;
@@ -79,7 +80,9 @@ export default function Tracking() {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [pathname]);
+  }, [pathname, hideTracking]);
+
+  if (hideTracking) return null;
 
   return (
     <>
