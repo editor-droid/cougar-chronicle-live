@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { getArticleUrl } from '@/lib/routes';
 import Image from 'next/image';
 import SubscribeForm from '@/components/SubscribeForm';
+import MostReadList from '@/components/MostReadList';
 import PrintCheckoutButtons from '@/app/print-edition/PrintCheckoutButtons';
 import VideoHighlights from '@/components/VideoHighlights';
 import ByuScoresWidget from '@/components/ByuScoresWidget';
@@ -99,14 +100,6 @@ export default async function Home() {
     orderBy: { publishedAt: { sort: 'desc', nulls: 'last' } },
     include: { author: true },
     take: 4
-  });
-
-  // Trending posts ordered by views
-  const trendingPosts = await prisma.post.findMany({
-    where: { state: 'PUBLISHED', printEditionId: null, publishedAt: { lte: new Date() } },
-    orderBy: { views: 'desc' },
-    include: { author: true },
-    take: 5
   });
 
   const homeVideos = await prisma.video.findMany({
@@ -425,30 +418,9 @@ export default async function Home() {
         {/* Right widgets column */}
         <div>
           <ByuScoresWidget />
-
-          {/* TRENDING WIDGET */}
-          {trendingPosts.length > 0 && (
-            <div style={{ marginBottom: '3rem' }}>
-              <h2 className="font-sans text-xs text-muted" style={{ fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', borderBottom: '2px solid var(--primary)', paddingBottom: '0.5rem', marginBottom: '1.25rem', fontSize: '0.75rem', margin: 0 }}>
-                MOST POPULAR
-              </h2>
-              <ol className="trending-list-dense">
-                {trendingPosts.map((post, index) => (
-                  <li key={post.id}>
-                    <span className="rank font-serif">{index + 1}</span>
-                    <div>
-                      <Link href={getArticleUrl(post)} className="font-serif" style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--foreground)', display: 'block', lineHeight: 1.3 }}>
-                        {post.title}
-                      </Link>
-                      <span className="font-sans text-xs text-muted" style={{ marginTop: '0.25rem', display: 'block' }}>
-                        {post.category} {post.printEditionId && '🗞️ Print'} &bull; {post.views} views
-                      </span>
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            </div>
-          )}
+          
+          {/* Most read today, with the all-time list when the day and week are thin. */}
+          <MostReadList variant="home" take={5} excludePrint publishedByNow />
 
           {/* NEWSLETTER SUBSCRIBE BOX */}
           <div id="subscribe" className="newsletter-box" style={{ padding: '2rem', border: '1px solid var(--border)', borderRadius: '0.5rem', backgroundColor: 'var(--primary)', color: '#fff', textAlign: 'center' }}>
