@@ -17,9 +17,11 @@ export const PUBLIC_SECTIONS = [
     slug: 'news',
     label: 'News',
     navLabel: 'News',
-    title: 'News',
+    title: 'BYU News: Campus & Provo Reporting',
     description:
       'Independent reporting for Brigham Young University and Provo — stories you will not get from the official channels.',
+    metaDescription:
+      "Independent BYU news from Provo: campus reporting, investigations, and stories you won't get from the official channels.",
     keywords: [
       'BYU news',
       'Independent BYU news',
@@ -33,9 +35,11 @@ export const PUBLIC_SECTIONS = [
     slug: 'opinion',
     label: 'Opinion',
     navLabel: 'Opinion',
-    title: 'Opinion',
+    title: 'BYU Opinion & Student Commentary',
     description:
       'Student and staff opinion on public life, culture, and the issues that matter — independent voices at BYU.',
+    metaDescription:
+      "Independent opinion on BYU, Utah, and national issues: student and staff op-eds and commentary on faith, culture, and politics.",
     keywords: [
       'BYU conservative opinion',
       'LDS student perspectives',
@@ -48,9 +52,11 @@ export const PUBLIC_SECTIONS = [
     slug: 'campus',
     label: 'Campus',
     navLabel: 'Campus',
-    title: 'Campus',
+    title: 'BYU Campus Life & Student News',
     description:
       'BYU campus life, student culture, and campus opinion — news and commentary rooted in Provo and the Y.',
+    metaDescription:
+      "Independent coverage of BYU campus life: student culture, the ROC, the Cougareat, the Honor Code, and what's happening in Provo.",
     keywords: [
       'BYU campus news',
       'BYU campus life',
@@ -67,9 +73,11 @@ export const PUBLIC_SECTIONS = [
     slug: 'politics',
     label: 'Politics',
     navLabel: 'Politics',
-    title: 'Politics',
+    title: 'Utah & BYU Politics News',
     description:
       'Utah, national, and student-relevant politics with a conservative lens for Brigham Young University readers.',
+    metaDescription:
+      "Independent Utah and national political news and analysis with a conservative lens for BYU students and the Provo community.",
     keywords: [
       'BYU politics',
       'Utah politics',
@@ -82,9 +90,11 @@ export const PUBLIC_SECTIONS = [
     slug: 'family',
     label: 'Family Issues',
     navLabel: 'Family',
-    title: 'Family Issues',
+    title: 'Family & Culture for the BYU Community',
     description:
       'Coverage of marriage, family, and culture from a values-first perspective for the BYU community.',
+    metaDescription:
+      "Independent coverage of marriage, family, and culture from a values-first perspective for the BYU and Latter-day Saint community.",
     keywords: [
       'Family issues BYU',
       'LDS family',
@@ -97,9 +107,11 @@ export const PUBLIC_SECTIONS = [
     slug: 'faith',
     label: 'Faith',
     navLabel: 'Faith',
-    title: 'Faith',
+    title: 'Faith: Latter-day Saint News at BYU',
     description:
       'Gospel-centered reporting and analysis for Latter-day Saint students at BYU — defending faith with clarity and courage.',
+    metaDescription:
+      "Independent, gospel-centered news and analysis for Latter-day Saint students at BYU, defending faith with clarity and courage.",
     keywords: [
       'BYU faith articles',
       'Latter-day Saint student news',
@@ -113,9 +125,11 @@ export const PUBLIC_SECTIONS = [
     slug: 'sports',
     label: 'Sports',
     navLabel: 'Sports',
-    title: 'Sports',
+    title: 'BYU Football & Sports News, Scores',
     description:
       'BYU athletics and student sports — independent coverage for Cougar fans in Provo.',
+    metaDescription:
+      "Independent BYU football and sports news: game previews, recaps, scores, schedules, and analysis for Cougar fans in Provo and beyond.",
     keywords: [
       'BYU sports',
       'BYU football',
