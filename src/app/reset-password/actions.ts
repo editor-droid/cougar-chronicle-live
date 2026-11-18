@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation';
 import bcrypt from 'bcryptjs';
 import prisma from '@/lib/prisma';
+import { MIN_NEW_PASSWORD_LENGTH } from '@/lib/passwords';
 
 function resetPath(
   email: string,
@@ -29,7 +30,7 @@ export async function resetPassword(formData: FormData) {
     redirect(resetPath(email, token, { error: 'mismatch' }));
   }
 
-  if (password.length < 8) {
+  if (password.length < MIN_NEW_PASSWORD_LENGTH) {
     redirect(resetPath(email, token, { error: 'error' }));
   }
 

@@ -12,6 +12,14 @@ const s3Client = new S3Client({
 
 const MAX_BYTES = 8 * 1024 * 1024;
 
+function safeKeyPrefix(prefix: string): string {
+  const cleaned = prefix
+    .replace(/[^a-zA-Z0-9/_-]/g, '')
+    .replace(/\.{2,}/g, '')
+    .replace(/^\/+|\/+$/g, '');
+  return cleaned || 'images';
+}
+
 function extForContentType(contentType: string): string {
   if (contentType.includes('png')) return 'png';
   if (contentType.includes('webp')) return 'webp';
@@ -31,7 +39,7 @@ export async function putImageBufferToR2(
   const type = (contentType || 'image/jpeg').split(';')[0].trim() || 'image/jpeg';
   if (!type.startsWith('image/')) return null;
 
-  const key = `${keyPrefix}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${extForContentType(type)}`;
+  const key = `${safeKeyPrefix(keyPrefix)}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${extForContentType(type)}`;
   await s3Client.send(
     new PutObjectCommand({
       Bucket: process.env.CLOUDFLARE_BUCKET_NAME,
@@ -62,13 +70,16 @@ function parseDataImageUrl(url: string): { buf: Buffer; contentType: string } | 
 /** Download a remote image (or decode a data: URL) and store it on R2. */
 export async function cacheRemoteImageToR2(
   remoteUrl: string,
-  keyPrefix = 'linkhub'
+  keyPrefix = 'linkhub',
+  options?: { allowedContentTypes?: ReadonlySet<string> }
 ): Promise<string | null> {
   try {
     if (remoteUrl.startsWith('data:image/')) {
       const parsed = parseDataImageUrl(remoteUrl);
       if (!parsed) return null;
-      return putImageBufferToR2(parsed.buf, parsed.contentType, keyPrefix);
+      const dataType = parsed.contentType.split(';')[0].trim().toLowerCase();
+      if (options?.allowedContentTypes && !options.allowedContentTypes.has(dataType)) return null;
+      return putImageBufferToR2(parsed.buf, dataType, keyPrefix);
     }
 
     const controller = new AbortController();
@@ -84,8 +95,9 @@ export async function cacheRemoteImageToR2(
     clearTimeout(timer);
     if (!res.ok) return null;
 
-    const contentType = (res.headers.get('content-type') || 'image/jpeg').split(';')[0];
+    const contentType = (res.headers.get('content-type') || 'image/jpeg').split(';')[0].trim().toLowerCase();
     if (!contentType.startsWith('image/')) return null;
+    if (options?.allowedContentTypes && !options.allowedContentTypes.has(contentType)) return null;
 
     const buf = Buffer.from(await res.arrayBuffer());
     return putImageBufferToR2(buf, contentType, keyPrefix);

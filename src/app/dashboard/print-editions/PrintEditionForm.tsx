@@ -33,7 +33,7 @@ export default function PrintEditionForm({ initialData }: { initialData?: any })
     const res = await fetch('/api/upload', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ filename: file.name, contentType: file.type }),
+      body: JSON.stringify({ filename: file.name, contentType: file.type, size: file.size }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Upload failed');
