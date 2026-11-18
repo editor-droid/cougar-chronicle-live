@@ -1,0 +1,779 @@
+{
+  "timestamp": "2026-11-17T20:54:44Z",
+  "status": "success",
+  "season": {
+    "year": 2027,
+    "type": 2,
+    "name": "Regular Season",
+    "displayName": "2026-27",
+    "half": 1
+  },
+  "requestedSeason": {
+    "year": 2027,
+    "type": 2,
+    "name": "Regular Season",
+    "displayName": "2026-27"
+  },
+  "team": {
+    "id": "252",
+    "abbreviation": "BYU",
+    "displayName": "BYU Cougars",
+    "recordSummary": "4-0",
+    "seasonSummary": "2026-27",
+    "standingSummary": "1st in Big 12"
+  },
+  "events": [
+    {
+      "id": "401916313",
+      "date": "2026-11-03T02:00Z",
+      "name": "Ohio State Buckeyes at BYU Cougars",
+      "shortName": "OSU VS BYU",
+      "competitions": [
+        {
+          "id": "401916313",
+          "date": "2026-11-03T02:00Z",
+          "neutralSite": true,
+          "venue": {
+            "fullName": "Delta Center"
+          },
+          "competitors": [
+            {
+              "id": "252",
+              "type": "team",
+              "order": 0,
+              "homeAway": "home",
+              "winner": true,
+              "score": {
+                "value": 94.0,
+                "displayValue": "94"
+              },
+              "curatedRank": {
+                "current": 25
+              },
+              "team": {
+                "id": "252",
+                "abbreviation": "BYU",
+                "shortDisplayName": "BYU",
+                "displayName": "BYU Cougars",
+                "location": "BYU"
+              }
+            },
+            {
+              "id": "194",
+              "type": "team",
+              "order": 1,
+              "homeAway": "away",
+              "winner": false,
+              "score": {
+                "value": 83.0,
+                "displayValue": "83"
+              },
+              "curatedRank": {
+                "current": 99
+              },
+              "team": {
+                "id": "194",
+                "abbreviation": "OSU",
+                "shortDisplayName": "Ohio State",
+                "displayName": "Ohio State Buckeyes",
+                "location": "Ohio State"
+              }
+            }
+          ],
+          "status": {
+            "clock": 0.0,
+            "displayClock": "0:00",
+            "period": 2,
+            "type": {
+              "id": "3",
+              "name": "STATUS_FINAL",
+              "state": "post",
+              "completed": true,
+              "description": "Final",
+              "detail": "Final",
+              "shortDetail": "Final"
+            }
+          },
+          "broadcasts": [
+            {
+              "type": {
+                "id": "1",
+                "shortName": "TV"
+              },
+              "market": {
+                "id": "1",
+                "type": "National"
+              },
+              "media": {
+                "shortName": "FS1"
+              },
+              "lang": "en",
+              "region": "us",
+              "partnered": false
+            }
+          ],
+          "geoBroadcasts": null,
+          "notes": [
+            {
+              "type": "event",
+              "headline": "Bad Boy Mowers Series"
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "language": "en-US",
+          "rel": [
+            "summary",
+            "desktop",
+            "event"
+          ],
+          "href": "https://www.espn.com/mens-college-basketball/game/_/gameId/401916313/ohio-state-byu",
+          "text": "Gamecast",
+          "shortText": "Summary",
+          "isExternal": false,
+          "isPremium": false
+        }
+      ]
+    },
+    {
+      "id": "401921739",
+      "date": "2026-11-07T02:00Z",
+      "name": "Omaha Mavericks at BYU Cougars",
+      "shortName": "OMA @ BYU",
+      "competitions": [
+        {
+          "id": "401921739",
+          "date": "2026-11-07T02:00Z",
+          "neutralSite": false,
+          "venue": {
+            "fullName": "Marriott Center"
+          },
+          "competitors": [
+            {
+              "id": "252",
+              "type": "team",
+              "order": 0,
+              "homeAway": "home",
+              "winner": true,
+              "score": {
+                "value": 108.0,
+                "displayValue": "108"
+              },
+              "curatedRank": {
+                "current": 25
+              },
+              "team": {
+                "id": "252",
+                "abbreviation": "BYU",
+                "shortDisplayName": "BYU",
+                "displayName": "BYU Cougars",
+                "location": "BYU"
+              }
+            },
+            {
+              "id": "2437",
+              "type": "team",
+              "order": 1,
+              "homeAway": "away",
+              "winner": false,
+              "score": {
+                "value": 67.0,
+                "displayValue": "67"
+              },
+              "curatedRank": {
+                "current": 99
+              },
+              "team": {
+                "id": "2437",
+                "abbreviation": "OMA",
+                "shortDisplayName": "Omaha",
+                "displayName": "Omaha Mavericks",
+                "location": "Omaha"
+              }
+            }
+          ],
+          "status": {
+            "clock": 0.0,
+            "displayClock": "0:00",
+            "period": 2,
+            "type": {
+              "id": "3",
+              "name": "STATUS_FINAL",
+              "state": "post",
+              "completed": true,
+              "description": "Final",
+              "detail": "Final",
+              "shortDetail": "Final"
+            }
+          },
+          "broadcasts": [
+            {
+              "type": {
+                "id": "4",
+                "shortName": "Streaming"
+              },
+              "market": {
+                "id": "1",
+                "type": "National"
+              },
+              "media": {
+                "shortName": "ESPN+"
+              },
+              "lang": "en",
+              "region": "us",
+              "partnered": false
+            }
+          ],
+          "geoBroadcasts": null,
+          "notes": []
+        }
+      ],
+      "links": [
+        {
+          "language": "en-US",
+          "rel": [
+            "summary",
+            "desktop",
+            "event"
+          ],
+          "href": "https://www.espn.com/mens-college-basketball/game/_/gameId/401921739/omaha-byu",
+          "text": "Gamecast",
+          "shortText": "Summary",
+          "isExternal": false,
+          "isPremium": false
+        }
+      ]
+    },
+    {
+      "id": "401921740",
+      "date": "2026-11-11T02:00Z",
+      "name": "Queens University Royals at BYU Cougars",
+      "shortName": "QUC @ BYU",
+      "competitions": [
+        {
+          "id": "401921740",
+          "date": "2026-11-11T02:00Z",
+          "neutralSite": false,
+          "venue": {
+            "fullName": "Marriott Center"
+          },
+          "competitors": [
+            {
+              "id": "252",
+              "type": "team",
+              "order": 0,
+              "homeAway": "home",
+              "winner": true,
+              "score": {
+                "value": 98.0,
+                "displayValue": "98"
+              },
+              "curatedRank": {
+                "current": 23
+              },
+              "team": {
+                "id": "252",
+                "abbreviation": "BYU",
+                "shortDisplayName": "BYU",
+                "displayName": "BYU Cougars",
+                "location": "BYU"
+              }
+            },
+            {
+              "id": "2511",
+              "type": "team",
+              "order": 1,
+              "homeAway": "away",
+              "winner": false,
+              "score": {
+                "value": 82.0,
+                "displayValue": "82"
+              },
+              "curatedRank": {
+                "current": 99
+              },
+              "team": {
+                "id": "2511",
+                "abbreviation": "QUC",
+                "shortDisplayName": "Queens",
+                "displayName": "Queens University Royals",
+                "location": "Queens University"
+              }
+            }
+          ],
+          "status": {
+            "clock": 0.0,
+            "displayClock": "0:00",
+            "period": 2,
+            "type": {
+              "id": "3",
+              "name": "STATUS_FINAL",
+              "state": "post",
+              "completed": true,
+              "description": "Final",
+              "detail": "Final",
+              "shortDetail": "Final"
+            }
+          },
+          "broadcasts": [
+            {
+              "type": {
+                "id": "4",
+                "shortName": "Streaming"
+              },
+              "market": {
+                "id": "1",
+                "type": "National"
+              },
+              "media": {
+                "shortName": "ESPN+"
+              },
+              "lang": "en",
+              "region": "us",
+              "partnered": false
+            }
+          ],
+          "geoBroadcasts": null,
+          "notes": []
+        }
+      ],
+      "links": [
+        {
+          "language": "en-US",
+          "rel": [
+            "summary",
+            "desktop",
+            "event"
+          ],
+          "href": "https://www.espn.com/mens-college-basketball/game/_/gameId/401921740/queens-byu",
+          "text": "Gamecast",
+          "shortText": "Summary",
+          "isExternal": false,
+          "isPremium": false
+        }
+      ]
+    },
+    {
+      "id": "401921741",
+      "date": "2026-11-13T02:00Z",
+      "name": "Montana State Bobcats at BYU Cougars",
+      "shortName": "MTST @ BYU",
+      "competitions": [
+        {
+          "id": "401921741",
+          "date": "2026-11-13T02:00Z",
+          "neutralSite": false,
+          "venue": {
+            "fullName": "Marriott Center"
+          },
+          "competitors": [
+            {
+              "id": "252",
+              "type": "team",
+              "order": 0,
+              "homeAway": "home",
+              "winner": true,
+              "score": {
+                "value": 86.0,
+                "displayValue": "86"
+              },
+              "curatedRank": {
+                "current": 23
+              },
+              "team": {
+                "id": "252",
+                "abbreviation": "BYU",
+                "shortDisplayName": "BYU",
+                "displayName": "BYU Cougars",
+                "location": "BYU"
+              }
+            },
+            {
+              "id": "147",
+              "type": "team",
+              "order": 1,
+              "homeAway": "away",
+              "winner": false,
+              "score": {
+                "value": 71.0,
+                "displayValue": "71"
+              },
+              "curatedRank": {
+                "current": 99
+              },
+              "team": {
+                "id": "147",
+                "abbreviation": "MTST",
+                "shortDisplayName": "Montana St",
+                "displayName": "Montana State Bobcats",
+                "location": "Montana State"
+              }
+            }
+          ],
+          "status": {
+            "clock": 0.0,
+            "displayClock": "0:00",
+            "period": 2,
+            "type": {
+              "id": "3",
+              "name": "STATUS_FINAL",
+              "state": "post",
+              "completed": true,
+              "description": "Final",
+              "detail": "Final",
+              "shortDetail": "Final"
+            }
+          },
+          "broadcasts": [
+            {
+              "type": {
+                "id": "4",
+                "shortName": "Streaming"
+              },
+              "market": {
+                "id": "1",
+                "type": "National"
+              },
+              "media": {
+                "shortName": "ESPN+"
+              },
+              "lang": "en",
+              "region": "us",
+              "partnered": false
+            }
+          ],
+          "geoBroadcasts": null,
+          "notes": []
+        }
+      ],
+      "links": [
+        {
+          "language": "en-US",
+          "rel": [
+            "summary",
+            "desktop",
+            "event"
+          ],
+          "href": "https://www.espn.com/mens-college-basketball/game/_/gameId/401921741/montana-st-byu",
+          "text": "Gamecast",
+          "shortText": "Summary",
+          "isExternal": false,
+          "isPremium": false
+        }
+      ]
+    },
+    {
+      "id": "401921742",
+      "date": "2026-11-19T02:00Z",
+      "name": "Northern Colorado Bears at BYU Cougars",
+      "shortName": "UNCO @ BYU",
+      "competitions": [
+        {
+          "id": "401921742",
+          "date": "2026-11-19T02:00Z",
+          "neutralSite": false,
+          "venue": {
+            "fullName": "Marriott Center"
+          },
+          "competitors": [
+            {
+              "id": "252",
+              "type": "team",
+              "order": 0,
+              "homeAway": "home",
+              "curatedRank": {
+                "current": 21
+              },
+              "team": {
+                "id": "252",
+                "abbreviation": "BYU",
+                "shortDisplayName": "BYU",
+                "displayName": "BYU Cougars",
+                "location": "BYU"
+              }
+            },
+            {
+              "id": "2458",
+              "type": "team",
+              "order": 1,
+              "homeAway": "away",
+              "curatedRank": {
+                "current": 99
+              },
+              "team": {
+                "id": "2458",
+                "abbreviation": "UNCO",
+                "shortDisplayName": "N Colorado",
+                "displayName": "Northern Colorado Bears",
+                "location": "Northern Colorado"
+              }
+            }
+          ],
+          "status": {
+            "clock": 0.0,
+            "displayClock": "0:00",
+            "period": 0,
+            "type": {
+              "id": "1",
+              "name": "STATUS_SCHEDULED",
+              "state": "pre",
+              "completed": false,
+              "description": "Scheduled",
+              "detail": "Wed, November 18th at 9:00 PM EST",
+              "shortDetail": "11/18 - 9:00 PM EST"
+            }
+          },
+          "broadcasts": [
+            {
+              "type": {
+                "id": "4",
+                "shortName": "Streaming"
+              },
+              "market": {
+                "id": "1",
+                "type": "National"
+              },
+              "media": {
+                "shortName": "ESPN+",
+                "logo": "https://a.espncdn.com/guid/322a7e47-3cdb-3b5c-ab1b-678e1f2c27e5/logos/default.png",
+                "darkLogo": "https://a.espncdn.com/guid/322a7e47-3cdb-3b5c-ab1b-678e1f2c27e5/logos/default-dark.png"
+              },
+              "lang": "en",
+              "region": "us",
+              "partnered": false
+            }
+          ],
+          "geoBroadcasts": null,
+          "notes": []
+        }
+      ],
+      "links": [
+        {
+          "language": "en-US",
+          "rel": [
+            "summary",
+            "desktop",
+            "event"
+          ],
+          "href": "https://www.espn.com/mens-college-basketball/game/_/gameId/401921742/n-colorado-byu",
+          "text": "Gamecast",
+          "shortText": "Summary",
+          "isExternal": false,
+          "isPremium": false
+        }
+      ]
+    },
+    {
+      "id": "401921708",
+      "date": "2026-11-23T22:00Z",
+      "name": "Washington Huskies at BYU Cougars",
+      "shortName": "WASH VS BYU",
+      "competitions": [
+        {
+          "id": "401921708",
+          "date": "2026-11-23T22:00Z",
+          "neutralSite": true,
+          "venue": {
+            "fullName": "Lahaina Civic Center"
+          },
+          "competitors": [
+            {
+              "id": "252",
+              "type": "team",
+              "order": 0,
+              "homeAway": "home",
+              "curatedRank": {
+                "current": 21
+              },
+              "team": {
+                "id": "252",
+                "abbreviation": "BYU",
+                "shortDisplayName": "BYU",
+                "displayName": "BYU Cougars",
+                "location": "BYU"
+              }
+            },
+            {
+              "id": "264",
+              "type": "team",
+              "order": 1,
+              "homeAway": "away",
+              "curatedRank": {
+                "current": 99
+              },
+              "team": {
+                "id": "264",
+                "abbreviation": "WASH",
+                "shortDisplayName": "Washington",
+                "displayName": "Washington Huskies",
+                "location": "Washington"
+              }
+            }
+          ],
+          "status": {
+            "clock": 0.0,
+            "displayClock": "0:00",
+            "period": 0,
+            "type": {
+              "id": "1",
+              "name": "STATUS_SCHEDULED",
+              "state": "pre",
+              "completed": false,
+              "description": "Scheduled",
+              "detail": "Mon, November 23rd at 5:00 PM EST",
+              "shortDetail": "11/23 - 5:00 PM EST"
+            }
+          },
+          "broadcasts": [
+            {
+              "type": {
+                "id": "1",
+                "shortName": "TV"
+              },
+              "market": {
+                "id": "1",
+                "type": "National"
+              },
+              "media": {
+                "shortName": "ESPN2",
+                "logo": "https://a.espncdn.com/guid/4bab8fd8-cd13-379f-9558-c3614851bf91/logos/default.png",
+                "darkLogo": ""
+              },
+              "lang": "en",
+              "region": "us",
+              "partnered": false
+            }
+          ],
+          "geoBroadcasts": null,
+          "notes": [
+            {
+              "type": "event",
+              "headline": "Southwest Maui Invitational"
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "language": "en-US",
+          "rel": [
+            "summary",
+            "desktop",
+            "event"
+          ],
+          "href": "https://www.espn.com/mens-college-basketball/game/_/gameId/401921708/washington-byu",
+          "text": "Gamecast",
+          "shortText": "Summary",
+          "isExternal": false,
+          "isPremium": false
+        }
+      ]
+    },
+    {
+      "id": "401920738",
+      "date": "2026-12-05T21:00Z",
+      "name": "Northwestern Wildcats at BYU Cougars",
+      "shortName": "NU VS BYU",
+      "competitions": [
+        {
+          "id": "401920738",
+          "date": "2026-12-05T21:00Z",
+          "neutralSite": true,
+          "venue": {
+            "fullName": "Delta Center"
+          },
+          "competitors": [
+            {
+              "id": "252",
+              "type": "team",
+              "order": 0,
+              "homeAway": "home",
+              "curatedRank": {
+                "current": 21
+              },
+              "team": {
+                "id": "252",
+                "abbreviation": "BYU",
+                "shortDisplayName": "BYU",
+                "displayName": "BYU Cougars",
+                "location": "BYU"
+              }
+            },
+            {
+              "id": "77",
+              "type": "team",
+              "order": 1,
+              "homeAway": "away",
+              "curatedRank": {
+                "current": 99
+              },
+              "team": {
+                "id": "77",
+                "abbreviation": "NU",
+                "shortDisplayName": "Northwestern",
+                "displayName": "Northwestern Wildcats",
+                "location": "Northwestern"
+              }
+            }
+          ],
+          "status": {
+            "clock": 0.0,
+            "displayClock": "0:00",
+            "period": 0,
+            "type": {
+              "id": "1",
+              "name": "STATUS_SCHEDULED",
+              "state": "pre",
+              "completed": false,
+              "description": "Scheduled",
+              "detail": "Sat, December 5th at 4:00 PM EST",
+              "shortDetail": "12/5 - 4:00 PM EST"
+            }
+          },
+          "broadcasts": [
+            {
+              "type": {
+                "id": "4",
+                "shortName": "Streaming"
+              },
+              "market": {
+                "id": "1",
+                "type": "National"
+              },
+              "media": {
+                "shortName": "Peacock"
+              },
+              "lang": "en",
+              "region": "us",
+              "partnered": false
+            }
+          ],
+          "geoBroadcasts": null,
+          "notes": [
+            {
+              "type": "event",
+              "headline": "Bad Boy Mowers Series"
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "language": "en-US",
+          "rel": [
+            "summary",
+            "desktop",
+            "event"
+          ],
+          "href": "https://www.espn.com/mens-college-basketball/game/_/gameId/401920738/northwestern-byu",
+          "text": "Gamecast",
+          "shortText": "Summary",
+          "isExternal": false,
+          "isPremium": false
+        }
+      ]
+    }
+  ]
+}

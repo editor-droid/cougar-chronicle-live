@@ -11,6 +11,7 @@ import ArticleDonateBlocks from '@/components/ArticleDonateBlocks';
 import MostReadList from '@/components/MostReadList';
 import KeyTakeaways from '@/components/KeyTakeaways';
 import ShareButton from '@/components/ShareButton';
+import ByuScoresWidget from '@/components/ByuScoresWidget';
 import RelatedStories from '@/components/RelatedStories';
 import { getRelatedPosts } from '@/lib/related';
 import { injectHeadingIds } from '@/lib/toc';
@@ -287,6 +288,7 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
 
       {/* Sidebar */}
       <aside className="article-sidebar">
+        <ByuScoresWidget />
         <MostReadList variant="sidebar" take={5} excludeIds={[post.id]} />
 
         <div className="newsletter-box" style={{ marginTop: '3rem', borderRadius: '0.5rem' }}>

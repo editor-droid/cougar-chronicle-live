@@ -1,0 +1,67 @@
+{
+  "count": 1,
+  "pageIndex": 1,
+  "pageSize": 25,
+  "pageCount": 1,
+  "items": [
+    {
+      "type": {
+        "id": "4",
+        "shortName": "Streaming",
+        "longName": "Streaming",
+        "slug": "streaming"
+      },
+      "channel": 755,
+      "station": "ESPN+",
+      "slug": "espnplus",
+      "priority": 1,
+      "market": {
+        "id": "1",
+        "type": "National"
+      },
+      "media": {
+        "$ref": "http://sports.core.api.espn.com/v2/sports/football/leagues/college-football/media/755?lang=en&region=us",
+        "id": "755",
+        "callLetters": "ESPN+",
+        "name": "ESPN+",
+        "shortName": "ESPN+",
+        "slug": "espnplus",
+        "logos": [
+          {
+            "href": "https://a.espncdn.com/guid/322a7e47-3cdb-3b5c-ab1b-678e1f2c27e5/logos/default.png",
+            "width": 500,
+            "height": 500,
+            "alt": "",
+            "rel": [
+              "full",
+              "default"
+            ],
+            "lastUpdated": "2025-03-05T17:27Z"
+          },
+          {
+            "href": "https://a.espncdn.com/guid/322a7e47-3cdb-3b5c-ab1b-678e1f2c27e5/logos/default-dark.png",
+            "width": 500,
+            "height": 500,
+            "alt": "",
+            "rel": [
+              "full",
+              "dark"
+            ],
+            "lastUpdated": "2025-03-05T17:27Z"
+          }
+        ],
+        "group": {
+          "id": "1",
+          "name": "Disney",
+          "slug": "disney"
+        }
+      },
+      "lang": "en",
+      "region": "us",
+      "competition": {
+        "$ref": "http://sports.core.api.espn.com/v2/sports/football/leagues/college-football/events/401856775/competitions/401856775?lang=en&region=us"
+      },
+      "partnered": false
+    }
+  ]
+}

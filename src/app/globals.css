@@ -1782,6 +1782,243 @@ body:has([data-link-hub-page]) .site-shell > main.container {
   min-height: 800px;
 }
 
+.section-with-rail {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 2.5rem;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .section-with-rail {
+    grid-template-columns: 1fr;
+  }
+  .section-with-rail > .article-sidebar {
+    order: -1;
+  }
+}
+
+.byu-scores {
+  min-height: 13.5rem;
+  margin-bottom: 1.75rem;
+  padding: 0.85rem 0.9rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--surface);
+}
+
+.byu-scores__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.byu-scores .widget-title {
+  margin-bottom: 0.65rem;
+}
+
+.byu-scores__stale {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.byu-scores__tabs {
+  display: flex;
+  gap: 0.35rem;
+  margin-bottom: 0.65rem;
+}
+
+.byu-scores__tab {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.28rem 0.5rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.byu-scores__tab.is-active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+.byu-scores__tab-live {
+  margin-left: 0.35rem;
+  color: #fca5a5;
+}
+
+.byu-scores__tab.is-active .byu-scores__tab-live {
+  color: #fecaca;
+}
+
+.byu-scores__sport-label {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.55rem;
+}
+
+.byu-scores__row {
+  min-height: 2.35rem;
+  padding: 0.35rem 0;
+  border-top: 1px solid var(--border);
+}
+
+.byu-scores__row-next {
+  min-height: 4.25rem;
+}
+
+.byu-scores__row-next .byu-scores__opp,
+.byu-scores__row-next .byu-scores__when {
+  display: block;
+}
+
+.byu-scores__placeholder {
+  background: linear-gradient(90deg, var(--surface-hover), var(--surface), var(--surface-hover));
+  border-radius: 0.25rem;
+  margin-top: 0.35rem;
+}
+
+.byu-scores__label {
+  display: block;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.byu-scores__result {
+  font-family: var(--font-serif), Georgia, serif;
+  font-weight: 700;
+  font-size: 1rem;
+  margin-right: 0.4rem;
+}
+
+.byu-scores__result.is-win { color: var(--primary); }
+.byu-scores__result.is-loss { color: #991b1b; }
+
+.byu-scores__opp,
+.byu-scores__when,
+.byu-scores__meta,
+.byu-scores__empty,
+.byu-scores__links {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.byu-scores__when,
+.byu-scores__meta,
+.byu-scores__empty {
+  color: var(--muted);
+}
+
+.byu-scores__live {
+  background: var(--primary);
+  color: #fff;
+  border-radius: 0.35rem;
+  padding: 0.45rem 0.55rem;
+  margin-bottom: 0.45rem;
+}
+
+.byu-scores__live-kicker {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.byu-scores__dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: #f87171;
+  box-shadow: 0 0 0 0 rgba(248, 113, 113, 0.7);
+  animation: byu-scores-pulse 1.4s ease-out infinite;
+}
+
+.byu-scores__live-score {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.2rem;
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.byu-scores__more {
+  margin-top: 0.35rem;
+  border-top: 1px solid var(--border);
+  padding-top: 0.4rem;
+}
+
+.byu-scores__more summary {
+  cursor: pointer;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+
+.byu-scores__list {
+  list-style: none;
+  margin: 0.45rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.byu-scores__list li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.byu-scores__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.55rem;
+}
+
+.byu-scores__links a {
+  color: var(--primary);
+  text-decoration: underline;
+  font-weight: 700;
+}
+
+@keyframes byu-scores-pulse {
+  70% { box-shadow: 0 0 0 6px rgba(248, 113, 113, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(248, 113, 113, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .byu-scores__dot { animation: none; }
 /* Mobile newsletter bar. Fixed + portaled so it does not shift page layout (CLS 0).
    Hidden from md up. Right padding stays clear of the chat button. */
 .nl-sticky,

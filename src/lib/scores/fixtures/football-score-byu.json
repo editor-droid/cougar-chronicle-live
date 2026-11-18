@@ -1,0 +1,10 @@
+{
+  "$ref": "http://sports.core.api.espn.com/v2/sports/football/leagues/college-football/events/401856775/competitions/401856775/competitors/252/scores/1?lang=en&region=us",
+  "value": 63.0,
+  "displayValue": "63",
+  "winner": true,
+  "source": {
+    "id": "1",
+    "description": "Basic/Manual"
+  }
+}

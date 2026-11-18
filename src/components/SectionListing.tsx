@@ -1,10 +1,17 @@
+import type { ReactNode } from 'react';
 import { notFound } from 'next/navigation';
 import { getSection, type PublicSectionSlug } from '@/lib/categories';
 import { loadSectionPage } from '@/lib/section-listing';
 import { buildSectionJsonLd } from '@/lib/section-seo';
 import SectionListingView from '@/components/SectionListingView';
 
-export default async function SectionListing({ slug }: { slug: PublicSectionSlug }) {
+export default async function SectionListing({
+  slug,
+  rail,
+}: {
+  slug: PublicSectionSlug;
+  rail?: ReactNode;
+}) {
   const section = getSection(slug);
   if (!section) notFound();
 
@@ -17,6 +24,7 @@ export default async function SectionListing({ slug }: { slug: PublicSectionSlug
       initial={initial}
       initialJsonLd={jsonLd}
       section={{ label: section.label, description: section.description }}
+      rail={rail}
     />
   );
 }

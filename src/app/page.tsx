@@ -6,6 +6,7 @@ import SubscribeForm from '@/components/SubscribeForm';
 import MostReadList from '@/components/MostReadList';
 import PrintCheckoutButtons from '@/app/print-edition/PrintCheckoutButtons';
 import VideoHighlights from '@/components/VideoHighlights';
+import ByuScoresWidget from '@/components/ByuScoresWidget';
 import { resolveStreamEmbedUrl, resolveStreamThumbnailUrl } from '@/lib/videos';
 import type { Metadata } from 'next';
 
@@ -416,6 +417,7 @@ export default async function Home() {
 
         {/* Right widgets column */}
         <div>
+          <ByuScoresWidget />
           
           {/* Most read today, with the all-time list when the day and week are thin. */}
           <MostReadList variant="home" take={5} excludePrint publishedByNow />

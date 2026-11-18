@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
@@ -50,16 +50,28 @@ function QuerySync({
   return null;
 }
 
+function SectionFrame({ rail, children }: { rail?: ReactNode; children: ReactNode }) {
+  if (!rail) return children;
+  return (
+    <div className="section-with-rail">
+      <div>{children}</div>
+      <aside className="article-sidebar">{rail}</aside>
+    </div>
+  );
+}
+
 export default function SectionListingView({
   slug,
   initial,
   initialJsonLd,
   section,
+  rail,
 }: {
   slug: PublicSectionSlug;
   initial: SectionPageData;
   initialJsonLd: ReturnType<typeof buildSectionJsonLd>;
   section: SectionMeta;
+  rail?: ReactNode;
 }) {
   const [override, setOverride] = useState<SectionPageData | null>(null);
   const data = override ?? initial;
@@ -83,6 +95,7 @@ export default function SectionListingView({
 
   return (
     <div className="container animate-fade-in" style={{ marginTop: '2rem' }}>
+      <SectionFrame rail={rail}>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -254,6 +267,7 @@ export default function SectionListingView({
       <Suspense fallback={null}>
         <QuerySync slug={slug} initial={initial} onPage={setOverride} />
       </Suspense>
+      </SectionFrame>
     </div>
   );
 }

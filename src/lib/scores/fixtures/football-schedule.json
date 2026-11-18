@@ -1,0 +1,128 @@
+{
+  "timestamp": "2026-11-17T20:54:17Z",
+  "status": "success",
+  "season": {
+    "year": 2026,
+    "type": 2,
+    "name": "Regular Season",
+    "displayName": "2026",
+    "half": 1
+  },
+  "requestedSeason": {
+    "year": 2026,
+    "type": 2,
+    "name": "Regular Season",
+    "displayName": "2026"
+  },
+  "team": {
+    "id": "252",
+    "abbreviation": "BYU",
+    "displayName": "BYU Cougars",
+    "recordSummary": "8-2",
+    "seasonSummary": "2026",
+    "standingSummary": "3rd in Big 12"
+  },
+  "events": [
+    {
+      "id": "401856866",
+      "date": "2026-11-21T17:00Z",
+      "name": "BYU Cougars at Kansas Jayhawks",
+      "shortName": "BYU @ KU",
+      "competitions": [
+        {
+          "id": "401856866",
+          "date": "2026-11-21T17:00Z",
+          "neutralSite": false,
+          "venue": {
+            "fullName": "David Booth Kansas Memorial Stadium"
+          },
+          "competitors": [
+            {
+              "id": "2305",
+              "type": "team",
+              "order": 0,
+              "homeAway": "home",
+              "curatedRank": {
+                "current": 99
+              },
+              "team": {
+                "id": "2305",
+                "abbreviation": "KU",
+                "shortDisplayName": "Kansas",
+                "displayName": "Kansas Jayhawks",
+                "location": "Kansas"
+              }
+            },
+            {
+              "id": "252",
+              "type": "team",
+              "order": 1,
+              "homeAway": "away",
+              "curatedRank": {
+                "current": 10
+              },
+              "team": {
+                "id": "252",
+                "abbreviation": "BYU",
+                "shortDisplayName": "BYU",
+                "displayName": "BYU Cougars",
+                "location": "BYU"
+              }
+            }
+          ],
+          "status": {
+            "clock": 0.0,
+            "displayClock": "0:00",
+            "period": 0,
+            "type": {
+              "id": "1",
+              "name": "STATUS_SCHEDULED",
+              "state": "pre",
+              "completed": false,
+              "description": "Scheduled",
+              "detail": "Sat, November 21st at 12:00 PM EST",
+              "shortDetail": "11/21 - 12:00 PM EST"
+            }
+          },
+          "broadcasts": [
+            {
+              "type": {
+                "id": "1",
+                "shortName": "TV"
+              },
+              "market": {
+                "id": "1",
+                "type": "National"
+              },
+              "media": {
+                "shortName": "ABC",
+                "logo": "https://a.espncdn.com/guid/2acff74d-269f-36ac-96eb-9c66f8ba52ff/logos/default.png",
+                "darkLogo": "https://a.espncdn.com/guid/2acff74d-269f-36ac-96eb-9c66f8ba52ff/logos/default-dark.png"
+              },
+              "lang": "en",
+              "region": "us",
+              "partnered": false
+            }
+          ],
+          "geoBroadcasts": null,
+          "notes": []
+        }
+      ],
+      "links": [
+        {
+          "language": "en-US",
+          "rel": [
+            "summary",
+            "desktop",
+            "event"
+          ],
+          "href": "https://www.espn.com/college-football/game/_/gameId/401856866/byu-kansas",
+          "text": "Gamecast",
+          "shortText": "Summary",
+          "isExternal": false,
+          "isPremium": false
+        }
+      ]
+    }
+  ]
+}

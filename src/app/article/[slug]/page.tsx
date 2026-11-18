@@ -25,6 +25,7 @@ import { buildArticleMetadata } from '@/lib/article-metadata';
 import { buildArticleBreadcrumbJsonLd } from '@/lib/section-seo';
 import { categoryLabel, formatLabel, getSectionPath } from '@/lib/categories';
 import SubscribeForm from '@/components/SubscribeForm';
+import ByuScoresWidget from '@/components/ByuScoresWidget';
 import ArticleViewBeacon from '@/components/ArticleViewBeacon';
 import MostReadList from '@/components/MostReadList';
 import { getMostReadPosts } from '@/lib/most-read-query';
@@ -328,6 +329,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 
       {/* Sidebar */}
       <aside className="article-sidebar">
+        <ByuScoresWidget />
         <MostReadList variant="sidebar" result={mostRead} />
 
         {sidebarVideos.length > 0 && (
