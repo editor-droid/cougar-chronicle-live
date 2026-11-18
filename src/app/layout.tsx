@@ -231,7 +231,7 @@ export default function RootLayout({
           </div>
           <div className="container" style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
             <p className="font-sans text-sm" style={{ opacity: 0.6 }}>
-              &copy; {new Date().getFullYear()} The Cougar Chronicle. Independent student journalism — not affiliated with BYU administration.
+              &copy; {new Date().getFullYear()} The Cougar Chronicle. Independent student journalism. Not affiliated with Brigham Young University.
               {' · '}
               <a href="/corrections" style={{ color: 'white', opacity: 0.8 }}>Corrections</a>
               {' · '}

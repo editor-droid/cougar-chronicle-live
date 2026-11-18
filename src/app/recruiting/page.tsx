@@ -19,7 +19,7 @@ import YoutubeThumb from '@/components/YoutubeThumb';
 import ApplyInterestPicker from './ApplyInterestPicker';
 
 export const metadata: Metadata = {
-  title: 'Apply to Join | The Cougar Chronicle',
+  title: 'Apply to Join',
   description:
     'We are accepting applications for staff writers, editors, photographers, and more at The Cougar Chronicle — independent conservative journalism at BYU.',
   openGraph: {

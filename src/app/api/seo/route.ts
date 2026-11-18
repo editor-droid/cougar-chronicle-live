@@ -1,3 +1,4 @@
+import { clampAtWord } from '@/lib/article-metadata';
 import { z } from 'zod';
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
@@ -75,7 +76,7 @@ ${cleanContent}
 `,
     });
 
-    const seoTitle = object.seoTitle.trim().slice(0, 70);
+    const seoTitle = clampAtWord(object.seoTitle.trim(), 70);
     const seoDescription = object.seoDescription.trim().slice(0, 160);
     return NextResponse.json({
       seoTitle,

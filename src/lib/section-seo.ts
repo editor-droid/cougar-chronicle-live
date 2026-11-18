@@ -26,7 +26,7 @@ export function buildSectionMetadata(slug: PublicSectionSlug): Metadata {
   const path = getSectionPath(slug);
   const absolute = `${siteOrigin()}${path}`;
   const title = section.title;
-  const description = section.description;
+  const description = section.metaDescription;
 
   return {
     title,
@@ -94,7 +94,7 @@ export function buildSectionJsonLd(
         '@id': `${listUrl}#webpage`,
         url: listUrl,
         name: `${section.title} | ${SITE}`,
-        description: section.description,
+        description: section.metaDescription,
         isPartOf: {
           '@type': 'WebSite',
           name: SITE,

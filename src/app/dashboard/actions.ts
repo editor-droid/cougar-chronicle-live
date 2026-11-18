@@ -1,4 +1,5 @@
 'use server'
+import { clampAtWord } from '@/lib/article-metadata';
 
 import { auth } from '@/auth';
 import prisma from '@/lib/prisma';
@@ -179,7 +180,7 @@ Article Content:
 ${cleanContent}`,
         });
 
-        if (!post.seoTitle) updateData.seoTitle = result.seoTitle.trim().slice(0, 70);
+        if (!post.seoTitle) updateData.seoTitle = clampAtWord(result.seoTitle.trim(), 70);
         if (!post.seoDescription) {
           updateData.seoDescription = result.seoDescription.trim().slice(0, 200);
         }

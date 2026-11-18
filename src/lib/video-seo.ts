@@ -1,3 +1,4 @@
+import { clampAtWord } from '@/lib/article-metadata';
 import { z } from 'zod';
 import { generateStructured } from '@/lib/ai';
 
@@ -56,7 +57,7 @@ Goals: clear for Google video results and social previews; accurate; scannable; 
 
   return {
     description: object.description.trim().slice(0, 300),
-    seoTitle: object.seoTitle.trim().slice(0, 70),
+    seoTitle: clampAtWord(object.seoTitle.trim(), 70),
     seoKeywords: object.seoKeywords
       .trim()
       .replace(/\s*,\s*/g, ', ')

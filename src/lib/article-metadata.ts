@@ -31,9 +31,18 @@ function stripHtml(html: string): string {
   return html.replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim();
 }
 
+/** Cut to max chars at a word boundary so titles never end mid-word. */
+export function clampAtWord(text: string, max: number): string {
+  if (text.length <= max) return text;
+  const cut = text.slice(0, max + 1);
+  const lastSpace = cut.lastIndexOf(' ');
+  const base = lastSpace > max * 0.6 ? cut.slice(0, lastSpace) : text.slice(0, max);
+  return base.replace(/[\s,;:\u2014\u2013-]+$/, '');
+}
+
 export function buildArticleMetadata(post: ArticleMetaPost): Metadata {
   // Prefer AI SEO fields; never duplicate site name in <title> (layout template adds it)
-  const title = (post.seoTitle || post.title || 'Article').trim().slice(0, 70);
+  const title = clampAtWord((post.seoTitle || post.title || 'Article').trim(), 70);
   const plain = post.content ? stripHtml(post.content) : '';
   const description = (
     post.seoDescription ||
