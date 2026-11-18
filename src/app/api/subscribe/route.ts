@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { auth } from '@/auth';
 import { getArticleUrl } from '@/lib/routes';
 import prisma from '@/lib/prisma';
 import { getClientIp, rateLimit } from '@/lib/rate-limit';
@@ -12,6 +13,43 @@ import {
 } from '@/lib/email';
 
 const AUDIENCE_ID = process.env.RESEND_AUDIENCE_ID || '993e7864-bb3a-4543-a437-a7848b030657';
+
+const PRIVATE_NO_STORE = { 'Cache-Control': 'private, no-store' };
+
+/** next-auth v5 session cookie. Absent for almost every public reader. */
+function hasSessionCookie(cookieHeader: string | null): boolean {
+  if (!cookieHeader) return false;
+  return /(?:^|;\s*)(?:__Secure-)?authjs\.session-token(?:\.\d+)?=/.test(cookieHeader);
+}
+
+/**
+ * Whether the logged-in reader is already an active newsletter subscriber.
+ * Anonymous requests skip auth and the database. Does not send email.
+ */
+export async function GET(req: Request) {
+  if (!hasSessionCookie(req.headers.get('cookie'))) {
+    return NextResponse.json({ subscribed: false }, { headers: PRIVATE_NO_STORE });
+  }
+
+  try {
+    const session = await auth();
+    const email = session?.user?.email?.trim();
+    if (!email) {
+      return NextResponse.json({ subscribed: false }, { headers: PRIVATE_NO_STORE });
+    }
+    const row = await prisma.subscriber.findFirst({
+      where: {
+        isActive: true,
+        email: { equals: email, mode: 'insensitive' },
+      },
+      select: { id: true },
+    });
+    return NextResponse.json({ subscribed: Boolean(row) }, { headers: PRIVATE_NO_STORE });
+  } catch (error) {
+    console.error('newsletter status', error);
+    return NextResponse.json({ subscribed: false }, { headers: PRIVATE_NO_STORE });
+  }
+}
 
 async function parseBody(req: Request): Promise<{
   email?: string;

@@ -26,6 +26,8 @@ import { buildArticleBreadcrumbJsonLd } from '@/lib/section-seo';
 import { categoryLabel, formatLabel, getSectionPath } from '@/lib/categories';
 import SubscribeForm from '@/components/SubscribeForm';
 import ArticleViewBeacon from '@/components/ArticleViewBeacon';
+import MostReadList from '@/components/MostReadList';
+import { getMostReadPosts } from '@/lib/most-read-query';
 
 export const revalidate = 60;
 
@@ -77,8 +79,9 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
   const hasAccess = !post.isPremium;
 
   // Isolate flows: regular articles only link to regular articles.
-  // These reads do not depend on each other.
-  const [nextPost, prevPost, topPosts, sidebarVideos, relatedPosts, jsonLd] = await Promise.all([
+  // These reads do not depend on each other. Most-read replaces the old
+  // all-time topPosts query and still runs in this same parallel batch.
+  const [nextPost, prevPost, mostRead, sidebarVideos, relatedPosts, jsonLd] = await Promise.all([
     prisma.post.findFirst({
       where: {
         state: 'PUBLISHED',
@@ -97,14 +100,10 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
       },
       orderBy: { createdAt: 'desc' },
     }),
-    prisma.post.findMany({
-      where: {
-        state: 'PUBLISHED',
-        id: { not: post.id },
-        printEditionId: null, // Keep print editions out of the trending sidebar
-      },
-      orderBy: { views: 'desc' },
+    getMostReadPosts({
       take: 5,
+      excludePrint: true,
+      excludeIds: [post.id],
     }),
     prisma.video.findMany({
       where: { isActive: true, showInSidebar: true },
@@ -329,25 +328,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 
       {/* Sidebar */}
       <aside className="article-sidebar">
-        <h2 className="widget-title">Most Read</h2>
-        <ol className="trending-list-dense">
-          {topPosts.map((tp, i) => (
-            <li key={tp.id}>
-              <span className="rank">{i + 1}</span>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span className="font-sans text-xs" style={{ color: 'var(--primary)', fontWeight: 'bold', textTransform: 'uppercase' }}>{tp.category}</span>
-                  {tp.printEditionId && (
-                    <span style={{ fontSize: '0.55rem', textTransform: 'uppercase', fontWeight: 700, backgroundColor: 'var(--surface-hover)', padding: '0.1rem 0.3rem', borderRadius: '0.25rem', border: '1px solid var(--border)', color: 'var(--foreground)' }}>🗞️ Print</span>
-                  )}
-                </div>
-                <Link href={getArticleUrl(tp)} className="font-serif" style={{ fontSize: '1.1rem', lineHeight: 1.3, fontWeight: 600 }}>
-                  {tp.title}
-                </Link>
-              </div>
-            </li>
-          ))}
-        </ol>
+        <MostReadList variant="sidebar" result={mostRead} />
 
         {sidebarVideos.length > 0 && (
           <div style={{ marginTop: '2.5rem' }}>

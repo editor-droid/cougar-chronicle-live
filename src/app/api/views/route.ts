@@ -9,6 +9,7 @@ import {
   isCrossSiteRequest,
   isPrefetchRequest,
 } from '@/lib/article-views';
+import { utcDay } from '@/lib/most-read';
 
 export const dynamic = 'force-dynamic';
 
@@ -75,10 +76,18 @@ export async function POST(req: Request) {
       );
     }
 
-    await prisma.post.update({
-      where: { id: post.id },
-      data: { views: { increment: 1 } },
-    });
+    const day = utcDay(new Date());
+    await prisma.$transaction([
+      prisma.post.update({
+        where: { id: post.id },
+        data: { views: { increment: 1 } },
+      }),
+      prisma.postViewDaily.upsert({
+        where: { postId_date: { postId: post.id, date: day } },
+        create: { postId: post.id, date: day, count: 1 },
+        update: { count: { increment: 1 } },
+      }),
+    ]);
   } catch (error) {
     console.error('article view increment', error);
     return NextResponse.json(
