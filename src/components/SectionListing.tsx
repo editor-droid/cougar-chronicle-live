@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import prisma from '@/lib/prisma';
@@ -17,9 +18,11 @@ const POSTS_PER_PAGE = 18;
 export default async function SectionListing({
   slug,
   searchParams,
+  rail,
 }: {
   slug: PublicSectionSlug;
   searchParams: { page?: string; sort?: string };
+  rail?: ReactNode;
 }) {
   const section = getSection(slug);
   if (!section) notFound();
@@ -65,6 +68,7 @@ export default async function SectionListing({
 
   return (
     <div className="container animate-fade-in" style={{ marginTop: '2rem' }}>
+      <SectionFrame rail={rail}>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -237,6 +241,17 @@ export default async function SectionListing({
           )}
         </nav>
       )}
+      </SectionFrame>
+    </div>
+  );
+}
+
+function SectionFrame({ rail, children }: { rail?: ReactNode; children: ReactNode }) {
+  if (!rail) return children;
+  return (
+    <div className="section-with-rail">
+      <div>{children}</div>
+      <aside className="article-sidebar">{rail}</aside>
     </div>
   );
 }

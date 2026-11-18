@@ -10,6 +10,7 @@ import ArticleByline from '@/components/ArticleByline';
 import ArticleDonateBlocks from '@/components/ArticleDonateBlocks';
 import KeyTakeaways from '@/components/KeyTakeaways';
 import ShareButton from '@/components/ShareButton';
+import ByuScoresWidget from '@/components/ByuScoresWidget';
 import RelatedStories from '@/components/RelatedStories';
 import GiftSaveBanner from '@/components/GiftSaveBanner';
 import { getRelatedPosts } from '@/lib/related';
@@ -301,6 +302,7 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
 
       {/* Sidebar */}
       <aside className="article-sidebar">
+        <ByuScoresWidget />
         <h2 className="widget-title">Most Read</h2>
         <ol className="trending-list-dense">
           {topPosts.map((tp, i) => (

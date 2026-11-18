@@ -5,6 +5,7 @@ import Image from 'next/image';
 import SubscribeForm from '@/components/SubscribeForm';
 import PrintCheckoutButtons from '@/app/print-edition/PrintCheckoutButtons';
 import VideoHighlights from '@/components/VideoHighlights';
+import ByuScoresWidget from '@/components/ByuScoresWidget';
 import { resolveStreamEmbedUrl, resolveStreamThumbnailUrl } from '@/lib/videos';
 import type { Metadata } from 'next';
 
@@ -423,7 +424,8 @@ export default async function Home() {
 
         {/* Right widgets column */}
         <div>
-          
+          <ByuScoresWidget />
+
           {/* TRENDING WIDGET */}
           {trendingPosts.length > 0 && (
             <div style={{ marginBottom: '3rem' }}>

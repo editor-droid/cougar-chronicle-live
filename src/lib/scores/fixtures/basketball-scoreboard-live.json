@@ -1,0 +1,148 @@
+{
+  "id": "401920511",
+  "date": "2026-11-17T19:00Z",
+  "name": "Rutgers Scarlet Knights at Houston Cougars",
+  "shortName": "RUTG VS HOU",
+  "competitions": [
+    {
+      "id": "401920511",
+      "date": "2026-11-17T19:00Z",
+      "neutralSite": true,
+      "venue": {
+        "fullName": "Michelob ULTRA Arena"
+      },
+      "competitors": [
+        {
+          "id": "248",
+          "uid": "s:40~l:41~t:248",
+          "type": "team",
+          "order": 0,
+          "homeAway": "home",
+          "score": "66",
+          "curatedRank": {
+            "current": 8
+          },
+          "team": {
+            "id": "248",
+            "uid": "s:40~l:41~t:248",
+            "abbreviation": "HOU",
+            "shortDisplayName": "Houston",
+            "displayName": "Houston Cougars",
+            "location": "Houston",
+            "name": "Cougars"
+          },
+          "records": [
+            {
+              "name": "overall",
+              "abbreviation": "Season",
+              "type": "total",
+              "summary": "3-0"
+            },
+            {
+              "name": "Home",
+              "abbreviation": "Home",
+              "type": "home",
+              "summary": "2-0"
+            }
+          ]
+        },
+        {
+          "id": "164",
+          "uid": "s:40~l:41~t:164",
+          "type": "team",
+          "order": 1,
+          "homeAway": "away",
+          "score": "54",
+          "curatedRank": {
+            "current": 99
+          },
+          "team": {
+            "id": "164",
+            "uid": "s:40~l:41~t:164",
+            "abbreviation": "RUTG",
+            "shortDisplayName": "Rutgers",
+            "displayName": "Rutgers Scarlet Knights",
+            "location": "Rutgers",
+            "name": "Scarlet Knights"
+          },
+          "records": [
+            {
+              "name": "overall",
+              "abbreviation": "Season",
+              "type": "total",
+              "summary": "3-0"
+            },
+            {
+              "name": "Home",
+              "abbreviation": "Home",
+              "type": "home",
+              "summary": "3-0"
+            }
+          ]
+        }
+      ],
+      "status": {
+        "clock": 499.0,
+        "displayClock": "8:19",
+        "period": 2,
+        "type": {
+          "id": "2",
+          "name": "STATUS_IN_PROGRESS",
+          "state": "in",
+          "completed": false,
+          "description": "In Progress",
+          "detail": "8:19 - 2nd Half",
+          "shortDetail": "8:19 - 2nd"
+        }
+      },
+      "broadcasts": [
+        {
+          "market": "national",
+          "names": [
+            "ESPN"
+          ]
+        }
+      ],
+      "geoBroadcasts": [
+        {
+          "type": {
+            "id": "1",
+            "shortName": "TV"
+          },
+          "market": {
+            "id": "1",
+            "type": "National"
+          },
+          "media": {
+            "shortName": "ESPN",
+            "logo": "https://a.espncdn.com/guid/335fd2d2-97b9-336b-81ee-573eb6bdcffc/logos/default.png",
+            "darkLogo": ""
+          },
+          "lang": "en",
+          "region": "us"
+        }
+      ],
+      "notes": [
+        {
+          "type": "event",
+          "headline": "Players Era 8"
+        }
+      ]
+    }
+  ],
+  "links": [
+    {
+      "language": "en-US",
+      "rel": [
+        "live",
+        "desktop",
+        "event"
+      ],
+      "href": "https://www.espn.com/mens-college-basketball/game?gameId=401920511",
+      "text": "Gamecast",
+      "shortText": "Gamecast",
+      "isExternal": false,
+      "isPremium": false
+    }
+  ]
+}

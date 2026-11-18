@@ -24,6 +24,7 @@ import { buildArticleMetadata } from '@/lib/article-metadata';
 import { buildArticleBreadcrumbJsonLd } from '@/lib/section-seo';
 import { categoryLabel, formatLabel, getSectionPath } from '@/lib/categories';
 import SubscribeForm from '@/components/SubscribeForm';
+import ByuScoresWidget from '@/components/ByuScoresWidget';
 import ArticleViewBeacon from '@/components/ArticleViewBeacon';
 
 export async function generateMetadata(
@@ -321,6 +322,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 
       {/* Sidebar */}
       <aside className="article-sidebar">
+        <ByuScoresWidget />
         <h2 className="widget-title">Most Read</h2>
         <ol className="trending-list-dense">
           {topPosts.map((tp, i) => (
