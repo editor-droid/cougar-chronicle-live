@@ -11,6 +11,7 @@ import VideoHighlights from '@/components/VideoHighlights';
 import { injectHeadingIds } from '@/lib/toc';
 import { getArticleUrl } from '@/lib/routes';
 import { findPublishedPostBySlug } from '@/lib/legacy-slugs';
+import { isPublicFreeArticle } from '@/lib/public-article';
 import { resolveStreamEmbedUrl, resolveStreamThumbnailUrl } from '@/lib/videos';
 import FavoriteButton from '@/components/FavoriteButton';
 import ShareButton from '@/components/ShareButton';
@@ -25,6 +26,14 @@ import { buildArticleBreadcrumbJsonLd } from '@/lib/section-seo';
 import { categoryLabel, formatLabel, getSectionPath } from '@/lib/categories';
 import SubscribeForm from '@/components/SubscribeForm';
 import ArticleViewBeacon from '@/components/ArticleViewBeacon';
+
+export const revalidate = 60;
+
+// Empty list: don't prerender every story at build time. The first request
+// still fills the ISR cache (see generateStaticParams docs, "all paths at runtime").
+export function generateStaticParams() {
+  return [];
+}
 
 export async function generateMetadata(
   { params }: { params: Promise<{ slug: string }> },
@@ -61,57 +70,55 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
     redirect(getArticleUrl(post));
   }
 
-  if (post.printEditionId || post.isPremium) {
+  if (!isPublicFreeArticle(post)) {
     redirect(getArticleUrl(post));
   }
 
   const hasAccess = !post.isPremium;
 
-  // Isolate flows: regular articles only link to regular articles
-  const nextPost = await prisma.post.findFirst({
-    where: { 
-      state: 'PUBLISHED', 
-      createdAt: { gt: post.createdAt },
-      printEditionId: null,
-      isPremium: false
-    },
-    orderBy: { createdAt: 'asc' }
-  });
-  
-  const prevPost = await prisma.post.findFirst({
-    where: { 
-      state: 'PUBLISHED', 
-      createdAt: { lt: post.createdAt },
-      printEditionId: null,
-      isPremium: false
-    },
-    orderBy: { createdAt: 'desc' }
-  });
-
-  const topPosts = await prisma.post.findMany({
-    where: { 
-      state: 'PUBLISHED', 
-      id: { not: post.id },
-      printEditionId: null // Keep print editions out of the trending sidebar
-    },
-    orderBy: { views: 'desc' },
-    take: 5
-  });
-
-  const sidebarVideos = await prisma.video.findMany({
-    where: { isActive: true, showInSidebar: true },
-    orderBy: [{ sortOrder: 'asc' }, { publishedAt: 'desc' }],
-    take: 3,
-  });
-
-  const relatedPosts = await getRelatedPosts(post, 3);
+  // Isolate flows: regular articles only link to regular articles.
+  // These reads do not depend on each other.
+  const [nextPost, prevPost, topPosts, sidebarVideos, relatedPosts, jsonLd] = await Promise.all([
+    prisma.post.findFirst({
+      where: {
+        state: 'PUBLISHED',
+        createdAt: { gt: post.createdAt },
+        printEditionId: null,
+        isPremium: false,
+      },
+      orderBy: { createdAt: 'asc' },
+    }),
+    prisma.post.findFirst({
+      where: {
+        state: 'PUBLISHED',
+        createdAt: { lt: post.createdAt },
+        printEditionId: null,
+        isPremium: false,
+      },
+      orderBy: { createdAt: 'desc' },
+    }),
+    prisma.post.findMany({
+      where: {
+        state: 'PUBLISHED',
+        id: { not: post.id },
+        printEditionId: null, // Keep print editions out of the trending sidebar
+      },
+      orderBy: { views: 'desc' },
+      take: 5,
+    }),
+    prisma.video.findMany({
+      where: { isActive: true, showInSidebar: true },
+      orderBy: [{ sortOrder: 'asc' }, { publishedAt: 'desc' }],
+      take: 3,
+    }),
+    getRelatedPosts(post, 3),
+    buildNewsArticleJsonLdWithVideos(post),
+  ]);
 
   const htmlContent = post.content
     ? enhanceArticleVideoEmbeds(injectHeadingIds(post.content))
     : '';
 
-  // NewsArticle + nested VideoObject(s) for any Stream/YouTube embeds
-  const jsonLd = await buildNewsArticleJsonLdWithVideos(post);
   const breadcrumbLd = buildArticleBreadcrumbJsonLd(post);
   const sectionPath = post.category ? getSectionPath(post.category) : '/news';
   const sectionLabel = post.category ? categoryLabel(post.category) : 'News';
@@ -204,11 +211,12 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           {post.imageUrl && (
             <figure style={{ marginBottom: '2.5rem', width: '100%' }}>
               <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', borderRadius: '0.5rem', overflow: 'hidden', backgroundColor: 'var(--surface-hover)', border: '1px solid var(--border)' }}>
-                <Image 
-                  src={rewriteMediaUrl(post.imageUrl)} 
-                  alt={post.featuredImageAlt || post.title} 
-                  fill 
-                  priority
+                <Image
+                  src={rewriteMediaUrl(post.imageUrl)}
+                  alt={post.featuredImageAlt || post.title}
+                  fill
+                  preload
+                  fetchPriority="high"
                   sizes="(max-width: 800px) 100vw, 800px"
                   style={{ objectFit: 'cover' }}
                 />

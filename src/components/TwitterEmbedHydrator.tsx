@@ -75,9 +75,14 @@ export default function TwitterEmbedHydrator({
     );
     if (roots.length === 0) return;
 
+    const embeds = roots.flatMap((root) =>
+      Array.from(root.querySelectorAll('.twitter-tweet, .tweet-embed, [data-tweet-embed]'))
+    );
+    if (embeds.length === 0) return;
+
     let cancelled = false;
 
-    (async () => {
+    const hydrate = async () => {
       try {
         await loadWidgetsScript();
         if (cancelled) return;
@@ -97,10 +102,31 @@ export default function TwitterEmbedHydrator({
       } catch (e) {
         console.warn('[TwitterEmbedHydrator]', e);
       }
-    })();
+    };
+
+    if (typeof IntersectionObserver === 'undefined') {
+      void hydrate();
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    let started = false;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (started || cancelled) return;
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        started = true;
+        observer.disconnect();
+        void hydrate();
+      },
+      { rootMargin: '250px 0px' }
+    );
+    embeds.forEach((embed) => observer.observe(embed));
 
     return () => {
       cancelled = true;
+      observer.disconnect();
     };
   }, [rootSelector, watch]);
 

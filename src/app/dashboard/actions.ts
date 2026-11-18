@@ -3,6 +3,7 @@
 import { auth } from '@/auth';
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
+import { revalidateStorySurfaces } from '@/lib/revalidate-content';
 import { PostState, Role } from '@prisma/client';
 import { getArticleUrl } from '@/lib/routes';
 import { broadcastPostPublication } from '@/lib/publish-utils';
@@ -10,7 +11,7 @@ import { isResendConfigured, isValidEmail, sendOneEmail } from '@/lib/email';
 import { notifyWriterAssigned } from '@/lib/desk-reminders';
 import { syncArticleVideosToLibrary } from '@/lib/article-videos';
 import { canApprovePosts, canEditAllPosts, canPublishPosts } from '@/lib/roles';
-import { getSectionPath, isTopicCategory } from '@/lib/categories';
+import { isTopicCategory } from '@/lib/categories';
 import { rememberPublishedBefore, wasPublishedBefore } from '@/lib/desk-plan';
 import { computeBreakingUntil, DEFAULT_BREAKING_HOURS } from '@/lib/breaking';
 import { slugifyTitle, sanitizeSlugInput, withUniquenessSuffix } from '@/lib/slug';
@@ -19,39 +20,6 @@ import { persistArticleMedia, persistMediaUrl } from '@/lib/persist-article-medi
 
 
 
-function revalidateStorySurfaces(post: {
-  slug: string;
-  category?: string | null;
-  isPremium?: boolean | null;
-  printEditionId?: string | null;
-  authorId?: string | null;
-  isAmerica250?: boolean | null;
-  author?: { slug?: string | null } | null;
-}) {
-  revalidatePath('/dashboard');
-  revalidatePath('/');
-  revalidatePath('/news');
-  revalidatePath('/opinion');
-  revalidatePath('/search');
-  revalidatePath('/print-edition');
-  revalidatePath('/feed.xml');
-  revalidatePath('/news-sitemap.xml');
-  revalidatePath('/sitemap.xml');
-  revalidatePath('/llms.txt');
-  if (post.isAmerica250) revalidatePath('/america-250');
-  if (post.category) revalidatePath(getSectionPath(post.category));
-  const url = getArticleUrl({
-    slug: post.slug,
-    isPremium: Boolean(post.isPremium),
-    printEditionId: post.printEditionId,
-  });
-  if (url && url !== '/') revalidatePath(url);
-  revalidatePath(`/article/${post.slug}`);
-  revalidatePath(`/premium-article/${post.slug}`);
-  revalidatePath(`/print-edition/${post.slug}`);
-  if (post.authorId) revalidatePath(`/author/${post.authorId}`);
-  if (post.author?.slug) revalidatePath(`/author/${post.author.slug}`);
-}
 
 /** Create /videos library entries for Stream+YouTube embeds in published posts. */
 async function maybeSyncArticleVideos(post: {
@@ -331,7 +299,10 @@ export async function savePost(data: any) {
   const slugSeed = cleaned || slugifyTitle(String(data.title || 'article'), { dropStopWords: true });
 
   if (data.id) {
-    const existing = await prisma.post.findUnique({ where: { id: data.id } });
+    const existing = await prisma.post.findUnique({
+      where: { id: data.id },
+      include: { author: { select: { slug: true } } },
+    });
     if (!existing) throw new Error('Post not found');
     
     if (role === 'WRITER' && existing.authorId !== session.user.id) {
@@ -394,9 +365,30 @@ export async function savePost(data: any) {
       }
     });
     await maybeSyncArticleVideos(updated);
-    revalidatePath(getArticleUrl(updated));
-    revalidatePath(`/article/${updated.slug}`);
-    revalidatePath(`/premium-article/${updated.slug}`);
+    if (existing.state === 'PUBLISHED') {
+      revalidateStorySurfaces(existing);
+      const pathChanged =
+        updated.slug !== existing.slug ||
+        updated.category !== existing.category ||
+        updated.isPremium !== existing.isPremium ||
+        updated.printEditionId !== existing.printEditionId ||
+        updated.isAmerica250 !== existing.isAmerica250 ||
+        updated.authorId !== existing.authorId;
+      if (pathChanged) {
+        const author =
+          updated.authorId === existing.authorId
+            ? existing.author
+            : await prisma.user.findUnique({
+                where: { id: updated.authorId },
+                select: { slug: true },
+              });
+        revalidateStorySurfaces({ ...updated, author });
+      }
+    } else {
+      revalidatePath(getArticleUrl(updated));
+      revalidatePath(`/article/${updated.slug}`);
+      revalidatePath(`/premium-article/${updated.slug}`);
+    }
   } else {
     const slug = await ensureUniqueSlug(slugSeed);
     const [content, imageUrl] = await Promise.all([
