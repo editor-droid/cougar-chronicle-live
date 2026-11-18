@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { resetPassword } from './actions';
 
 import type { Metadata } from 'next';
+import { MIN_NEW_PASSWORD_LENGTH } from '@/lib/passwords';
 
 export const metadata: Metadata = {
   title: 'Reset Password',
@@ -77,11 +78,11 @@ export default async function ResetPasswordPage(props: {
             <input type="hidden" name="email" value={email} />
             <div>
               <label className="font-sans text-sm" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>New Password</label>
-              <input type="password" name="password" required minLength={8} placeholder="••••••••" />
+              <input type="password" name="password" required minLength={MIN_NEW_PASSWORD_LENGTH} placeholder="••••••••" />
             </div>
             <div>
               <label className="font-sans text-sm" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Confirm New Password</label>
-              <input type="password" name="confirmPassword" required minLength={8} placeholder="••••••••" />
+              <input type="password" name="confirmPassword" required minLength={MIN_NEW_PASSWORD_LENGTH} placeholder="••••••••" />
             </div>
 
             <button type="submit" className="btn btn-primary" style={{ marginTop: '0.5rem', width: '100%', padding: '0.75rem' }}>

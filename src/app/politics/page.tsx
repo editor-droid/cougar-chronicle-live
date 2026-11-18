@@ -4,10 +4,8 @@ import { buildSectionMetadata } from '@/lib/section-seo';
 
 export const metadata: Metadata = buildSectionMetadata('politics');
 
-export default async function PoliticsSectionPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ page?: string; sort?: string }>;
-}) {
-  return <SectionListing slug="politics" searchParams={await searchParams} />;
+export const revalidate = 120;
+
+export default async function PoliticsSectionPage() {
+  return <SectionListing slug="politics" />;
 }

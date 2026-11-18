@@ -9,7 +9,7 @@ import {
 } from '@/lib/videos';
 import Link from 'next/link';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 120;
 
 export const metadata: Metadata = {
   // Root layout template adds "| The Cougar Chronicle" — don't include it here
