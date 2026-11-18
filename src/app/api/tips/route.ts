@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
-import { rateLimit } from '@/lib/rate-limit';
+import { getClientIp, rateLimit } from '@/lib/rate-limit';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_fallback_key_so_build_does_not_crash');
 
 export async function POST(req: Request) {
   try {
-    const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
-    const { success } = rateLimit(ip, 5, 10 * 60 * 1000); // 5 tips per 10 min
+    const ip = getClientIp(req);
+    const { success } = rateLimit(`tips:${ip}`, 5, 10 * 60 * 1000); // 5 tips per 10 min
     if (!success) {
       return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
     }

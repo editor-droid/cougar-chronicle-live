@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { getArticleUrl } from '@/lib/routes';
 import prisma from '@/lib/prisma';
-import { rateLimit } from '@/lib/rate-limit';
+import { getClientIp, rateLimit } from '@/lib/rate-limit';
 import {
   getResend,
   isResendConfigured,
@@ -78,8 +78,8 @@ async function parseBody(req: Request): Promise<{
 
 export async function POST(req: Request) {
   try {
-    const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
-    const { success } = rateLimit(ip, 20, 60 * 1000);
+    const ip = getClientIp(req);
+    const { success } = rateLimit(`subscribe:${ip}`, 20, 60 * 1000);
     if (!success) {
       return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
     }

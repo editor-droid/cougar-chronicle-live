@@ -1,12 +1,14 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
-import { rateLimit } from '@/lib/rate-limit';
+import { getClientIp, rateLimit } from '@/lib/rate-limit';
+import { publicRegistrationRole } from '@/lib/roles';
+import { newPasswordError } from '@/lib/passwords';
 
 export async function POST(req: Request) {
   try {
-    const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
-    const { success } = rateLimit(ip, 3, 15 * 60 * 1000); // 3 registrations per 15 min
+    const ip = getClientIp(req);
+    const { success } = rateLimit(`register:${ip}`, 3, 15 * 60 * 1000); // 3 registrations per 15 min
     if (!success) {
       return NextResponse.json({ error: 'Too many registration attempts' }, { status: 429 });
     }
@@ -17,11 +19,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    if (typeof password === 'string' && password.length < 6) {
-      return NextResponse.json(
-        { error: 'Password must be at least 6 characters' },
-        { status: 400 }
-      );
+    const passwordError = newPasswordError(password);
+    if (passwordError) {
+      return NextResponse.json({ error: passwordError }, { status: 400 });
     }
 
     // Check if user already exists
@@ -36,8 +36,8 @@ export async function POST(req: Request) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Readers (favorites modal) → USER; legacy writer registration form → WRITER
-    const role = purpose === 'reader' ? 'USER' : 'WRITER';
+    // Public sign-up is always a reader. Admins assign WRITER / EDITOR / ADMIN.
+    const role = publicRegistrationRole(purpose);
 
     const user = await prisma.user.create({
       data: {

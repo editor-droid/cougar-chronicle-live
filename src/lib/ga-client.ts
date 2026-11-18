@@ -9,11 +9,18 @@ declare global {
   }
 }
 
-/** No-ops when gtag has not loaded yet (viral bounces, ad blockers). */
+/**
+ * Queue onto dataLayer when the gtag stub exists but gtag.js has not run yet.
+ * Ad blockers still drop the event once the real script never arrives.
+ */
 export function track(event: string, params?: GaEventParams): void {
   if (typeof window === 'undefined') return;
-  if (typeof window.gtag !== 'function') return;
-  window.gtag('event', event, params);
+  window.dataLayer = window.dataLayer || [];
+  if (typeof window.gtag === 'function') {
+    window.gtag('event', event, params);
+    return;
+  }
+  window.dataLayer.push(['event', event, params]);
 }
 
 if (typeof window !== 'undefined') {

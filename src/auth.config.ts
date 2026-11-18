@@ -1,4 +1,6 @@
 import type { NextAuthConfig } from 'next-auth';
+import { NextResponse } from 'next/server';
+import { canAccessDashboard } from '@/lib/roles';
 
 export const authConfig = {
   pages: {
@@ -10,8 +12,11 @@ export const authConfig = {
       const isDashboard = nextUrl.pathname.startsWith('/dashboard');
       
       if (isDashboard) {
-        if (isLoggedIn) return true;
-        return false; // Redirect unauthenticated users to login page
+        if (!isLoggedIn) return false; // Redirect unauthenticated users to login page
+        // Layouts do not re-run on client navigations (Next.js partial rendering),
+        // so the staff check also lives here, on every dashboard request.
+        if (canAccessDashboard(auth?.user?.role)) return true;
+        return NextResponse.redirect(new URL('/account', nextUrl));
       }
       return true;
     },

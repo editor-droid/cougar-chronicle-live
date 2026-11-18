@@ -64,8 +64,8 @@ type ListPost = {
   isPremium?: boolean;
   printEditionId?: string | null;
   imageUrl?: string | null;
-  publishedAt?: Date | null;
-  createdAt?: Date;
+  publishedAt?: Date | string | null;
+  createdAt?: Date | string;
 };
 
 export function buildSectionJsonLd(

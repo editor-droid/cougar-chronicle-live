@@ -1,10 +1,17 @@
 import Link from 'next/link';
 import { getArticleUrl } from '@/lib/routes';
-import { getMostReadPosts, type MostReadQuery } from '@/lib/most-read-query';
+import { getMostReadPosts, type MostReadPost, type MostReadQuery } from '@/lib/most-read-query';
 import { mostReadHeading, type MostReadWindow } from '@/lib/most-read';
+
+export type MostReadResult = {
+  posts: MostReadPost[];
+  window: MostReadWindow;
+};
 
 type Props = MostReadQuery & {
   variant: 'home' | 'sidebar';
+  /** Already loaded in the page's Promise.all. Skips a second read. */
+  result?: MostReadResult;
 };
 
 function heading(window: MostReadWindow, variant: Props['variant']): string {
@@ -15,8 +22,8 @@ function heading(window: MostReadWindow, variant: Props['variant']): string {
  * Sidebar and homepage trending. Uses the rolling daily list, and the
  * all-time Post.views order when the last day and week are still too thin.
  */
-export default async function MostReadList({ variant, ...query }: Props) {
-  const { posts, window } = await getMostReadPosts(query);
+export default async function MostReadList({ variant, result, ...query }: Props) {
+  const { posts, window } = result ?? (await getMostReadPosts(query));
   if (posts.length === 0) return null;
 
   const title = heading(window, variant);

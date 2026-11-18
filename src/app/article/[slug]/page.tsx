@@ -11,6 +11,7 @@ import VideoHighlights from '@/components/VideoHighlights';
 import { injectHeadingIds } from '@/lib/toc';
 import { getArticleUrl } from '@/lib/routes';
 import { findPublishedPostBySlug } from '@/lib/legacy-slugs';
+import { isPublicFreeArticle } from '@/lib/public-article';
 import { resolveStreamEmbedUrl, resolveStreamThumbnailUrl } from '@/lib/videos';
 import FavoriteButton from '@/components/FavoriteButton';
 import ShareButton from '@/components/ShareButton';
@@ -26,6 +27,15 @@ import { categoryLabel, formatLabel, getSectionPath } from '@/lib/categories';
 import SubscribeForm from '@/components/SubscribeForm';
 import ArticleViewBeacon from '@/components/ArticleViewBeacon';
 import MostReadList from '@/components/MostReadList';
+import { getMostReadPosts } from '@/lib/most-read-query';
+
+export const revalidate = 60;
+
+// Empty list: don't prerender every story at build time. The first request
+// still fills the ISR cache (see generateStaticParams docs, "all paths at runtime").
+export function generateStaticParams() {
+  return [];
+}
 
 export async function generateMetadata(
   { params }: { params: Promise<{ slug: string }> },
@@ -62,47 +72,52 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
     redirect(getArticleUrl(post));
   }
 
-  if (post.printEditionId || post.isPremium) {
+  if (!isPublicFreeArticle(post)) {
     redirect(getArticleUrl(post));
   }
 
   const hasAccess = !post.isPremium;
 
-  // Isolate flows: regular articles only link to regular articles
-  const nextPost = await prisma.post.findFirst({
-    where: { 
-      state: 'PUBLISHED', 
-      createdAt: { gt: post.createdAt },
-      printEditionId: null,
-      isPremium: false
-    },
-    orderBy: { createdAt: 'asc' }
-  });
-  
-  const prevPost = await prisma.post.findFirst({
-    where: { 
-      state: 'PUBLISHED', 
-      createdAt: { lt: post.createdAt },
-      printEditionId: null,
-      isPremium: false
-    },
-    orderBy: { createdAt: 'desc' }
-  });
-
-  const sidebarVideos = await prisma.video.findMany({
-    where: { isActive: true, showInSidebar: true },
-    orderBy: [{ sortOrder: 'asc' }, { publishedAt: 'desc' }],
-    take: 3,
-  });
-
-  const relatedPosts = await getRelatedPosts(post, 3);
+  // Isolate flows: regular articles only link to regular articles.
+  // These reads do not depend on each other. Most-read replaces the old
+  // all-time topPosts query and still runs in this same parallel batch.
+  const [nextPost, prevPost, mostRead, sidebarVideos, relatedPosts, jsonLd] = await Promise.all([
+    prisma.post.findFirst({
+      where: {
+        state: 'PUBLISHED',
+        createdAt: { gt: post.createdAt },
+        printEditionId: null,
+        isPremium: false,
+      },
+      orderBy: { createdAt: 'asc' },
+    }),
+    prisma.post.findFirst({
+      where: {
+        state: 'PUBLISHED',
+        createdAt: { lt: post.createdAt },
+        printEditionId: null,
+        isPremium: false,
+      },
+      orderBy: { createdAt: 'desc' },
+    }),
+    getMostReadPosts({
+      take: 5,
+      excludePrint: true,
+      excludeIds: [post.id],
+    }),
+    prisma.video.findMany({
+      where: { isActive: true, showInSidebar: true },
+      orderBy: [{ sortOrder: 'asc' }, { publishedAt: 'desc' }],
+      take: 3,
+    }),
+    getRelatedPosts(post, 3),
+    buildNewsArticleJsonLdWithVideos(post),
+  ]);
 
   const htmlContent = post.content
     ? enhanceArticleVideoEmbeds(injectHeadingIds(post.content))
     : '';
 
-  // NewsArticle + nested VideoObject(s) for any Stream/YouTube embeds
-  const jsonLd = await buildNewsArticleJsonLdWithVideos(post);
   const breadcrumbLd = buildArticleBreadcrumbJsonLd(post);
   const sectionPath = post.category ? getSectionPath(post.category) : '/news';
   const sectionLabel = post.category ? categoryLabel(post.category) : 'News';
@@ -195,11 +210,12 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           {post.imageUrl && (
             <figure style={{ marginBottom: '2.5rem', width: '100%' }}>
               <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', borderRadius: '0.5rem', overflow: 'hidden', backgroundColor: 'var(--surface-hover)', border: '1px solid var(--border)' }}>
-                <Image 
-                  src={rewriteMediaUrl(post.imageUrl)} 
-                  alt={post.featuredImageAlt || post.title} 
-                  fill 
-                  priority
+                <Image
+                  src={rewriteMediaUrl(post.imageUrl)}
+                  alt={post.featuredImageAlt || post.title}
+                  fill
+                  preload
+                  fetchPriority="high"
                   sizes="(max-width: 800px) 100vw, 800px"
                   style={{ objectFit: 'cover' }}
                 />
@@ -312,7 +328,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 
       {/* Sidebar */}
       <aside className="article-sidebar">
-        <MostReadList variant="sidebar" take={5} excludePrint excludeIds={[post.id]} />
+        <MostReadList variant="sidebar" result={mostRead} />
 
         {sidebarVideos.length > 0 && (
           <div style={{ marginTop: '2.5rem' }}>

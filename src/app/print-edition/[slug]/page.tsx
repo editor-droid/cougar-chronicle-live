@@ -181,8 +181,9 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
               <Image 
                 src={post.imageUrl} 
                 alt={post.featuredImageAlt || post.title} 
-                fill 
-                priority
+                fill
+                preload
+                fetchPriority="high"
                 sizes="(max-width: 800px) 100vw, 800px"
                 style={{ objectFit: 'cover' }}
               />
