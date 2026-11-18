@@ -333,9 +333,12 @@ async function mergeScoreboard(
   now: number
 ): Promise<ScoreGame[]> {
   const dates = extraDates(games, now);
+  // ESPN's default college basketball scoreboard lists only featured games;
+  // groups=50 (all of Division I) is needed to include every BYU game.
+  const all = sportPath.includes('basketball') ? 'groups=50&limit=400' : '';
   const urls = [
-    `${ESPN_SITE}/${sportPath}/scoreboard`,
-    ...dates.map((date) => `${ESPN_SITE}/${sportPath}/scoreboard?dates=${date}`),
+    `${ESPN_SITE}/${sportPath}/scoreboard${all ? `?${all}` : ''}`,
+    ...dates.map((date) => `${ESPN_SITE}/${sportPath}/scoreboard?dates=${date}${all ? `&${all}` : ''}`),
   ];
   const events: unknown[] = [];
   for (const url of urls) {
