@@ -83,11 +83,7 @@ export default function Tracking() {
 
   return (
     <>
-      {/* Global Site Tag (gtag.js) - Google Analytics */}
-      <Script
-        strategy="afterInteractive"
-        src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
-      />
+      {/* Queue stubs run early so events are not dropped. The network scripts wait for idle. */}
       <Script
         id="gtag-init"
         strategy="afterInteractive"
@@ -95,6 +91,7 @@ export default function Tracking() {
           __html: `
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
+            window.gtag = window.gtag || gtag;
             gtag('js', new Date());
             var p = window.location.pathname;
             var g = 'article';
@@ -108,25 +105,35 @@ export default function Tracking() {
           `,
         }}
       />
+      <Script
+        id="gtag-js"
+        strategy="lazyOnload"
+        src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+      />
 
-      {/* Meta Pixel Code */}
       <Script
         id="fb-pixel"
         strategy="afterInteractive"
         dangerouslySetInnerHTML={{
           __html: `
-            !function(f,b,e,v,n,t,s)
-            {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-            n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-            if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-            n.queue=[];t=b.createElement(e);t.async=!0;
-            t.src=v;s=b.getElementsByTagName(e)[0];
-            s.parentNode.insertBefore(t,s)}(window, document,'script',
-            'https://connect.facebook.net/en_US/fbevents.js');
-            fbq('init', '${FB_PIXEL_ID}');
-            fbq('track', 'PageView');
+            if (!window.fbq) {
+              var n = window.fbq = function(){n.callMethod?
+              n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+              if (!window._fbq) window._fbq = n;
+              n.push = n;
+              n.loaded = true;
+              n.version = '2.0';
+              n.queue = [];
+            }
+            window.fbq('init', '${FB_PIXEL_ID}');
+            window.fbq('track', 'PageView');
           `,
         }}
+      />
+      <Script
+        id="fb-pixel-js"
+        strategy="lazyOnload"
+        src="https://connect.facebook.net/en_US/fbevents.js"
       />
       <noscript>
         <img

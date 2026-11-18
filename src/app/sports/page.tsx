@@ -4,10 +4,8 @@ import { buildSectionMetadata } from '@/lib/section-seo';
 
 export const metadata: Metadata = buildSectionMetadata('sports');
 
-export default async function SportsSectionPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ page?: string; sort?: string }>;
-}) {
-  return <SectionListing slug="sports" searchParams={await searchParams} />;
+export const revalidate = 120;
+
+export default async function SportsSectionPage() {
+  return <SectionListing slug="sports" />;
 }

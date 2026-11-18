@@ -4,6 +4,7 @@ import { broadcastPostPublication } from '@/lib/publish-utils';
 import { syncArticleVideosToLibrary } from '@/lib/article-videos';
 import { runDeskReminders } from '@/lib/desk-reminders';
 import { wasPublishedBefore } from '@/lib/desk-plan';
+import { revalidateStorySurfaces } from '@/lib/revalidate-content';
 
 export const dynamic = 'force-dynamic';
 
@@ -67,7 +68,8 @@ export async function GET(request: Request) {
       if (!wasPublishedBefore(post.deskNotices)) {
         await broadcastPostPublication(post);
       }
-      
+
+      revalidateStorySurfaces(post);
       publishedCount++;
     }
 
