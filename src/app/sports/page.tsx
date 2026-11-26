@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import SectionListing from '@/components/SectionListing';
 import ByuScoresWidget from '@/components/ByuScoresWidget';
 import GameDayAlerts from '@/components/sports/GameDayAlerts';
-import SportsScoreboard from '@/components/sports/Scoreboard';
+import TeamButtons from '@/components/sports/TeamButtons';
 import { buildSectionMetadata } from '@/lib/section-seo';
 
 export const metadata: Metadata = buildSectionMetadata('sports');
@@ -14,12 +14,8 @@ export default async function SportsSectionPage() {
     <SectionListing
       slug="sports"
       rail={<ByuScoresWidget />}
-      lead={(
-        <>
-          <SportsScoreboard />
-          <GameDayAlerts />
-        </>
-      )}
+      lead={<TeamButtons />}
+      footer={<GameDayAlerts />}
     />
   );
 }
