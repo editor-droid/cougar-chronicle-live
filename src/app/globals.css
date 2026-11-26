@@ -2586,3 +2586,15 @@ a.byu-scores__live:hover {
   border-color: var(--primary);
   color: var(--primary);
 }
+
+.sports-sport__more {
+  margin: 0.5rem 0 0;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.sports-sport__more a {
+  color: var(--primary);
+  text-decoration: none;
+}
