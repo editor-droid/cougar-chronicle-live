@@ -8,9 +8,11 @@ import SectionListingView from '@/components/SectionListingView';
 export default async function SectionListing({
   slug,
   rail,
+  lead,
 }: {
   slug: PublicSectionSlug;
   rail?: ReactNode;
+  lead?: ReactNode;
 }) {
   const section = getSection(slug);
   if (!section) notFound();
@@ -25,6 +27,7 @@ export default async function SectionListing({
       initialJsonLd={jsonLd}
       section={{ label: section.label, description: section.description }}
       rail={rail}
+      lead={lead}
     />
   );
 }

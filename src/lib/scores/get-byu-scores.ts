@@ -160,6 +160,7 @@ async function loadFootball(now: number): Promise<{ block: SportScores | null; s
 
     let record: string | null = null;
     let standing: string | null = null;
+    let seasonYear: number | null = footballSeasonYear(new Date(now));
     try {
       const schedule = await espnJson(
         `${ESPN_SITE}/${FOOTBALL_PATH}/teams/${BYU_TEAM_ID}/schedule`,
@@ -169,6 +170,7 @@ async function loadFootball(now: number): Promise<{ block: SportScores | null; s
       if (parsed.success) {
         record = blankToNull(parsed.data.team?.recordSummary);
         standing = blankToNull(parsed.data.team?.standingSummary);
+        seasonYear = parsed.data.season?.year ?? seasonYear;
         games = overlaySite(games, parsed.data.events ?? [], BYU_TEAM_ID);
       }
     } catch {
@@ -183,6 +185,7 @@ async function loadFootball(now: number): Promise<{ block: SportScores | null; s
       record,
       standing,
       scheduleUrl: SCHEDULE_URL.football,
+      seasonYear,
     });
     return { block, stale: ctx.stale };
   } catch (error) {
@@ -206,6 +209,7 @@ async function loadScheduleSport(
     let games: ScoreGame[] = [];
     let record: string | null = null;
     let standing: string | null = null;
+    let seasonYear: number | null = null;
     const schedule = await espnJson(
       `${ESPN_SITE}/${spec.path}/teams/${spec.teamId}/schedule`,
       ctx
@@ -214,6 +218,7 @@ async function loadScheduleSport(
     if (parsed.success) {
       record = blankToNull(parsed.data.team?.recordSummary);
       standing = blankToNull(parsed.data.team?.standingSummary);
+      seasonYear = parsed.data.season?.year ?? null;
       games = overlaySite([], parsed.data.events ?? [], spec.teamId);
     }
     games = await mergeScoreboard(games, spec.path, spec.teamId, ctx, now);
@@ -224,6 +229,7 @@ async function loadScheduleSport(
       record,
       standing,
       scheduleUrl: spec.scheduleUrl,
+      seasonYear,
     });
     return { block, stale: ctx.stale };
   } catch (error) {

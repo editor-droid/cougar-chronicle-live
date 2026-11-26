@@ -26,6 +26,7 @@ import { buildArticleBreadcrumbJsonLd } from '@/lib/section-seo';
 import { categoryLabel, formatLabel, getSectionPath } from '@/lib/categories';
 import SubscribeForm from '@/components/SubscribeForm';
 import ByuScoresWidget from '@/components/ByuScoresWidget';
+import ArticleGameLink from '@/components/sports/ArticleGameLink';
 import ArticleViewBeacon from '@/components/ArticleViewBeacon';
 import MostReadList from '@/components/MostReadList';
 import { getMostReadPosts } from '@/lib/most-read-query';
@@ -186,6 +187,12 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
             <h1 className="font-serif article-headline">
               {post.title}
             </h1>
+            {post.category === 'sports' ? (
+              <ArticleGameLink
+                title={post.title}
+                publishedAt={post.publishedAt ? new Date(post.publishedAt).toISOString() : null}
+              />
+            ) : null}
             
             <div className="font-sans text-sm text-muted" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
               <ArticleByline

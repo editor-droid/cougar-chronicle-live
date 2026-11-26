@@ -66,12 +66,14 @@ export default function SectionListingView({
   initialJsonLd,
   section,
   rail,
+  lead,
 }: {
   slug: PublicSectionSlug;
   initial: SectionPageData;
   initialJsonLd: ReturnType<typeof buildSectionJsonLd>;
   section: SectionMeta;
   rail?: ReactNode;
+  lead?: ReactNode;
 }) {
   const [override, setOverride] = useState<SectionPageData | null>(null);
   const data = override ?? initial;
@@ -160,6 +162,8 @@ export default function SectionListingView({
           </Link>
         </div>
       </header>
+
+      {lead}
 
       {data.posts.length === 0 ? (
         <p className="text-center text-muted font-sans">No articles published in this section yet.</p>

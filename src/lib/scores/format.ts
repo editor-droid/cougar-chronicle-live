@@ -30,6 +30,18 @@ export function formatDenver(iso: string): { date: string; time: string } {
   return { date, time };
 }
 
+/** "Nov 22, 2026" in America/Denver. Used in titles; the layout template adds the site name. */
+export function formatSeoDate(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return 'TBD';
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone: DENVER,
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(d);
+}
+
 export function denverYmd(iso: string): string | null {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return null;

@@ -21,13 +21,20 @@ export function toHttps(url: string): string {
  * User-Agent plus Origin/Referer. The last good body for each URL stays in
  * memory and is returned with `ctx.stale` if ESPN fails.
  */
-export async function espnJson(url: string, ctx: FetchCtx): Promise<unknown> {
+export async function espnJson(
+  url: string,
+  ctx: FetchCtx,
+  options?: { store?: boolean },
+): Promise<unknown> {
   const href = toHttps(url);
+  const store = options?.store !== false;
   try {
     const response = await fetch(href, {
       headers: ESPN_HEADERS,
       signal: AbortSignal.timeout(8000),
-      next: { revalidate: HOT_REVALIDATE_SECONDS, tags: ['byu-scores'] },
+      ...(store
+        ? { next: { revalidate: HOT_REVALIDATE_SECONDS, tags: ['byu-scores'] } }
+        : { cache: 'no-store' as const }),
     });
     if (!response.ok) throw new Error(`ESPN ${response.status}`);
     const body: unknown = await response.json();

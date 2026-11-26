@@ -93,6 +93,9 @@ export const eventsIndexSchema = z.object({
 }).passthrough();
 
 export const scheduleDocumentSchema = z.object({
+  season: z.object({
+    year: z.number().optional(),
+  }).passthrough().optional(),
   team: z.object({
     recordSummary: z.string().nullable().optional(),
     standingSummary: z.string().nullable().optional(),

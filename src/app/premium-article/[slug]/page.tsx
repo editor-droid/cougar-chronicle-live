@@ -11,6 +11,7 @@ import ArticleDonateBlocks from '@/components/ArticleDonateBlocks';
 import KeyTakeaways from '@/components/KeyTakeaways';
 import ShareButton from '@/components/ShareButton';
 import ByuScoresWidget from '@/components/ByuScoresWidget';
+import ArticleGameLink from '@/components/sports/ArticleGameLink';
 import RelatedStories from '@/components/RelatedStories';
 import GiftSaveBanner from '@/components/GiftSaveBanner';
 import { getRelatedPosts } from '@/lib/related';
@@ -167,6 +168,12 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
             <h1 className="font-serif article-headline">
               {post.title}
             </h1>
+            {post.category === 'sports' ? (
+              <ArticleGameLink
+                title={post.title}
+                publishedAt={post.publishedAt ? new Date(post.publishedAt).toISOString() : null}
+              />
+            ) : null}
             
             <div className="font-sans text-sm text-muted" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
               <ArticleByline
