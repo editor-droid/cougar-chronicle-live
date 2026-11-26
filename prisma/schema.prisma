@@ -426,3 +426,53 @@ model PreviewToken {
   @@index([postId, createdAt])
   @@index([expiresAt])
 }
+
+/// Confirmed addresses for game-day alerts. Separate from Subscriber (the newsletter).
+model SportsAlertEmail {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  confirmedAt    DateTime?
+  unsubscribedAt DateTime?
+  createdAt      DateTime  @default(now())
+  sports         SportsAlertEmailSport[]
+}
+
+model SportsAlertEmailSport {
+  emailId String
+  sport   String
+  email   SportsAlertEmail @relation(fields: [emailId], references: [id], onDelete: Cascade)
+
+  @@id([emailId, sport])
+}
+
+/// Browser push endpoints for game-day alerts. Separate from PushSubscription.
+model SportsAlertPush {
+  id        String   @id @default(cuid())
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+  sports    SportsAlertPushSport[]
+}
+
+model SportsAlertPushSport {
+  pushId String
+  sport  String
+  push   SportsAlertPush @relation(fields: [pushId], references: [id], onDelete: Cascade)
+
+  @@id([pushId, sport])
+}
+
+/// One row per recipient per event per kind, so a cron retry does not send twice.
+model SportsAlertSend {
+  id          String   @id @default(cuid())
+  eventId     String
+  sport       String
+  kind        String
+  channel     String
+  recipientId String
+  sentAt      DateTime @default(now())
+
+  @@unique([eventId, kind, channel, recipientId])
+  @@index([eventId, kind])
+}
