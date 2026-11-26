@@ -60,6 +60,7 @@ describe('game summary parser', () => {
         }],
       },
       gameInfo: { attendance: 52901 },
+      pickcenter: [{ details: 'UTAH -4', overUnder: 49.5, provider: { name: 'DraftKings' } }],
       boxscore: {
         teams: [
           {
@@ -118,6 +119,8 @@ describe('game summary parser', () => {
     assert.equal(summary.byuRecord, '7-2');
     assert.equal(summary.opponentRecord, '9-0');
     assert.equal(summary.attendance, 52901);
+    assert.equal(summary.line, 'UTAH -4');
+    assert.equal(summary.overUnder, 49.5);
     assert.deepEqual(summary.linescores.map((row) => row.label), ['Q1', 'Q2', 'Q3', 'Q4']);
     assert.equal(summary.linescores[1].byu, '10');
     assert.deepEqual(summary.teamStats.map((row) => row.label), ['1st Downs', 'Total Yards']);
@@ -171,6 +174,36 @@ describe('game summary parser', () => {
     assert.deepEqual(summary.performers, []);
     assert.equal(summary.byuRecord, null);
     assert.equal(summary.attendance, null);
+    assert.equal(summary.line, null);
+    assert.equal(summary.overUnder, null);
+  });
+
+  it('reads the line and over/under from pickcenter and ignores the provider', () => {
+    const summary = parseGameSummary({
+      header: {
+        id: '401856876',
+        competitions: [{
+          competitors: [
+            {
+              id: '252',
+              homeAway: 'home',
+              team: { id: '252', abbreviation: 'BYU', shortDisplayName: 'BYU' },
+            },
+            {
+              id: '2132',
+              homeAway: 'away',
+              team: { id: '2132', abbreviation: 'CIN', shortDisplayName: 'Cincinnati' },
+            },
+          ],
+          status: { type: { state: 'pre', completed: false, shortDetail: 'Sat 3:30 PM' } },
+        }],
+      },
+      pickcenter: [{ details: 'BYU -15.5', overUnder: '56.5', provider: { name: 'DraftKings' } }],
+    }, { teamId: '252', eventDate: '2026-11-28T20:30:00Z', sport: 'football' });
+
+    assert.ok(summary);
+    assert.equal(summary.line, 'BYU -15.5');
+    assert.equal(summary.overUnder, 56.5);
   });
 
   it('returns null when the summary has no usable header', () => {

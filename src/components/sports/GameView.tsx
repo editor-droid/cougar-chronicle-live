@@ -46,6 +46,8 @@ export default function GameView({ page, stories }: { page: GamePageData; storie
         <dl className="game-facts">
           <Fact label="When" value={when.date === 'TBD' ? null : `${when.date}${when.time ? ` · ${when.time}` : ''}`} />
           <Fact label="TV" value={game.tv} />
+          <Fact label="Line" value={summary?.line ?? null} />
+          <Fact label="Over/under" value={summary?.overUnder != null ? String(summary.overUnder) : null} />
           <Fact label="Venue" value={game.venue} />
           <Fact label="BYU" value={byuRecord} />
           <Fact label={game.opponent} value={opponentRecord} />

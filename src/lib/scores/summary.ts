@@ -54,6 +54,10 @@ const summarySchema = z.object({
     attendance: z.number().optional(),
     venue: z.object({ fullName: z.string().optional() }).passthrough().optional(),
   }).passthrough().optional(),
+  pickcenter: z.array(z.object({
+    details: z.string().optional(),
+    overUnder: z.union([z.number(), z.string()]).optional(),
+  }).passthrough()).optional(),
 }).passthrough();
 
 const headerSchema = z.object({
@@ -84,6 +88,8 @@ export type GameSummary = {
   byuRecord: string | null;
   opponentRecord: string | null;
   attendance: number | null;
+  line: string | null;
+  overUnder: number | null;
   linescores: LinescoreRow[];
   teamStats: StatRow[];
   box: BoxSide[];
@@ -129,6 +135,21 @@ function filled(value: string | undefined | null): string | null {
   if (typeof value !== 'string') return null;
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : null;
+}
+
+function pickcenterLine(
+  pickcenter: { details?: string; overUnder?: number | string }[] | undefined,
+): { line: string | null; overUnder: number | null } {
+  const first = pickcenter?.[0];
+  if (!first) return { line: null, overUnder: null };
+  const raw = first.overUnder;
+  let overUnder: number | null = null;
+  if (typeof raw === 'number' && Number.isFinite(raw)) overUnder = raw;
+  else if (typeof raw === 'string') {
+    const parsed = Number(raw);
+    if (Number.isFinite(parsed)) overUnder = parsed;
+  }
+  return { line: filled(first.details), overUnder };
 }
 
 function teamIdOf(competitor: { id: string; team?: { id?: string } }): string {
@@ -294,11 +315,14 @@ export function parseGameSummary(
   const usTeam = teams.find((team) => team.team?.id === options.teamId);
   const themTeam = teams.find((team) => team !== usTeam);
   const attendance = parsed.data.gameInfo?.attendance;
+  const { line, overUnder } = pickcenterLine(parsed.data.pickcenter);
   return {
     game,
     byuRecord,
     opponentRecord,
     attendance: typeof attendance === 'number' && attendance > 0 ? Math.round(attendance) : null,
+    line,
+    overUnder,
     linescores,
     teamStats: statRows(options.sport, usTeam, themTeam),
     box: boxSides(parsed.data.boxscore?.players, options.teamId),
