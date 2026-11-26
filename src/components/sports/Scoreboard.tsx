@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { getByuScores } from '@/lib/scores/get-byu-scores';
 import { formatDenver, formatLiveStatus, formatPlace, formatResult } from '@/lib/scores/format';
 import { gameHref, SPORT_SPECS, teamHref } from '@/lib/scores/paths';
+import { getStandings } from '@/lib/scores/page-data';
+import type { ConferenceTable } from '@/lib/scores/standings';
 import type { ScoreGame, SportKey, SportScores } from '@/lib/scores/types';
 
 function sportList(payload: {
@@ -26,6 +28,7 @@ export default async function SportsScoreboard() {
   if (sports.length === 0) {
     return <p className="sports-note">Scores are temporarily unavailable.</p>;
   }
+  const tables = await Promise.all(sports.map((sport) => getStandings(sport.key)));
   const live = sports.flatMap((sport) => (sport.live ? [{ sport, game: sport.live }] : []));
 
   return (
@@ -52,8 +55,8 @@ export default async function SportsScoreboard() {
         </div>
       ) : null}
 
-      {sports.map((sport) => (
-        <SportBlock key={sport.key} sport={sport} />
+      {sports.map((sport, index) => (
+        <SportBlock key={sport.key} sport={sport} table={tables[index] ?? null} />
       ))}
 
       <p className="sports-note">
@@ -63,9 +66,10 @@ export default async function SportsScoreboard() {
   );
 }
 
-function SportBlock({ sport }: { sport: SportScores }) {
+function SportBlock({ sport, table }: { sport: SportScores; table: ConferenceTable | null }) {
+  const finals = sport.games.filter((game) => game.state === 'post').slice(-4).reverse();
+  const upcoming = sport.games.filter((game) => game.state === 'pre').slice(0, 4);
   const meta = [sport.record, sport.standing].filter(Boolean).join(' · ');
-  const last = sport.live ? null : sport.last;
 
   return (
     <article className="sports-sport">
@@ -77,15 +81,17 @@ function SportBlock({ sport }: { sport: SportScores }) {
       </header>
       <ul className="sports-games">
         {sport.live ? <GameItem sport={sport.key} game={sport.live} kind="Live" /> : null}
-        {last ? <GameItem sport={sport.key} game={last} kind="Last game" /> : null}
-        {sport.next ? <GameItem sport={sport.key} game={sport.next} kind="Next game" /> : null}
-        {!sport.live && !last && !sport.next ? (
+        {finals.map((game) => (
+          <GameItem key={game.id} sport={sport.key} game={game} kind="Final" />
+        ))}
+        {upcoming.map((game) => (
+          <GameItem key={game.id} sport={sport.key} game={game} kind="Upcoming" />
+        ))}
+        {finals.length === 0 && upcoming.length === 0 && !sport.live ? (
           <li className="sports-note">No games on the schedule.</li>
         ) : null}
       </ul>
-      <p className="sports-sport__more">
-        <Link href={teamHref(sport.key)}>Full schedule, stats &amp; standings →</Link>
-      </p>
+      {table && table.rows.length > 0 ? <Standings table={table} /> : null}
     </article>
   );
 }
@@ -107,5 +113,35 @@ function GameItem({ sport, game, kind }: { sport: SportKey; game: ScoreGame; kin
         </span>
       </Link>
     </li>
+  );
+}
+
+function Standings({ table }: { table: ConferenceTable }) {
+  return (
+    <div className="sports-table-wrap">
+      <table className="sports-table">
+        <caption>{table.name}</caption>
+        <thead>
+          <tr>
+            <th scope="col">Team</th>
+            <th scope="col">Conf</th>
+            <th scope="col">Overall</th>
+            <th scope="col">GB</th>
+            <th scope="col">Streak</th>
+          </tr>
+        </thead>
+        <tbody>
+          {table.rows.map((row) => (
+            <tr key={row.teamId} className={row.byu ? 'is-byu' : undefined}>
+              <th scope="row">{row.team}</th>
+              <td>{row.conference ?? ''}</td>
+              <td>{row.overall ?? ''}</td>
+              <td>{row.gamesBehind ?? ''}</td>
+              <td>{row.streak ?? ''}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
