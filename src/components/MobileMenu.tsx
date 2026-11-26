@@ -82,6 +82,12 @@ export default function MobileMenu() {
                 <Link href="/family" className="mobile-nav-link font-sans">Family</Link>
                 <Link href="/faith" className="mobile-nav-link font-sans">Faith</Link>
                 <Link href="/sports" className="mobile-nav-link font-sans">Sports</Link>
+                <div className="mobile-nav-sub">
+                  <Link href="/sports/football" className="mobile-nav-sublink font-sans">Football</Link>
+                  <Link href="/sports/mens-basketball" className="mobile-nav-sublink font-sans">Men&apos;s Basketball</Link>
+                  <Link href="/sports/womens-basketball" className="mobile-nav-sublink font-sans">Women&apos;s Basketball</Link>
+                  <Link href="/sports/womens-soccer" className="mobile-nav-sublink font-sans">Women&apos;s Soccer</Link>
+                </div>
                 <Link href="/print-edition" className="mobile-nav-link font-sans">Print</Link>
                 <Link href="/about" className="mobile-nav-link font-sans">About</Link>
                 <Link href="/contact" className="mobile-nav-link font-sans">Contact</Link>
