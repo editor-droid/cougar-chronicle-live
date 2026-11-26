@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import GameDayAlerts from '@/components/sports/GameDayAlerts';
 import TeamView from '@/components/sports/TeamView';
 import { getByuScores } from '@/lib/scores/get-byu-scores';
 import { getSeasonSnapshot, getStandings, sportBlock } from '@/lib/scores/page-data';
@@ -54,6 +55,7 @@ export default async function TeamPage({ params }: { params: Promise<{ sport: st
   return (
     <div className="container" style={{ marginTop: '2rem', marginBottom: '3rem' }}>
       <TeamView sport={block} table={table} season={season} stories={stories} />
+      <GameDayAlerts sport={sport} />
     </div>
   );
 }

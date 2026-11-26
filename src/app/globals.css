@@ -2476,3 +2476,75 @@ a.byu-scores__live:hover {
   font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 0.9rem;
 }
+
+.sports-alerts {
+  margin-top: 1.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.sports-alerts h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1.45rem;
+}
+
+.sports-alerts__sports {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 1rem;
+  margin: 0.8rem 0;
+  padding: 0;
+  border: 0;
+}
+
+.sports-alerts__sports legend {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.35rem;
+}
+
+.sports-alerts__sports label,
+.sports-alerts__row {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.9rem;
+}
+
+.sports-alerts__sports input {
+  accent-color: var(--primary);
+}
+
+.sports-alerts__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.sports-alerts input[type="email"] {
+  flex: 1 1 14rem;
+  min-width: 0;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 0.25rem;
+  font: inherit;
+  background: #fff;
+}
+
+.sports-alerts button {
+  background: var(--primary);
+  color: #fff;
+  border: 1px solid var(--primary);
+  border-radius: 0.25rem;
+  padding: 0.5rem 0.85rem;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sports-alerts button:disabled {
+  opacity: 0.7;
+  cursor: default;
+}

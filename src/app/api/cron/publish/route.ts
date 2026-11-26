@@ -6,6 +6,7 @@ import { runDeskReminders } from '@/lib/desk-reminders';
 import { wasPublishedBefore } from '@/lib/desk-plan';
 import { revalidateStorySurfaces } from '@/lib/revalidate-content';
 import { isCronAuthorized } from '@/lib/cron-auth';
+import { runGameDayAlerts } from '@/lib/scores/alerts-run';
 import { createFinalRecapDrafts } from '@/lib/scores/recap-run';
 
 export const dynamic = 'force-dynamic';
@@ -42,11 +43,16 @@ export async function GET(request: Request) {
         console.error('Recap drafts failed during publish cron', error);
         return null;
       });
+      const alerts = await runGameDayAlerts(now.getTime()).catch((error) => {
+        console.error('Game-day alerts failed during publish cron', error);
+        return null;
+      });
       return NextResponse.json({
         success: true,
         message: 'No posts to publish at this time.',
         desk,
         recaps,
+        alerts,
       });
     }
 
@@ -86,12 +92,17 @@ export async function GET(request: Request) {
       console.error('Recap drafts failed after publish cron', error);
       return null;
     });
+    const alerts = await runGameDayAlerts(now.getTime()).catch((error) => {
+      console.error('Game-day alerts failed after publish cron', error);
+      return null;
+    });
 
     return NextResponse.json({ 
       success: true, 
       message: `Successfully published ${publishedCount} scheduled post(s).`,
       desk,
       recaps,
+      alerts,
     });
   } catch (error) {
     console.error('Failed to run scheduled publish cron:', error);
