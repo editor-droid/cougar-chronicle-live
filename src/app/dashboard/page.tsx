@@ -8,6 +8,7 @@ import DashboardHeader from '@/components/DashboardHeader';
 import DraftAssignment from './DraftAssignment';
 import UnpublishButton from './UnpublishButton';
 import { DeskStaffProvider, type DeskPerson } from './DeskStaff';
+import SportsDesk from './SportsDesk';
 
 function formatDeskDate(value: Date | null | undefined): string {
   if (!value) return '';
@@ -125,6 +126,7 @@ export default async function DashboardPage(props: {
   return (
     <div className="container animate-fade-in" style={{ marginTop: '1rem', marginBottom: '3rem' }}>
       <DashboardHeader currentTab="posts" />
+      <SportsDesk />
 
       <DeskStaffProvider writers={deskWriters} editors={deskEditors}>
       {isEditorOrAdmin && needsReviewPosts.length > 0 && (

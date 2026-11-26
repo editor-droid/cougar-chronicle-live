@@ -278,6 +278,12 @@ ${cleanContent}`,
   revalidateStorySurfaces(post);
 }
 
+function cleanEspnEventId(value: unknown): string | null {
+  if (value == null) return null;
+  const id = String(value).trim();
+  return /^\d{5,12}$/.test(id) ? id : null;
+}
+
 async function ensureUniqueSlug(desired: string, excludeId?: string): Promise<string> {
   // Caller already auto-slugified or sanitized — never re-drop stop words here
   // (that would rewrite intentional editor slugs on every save).
@@ -383,7 +389,8 @@ export async function savePost(
               ? data.editorChecklist
               : JSON.stringify(data.editorChecklist ?? {}),
         }),
-        ...(data.publishedAt !== undefined && { publishedAt: data.publishedAt ? new Date(data.publishedAt) : null })
+        ...(data.publishedAt !== undefined && { publishedAt: data.publishedAt ? new Date(data.publishedAt) : null }),
+        ...(data.espnEventId !== undefined && { espnEventId: cleanEspnEventId(data.espnEventId) }),
       }
     });
     await maybeSyncArticleVideos(updated);
@@ -461,7 +468,8 @@ export async function savePost(
             : data.editorChecklist
               ? JSON.stringify(data.editorChecklist)
               : null,
-        ...(data.publishedAt && { publishedAt: new Date(data.publishedAt) })
+        ...(data.publishedAt && { publishedAt: new Date(data.publishedAt) }),
+        ...(data.espnEventId !== undefined && { espnEventId: cleanEspnEventId(data.espnEventId) }),
       }
     });
     saved = { id: created.id, updatedAt: created.updatedAt };

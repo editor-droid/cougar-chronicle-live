@@ -3,6 +3,9 @@ import { redirect } from 'next/navigation';
 import prisma from '@/lib/prisma';
 import EditorForm from './EditorForm';
 import { recordEditorOpened } from '@/lib/desk-reminders';
+import { editorGameOptions } from '@/lib/scores/coverage';
+import { getByuScores } from '@/lib/scores/get-byu-scores';
+import { listGames } from '@/lib/scores/stories';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -71,6 +74,14 @@ export default async function EditorPage({ params }: { params: Promise<{ id: str
     select: { id: true, title: true, isActive: true },
   });
 
+  let gameOptions: { id: string; label: string }[] = [];
+  try {
+    const scores = await getByuScores();
+    if (scores) gameOptions = editorGameOptions(listGames(scores), Date.now());
+  } catch (error) {
+    console.error('[editor] games', error instanceof Error ? error.message : 'error');
+  }
+
   return (
     <div className="container editor-full-width animate-fade-in" style={{ marginTop: '2rem' }}>
       <EditorForm 
@@ -81,6 +92,7 @@ export default async function EditorPage({ params }: { params: Promise<{ id: str
         customAuthorsList={customAuthorsList}
         printEditions={printEditions}
         isNew={id === 'new'}
+        gameOptions={gameOptions}
       />
     </div>
   );

@@ -93,6 +93,10 @@ model Post {
   targetPublishDate DateTime?
   /// JSON list of reminder keys already sent, so each nudge happens once.
   deskNotices       String?         @db.Text
+  /// ESPN event chosen in the editor. Null matches a game by date and opponent.
+  espnEventId       String?
+  /// Set only on the automatic recap draft. Unique so the cron cannot insert two.
+  autoRecapEventId  String?         @unique
   printEditionId    String?
   printEditionOrder Int?
   imageCaption      String?
@@ -110,6 +114,7 @@ model Post {
   @@index([category, format])
   @@index([assignedWriterId])
   @@index([assignedEditorId])
+  @@index([espnEventId])
 }
 
 model ArticleToken {
