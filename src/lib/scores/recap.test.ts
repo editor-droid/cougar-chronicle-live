@@ -61,6 +61,8 @@ describe('recap starter', () => {
       byuRecord: '7-2',
       opponentRecord: '9-0',
       attendance: null,
+      line: null,
+      overUnder: null,
       linescores: [],
       teamStats: [{ label: 'Total Yards', byu: '391', opponent: '330' }],
       box: [],
