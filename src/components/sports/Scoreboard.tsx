@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { getByuScores } from '@/lib/scores/get-byu-scores';
 import { formatDenver, formatLiveStatus, formatPlace, formatResult } from '@/lib/scores/format';
-import { gameHref, teamHref } from '@/lib/scores/paths';
+import { gameHref, SPORT_SPECS, teamHref } from '@/lib/scores/paths';
 import { getStandings } from '@/lib/scores/page-data';
 import type { ConferenceTable } from '@/lib/scores/standings';
 import type { ScoreGame, SportKey, SportScores } from '@/lib/scores/types';
@@ -12,9 +12,11 @@ function sportList(payload: {
   womensBasketball: SportScores | null;
   soccer: SportScores | null;
 }): SportScores[] {
-  return [payload.football, payload.basketball, payload.womensBasketball, payload.soccer].filter(
-    (sport): sport is SportScores => sport != null,
-  );
+  const rank = (sport: SportScores) =>
+    sport.live ? 0 : sport.next ? Date.parse(sport.next.start) || Infinity : Infinity;
+  return [payload.football, payload.basketball, payload.womensBasketball, payload.soccer]
+    .filter((sport): sport is SportScores => sport != null)
+    .sort((a, b) => rank(a) - rank(b));
 }
 
 export default async function SportsScoreboard() {
@@ -31,6 +33,13 @@ export default async function SportsScoreboard() {
 
   return (
     <section className="sports-board" aria-label="BYU scoreboard">
+      <nav className="sports-teams" aria-label="Teams">
+        {Object.values(SPORT_SPECS).map((spec) => (
+          <Link key={spec.key} href={teamHref(spec.key)} className="sports-teams__link">
+            {spec.label}
+          </Link>
+        ))}
+      </nav>
       {live.length > 0 ? (
         <div className="sports-live-list">
           {live.map(({ sport, game }) => (

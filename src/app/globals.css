@@ -820,6 +820,22 @@ body:has([data-link-hub-page]) .site-shell > main.container {
     color: var(--primary);
   }
 
+  .mobile-nav-sub {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    margin-top: -0.75rem;
+    padding-left: 1rem;
+    border-left: 2px solid var(--border, #ddd);
+  }
+
+  .mobile-nav-sublink {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--foreground);
+    text-decoration: none;
+  }
+
   .support-buttons-container { flex-direction: column !important; width: 100%; }
   .support-buttons-container .btn { width: 100%; text-align: center; justify-content: center; }
 
@@ -2547,4 +2563,26 @@ a.byu-scores__live:hover {
 .sports-alerts button:disabled {
   opacity: 0.7;
   cursor: default;
+}
+
+.sports-teams {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.sports-teams__link {
+  padding: 0.45rem 0.85rem;
+  border: 1px solid var(--border, #ddd);
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--foreground);
+  text-decoration: none;
+}
+
+.sports-teams__link:hover {
+  border-color: var(--primary);
+  color: var(--primary);
 }
