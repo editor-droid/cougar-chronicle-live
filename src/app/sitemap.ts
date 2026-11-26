@@ -2,6 +2,9 @@ import { MetadataRoute } from 'next';
 import prisma from '@/lib/prisma';
 import { PUBLIC_SECTIONS, getSectionPath } from '@/lib/categories';
 import { getArticleUrl } from '@/lib/routes';
+import { getByuScores } from '@/lib/scores/get-byu-scores';
+import { gameHref, SPORT_SPECS, teamHref } from '@/lib/scores/paths';
+import type { SportKey, SportScores } from '@/lib/scores/types';
 
 export const revalidate = 3600; // Cache for 1 hour
 
@@ -76,5 +79,43 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       : {}),
   }));
 
-  return [...staticRoutes, ...categoryRoutes, ...postRoutes, ...videoRoutes];
+  const sportsRoutes = await sportsSitemapEntries(baseUrl);
+
+  return [...staticRoutes, ...categoryRoutes, ...sportsRoutes, ...postRoutes, ...videoRoutes];
+}
+
+async function sportsSitemapEntries(baseUrl: string): Promise<MetadataRoute.Sitemap> {
+  const keys = Object.keys(SPORT_SPECS) as SportKey[];
+  const routes: MetadataRoute.Sitemap = keys.map((sport) => ({
+    url: `${baseUrl}${teamHref(sport)}`,
+    lastModified: new Date(),
+    changeFrequency: 'daily',
+    priority: 0.7,
+  }));
+
+  try {
+    const payload = await getByuScores();
+    if (!payload) return routes;
+    const blocks: Array<SportScores | null> = [
+      payload.football,
+      payload.basketball,
+      payload.womensBasketball,
+      payload.soccer,
+    ];
+    for (const block of blocks) {
+      if (!block) continue;
+      for (const game of block.games ?? []) {
+        routes.push({
+          url: `${baseUrl}${gameHref(block.key, game.id)}`,
+          lastModified: new Date(game.start),
+          changeFrequency: game.state === 'post' ? 'weekly' : 'hourly',
+          priority: game.state === 'in' ? 0.8 : 0.6,
+        });
+      }
+    }
+  } catch (error) {
+    console.error('[sitemap] sports', error instanceof Error ? error.message : 'error');
+  }
+
+  return routes;
 }

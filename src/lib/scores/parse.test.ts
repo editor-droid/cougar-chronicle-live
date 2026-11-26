@@ -170,7 +170,7 @@ describe('ESPN score parsers', () => {
       scheduleUrl: SCHEDULE_URL['womens-soccer'],
     });
     assert.ok(sport);
-    assert.equal(sport.record, null);
+    assert.equal(sport.record, '1-1-1');
     assert.equal(sport.next, null);
     assert.equal(sport.last?.opponent, 'Baylor');
     assert.equal(sport.last?.opponentRank, 7);

@@ -1,8 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { preferredSport } from '@/lib/scores/assemble';
 import { formatDenver, formatLiveStatus, formatPlace, formatResult } from '@/lib/scores/format';
+import { gameHref, teamHref } from '@/lib/scores/paths';
 import type { ByuScoresPayload, ScoreGame, SportKey, SportScores } from '@/lib/scores/types';
 
 type ScoresResponse = { show: true } & ByuScoresPayload;
@@ -131,9 +133,9 @@ function ScoresCard({ data }: { data: ScoresResponse }) {
 
       {sport.live ? <LiveLine game={sport.live} sport={sport.key} /> : null}
       {sport.last ? (
-        <GameRow label="Last" game={sport.last} detail={formatResult(sport.last)} />
+        <GameRow sport={sport.key} label="Last" game={sport.last} detail={formatResult(sport.last)} />
       ) : null}
-      {sport.next ? <NextRow game={sport.next} /> : null}
+      {sport.next ? <NextRow sport={sport.key} game={sport.next} /> : null}
       {!sport.last && !sport.next && !sport.live ? (
         <p className="byu-scores__empty">No games on the schedule.</p>
       ) : null}
@@ -149,11 +151,13 @@ function ScoresCard({ data }: { data: ScoresResponse }) {
               const when = formatDenver(game.start);
               return (
                 <li key={game.id}>
-                  <span>{formatPlace(game)}</span>
-                  <span className="byu-scores__when">
-                    {when.date} · {when.time}
-                    {game.tv ? ` · ${game.tv}` : ''}
-                  </span>
+                  <Link href={gameHref(sport.key, game.id)}>
+                    <span>{formatPlace(game)}</span>
+                    <span className="byu-scores__when">
+                      {when.date} · {when.time}
+                      {game.tv ? ` · ${game.tv}` : ''}
+                    </span>
+                  </Link>
                 </li>
               );
             })}
@@ -162,11 +166,12 @@ function ScoresCard({ data }: { data: ScoresResponse }) {
           <p className="byu-scores__empty">No further games listed.</p>
         )}
         <p className="byu-scores__links">
+          <Link href={teamHref(sport.key)}>Schedule and box scores</Link>
           {sport.liveStatsUrl ? (
             <a href={sport.liveStatsUrl} target="_blank" rel="noopener noreferrer">Live stats</a>
           ) : null}
           <a href={sport.scheduleUrl} target="_blank" rel="noopener noreferrer">
-            {sport.liveStatsUrl ? 'Full schedule' : 'Schedule on BYUCougars.com'}
+            BYUCougars.com
           </a>
         </p>
       </details>
@@ -176,7 +181,7 @@ function ScoresCard({ data }: { data: ScoresResponse }) {
 
 function LiveLine({ game, sport }: { game: ScoreGame; sport: SportKey }) {
   return (
-    <div className="byu-scores__live" role="status">
+    <Link href={gameHref(sport, game.id)} className="byu-scores__live" role="status">
       <div className="byu-scores__live-kicker">
         <span className="byu-scores__dot" aria-hidden="true" />
         Live · {formatLiveStatus(game, sport)}
@@ -186,31 +191,31 @@ function LiveLine({ game, sport }: { game: ScoreGame; sport: SportKey }) {
         <span>BYU {game.byuScore ?? '–'}</span>
         <span>{game.opponentAbbrev} {game.opponentScore ?? '–'}</span>
       </p>
-    </div>
+    </Link>
   );
 }
 
-function GameRow({ label, game, detail }: { label: string; game: ScoreGame; detail: string }) {
+function GameRow({ sport, label, game, detail }: { sport: SportKey; label: string; game: ScoreGame; detail: string }) {
   const mark = game.byuWinner === true ? 'is-win' : game.byuWinner === false ? 'is-loss' : '';
   return (
-    <div className="byu-scores__row">
+    <Link href={gameHref(sport, game.id)} className="byu-scores__row">
       <span className="byu-scores__label">{label}</span>
       <span className={`byu-scores__result ${mark}`}>{detail}</span>
       <span className="byu-scores__opp">{formatPlace(game)}</span>
-    </div>
+    </Link>
   );
 }
 
-function NextRow({ game }: { game: ScoreGame }) {
+function NextRow({ sport, game }: { sport: SportKey; game: ScoreGame }) {
   const when = formatDenver(game.start);
   return (
-    <div className="byu-scores__row byu-scores__row-next">
+    <Link href={gameHref(sport, game.id)} className="byu-scores__row byu-scores__row-next">
       <span className="byu-scores__label">Next</span>
       <span className="byu-scores__opp">{formatPlace(game)}</span>
       <span className="byu-scores__when">
         {when.date} · {when.time}
         {game.tv ? ` · ${game.tv}` : ''}
       </span>
-    </div>
+    </Link>
   );
 }

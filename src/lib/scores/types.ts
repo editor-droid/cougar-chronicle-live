@@ -38,6 +38,9 @@ export type SportScores = {
   scheduleUrl: string;
   /** Present only when a StatBroadcast URL was on the live event. */
   liveStatsUrl: string | null;
+  /** Full season list, oldest first. The widget still uses last/next/upcoming. */
+  games: ScoreGame[];
+  seasonYear: number | null;
 };
 
 export type ByuScoresPayload = {

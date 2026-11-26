@@ -2142,3 +2142,303 @@ body:has([data-link-hub-page]) .site-shell > main.container {
 @media (prefers-reduced-motion: reduce) {
   .byu-scores__dot { animation: none; }
 }
+
+a.byu-scores__live,
+a.byu-scores__row {
+  display: block;
+}
+
+a.byu-scores__live:hover {
+  color: #fff;
+}
+
+.byu-scores__list a {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.article-game-link {
+  margin: 0.75rem 0 0;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.article-game-link a {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+.sports-board,
+.game-page,
+.team-page {
+  margin-bottom: 2.5rem;
+}
+
+.sports-sport {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.sports-sport__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin-bottom: 0.6rem;
+}
+
+.sports-sport__head h2 {
+  margin: 0;
+  font-size: 1.7rem;
+}
+
+.sports-sport__head p,
+.sports-kicker,
+.sports-note,
+.game-page__status,
+.sports-games__kind {
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+.sports-sport__head p,
+.sports-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.sports-kicker {
+  margin: 0 0 0.25rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sports-live-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sports-live {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem 0.8rem;
+  background: var(--primary);
+  color: #fff;
+  border-radius: 0.4rem;
+  padding: 0.55rem 0.75rem;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.85rem;
+}
+
+.sports-live:hover {
+  color: #fff;
+}
+
+.sports-live strong {
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 1.05rem;
+}
+
+.sports-games {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sports-games a {
+  display: grid;
+  grid-template-columns: 5.5rem 1fr auto;
+  gap: 0.5rem 0.75rem;
+  align-items: baseline;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.sports-games__kind {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.sports-games .is-win { color: var(--primary); font-weight: 700; }
+.sports-games .is-loss,
+.sports-table .is-loss { color: #991b1b; font-weight: 700; }
+.sports-table .is-win { color: var(--primary); font-weight: 700; }
+
+.sports-crumb {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+  color: var(--muted);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.8rem;
+}
+
+.game-page__head h1,
+.team-page h1 {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 3.1rem);
+  line-height: 1.1;
+}
+
+.game-page__status {
+  margin: 0.55rem 0 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.game-page__status.is-live {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #991b1b;
+}
+
+.game-page__score {
+  margin: 0.35rem 0 0;
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  font-weight: 700;
+}
+
+.game-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.75rem 1rem;
+  margin: 1rem 0 0;
+}
+
+.game-facts div {
+  min-width: 0;
+}
+
+.game-facts dt {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.game-facts dd {
+  margin: 0.1rem 0 0;
+}
+
+.game-page__preview {
+  margin: 1rem 0 0;
+  max-width: 42rem;
+}
+
+.game-page section,
+.team-page section {
+  margin-top: 1.75rem;
+}
+
+.game-page h2,
+.team-page h2,
+.sports-stories h2 {
+  margin: 0 0 0.6rem;
+  font-size: 1.45rem;
+}
+
+.game-page h3 {
+  margin: 0.9rem 0 0.35rem;
+  font-size: 1.15rem;
+}
+
+.sports-table-wrap {
+  overflow-x: auto;
+  margin-top: 0.35rem;
+}
+
+.sports-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.sports-table caption {
+  caption-side: top;
+  text-align: left;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.35rem;
+}
+
+.sports-table th,
+.sports-table td {
+  padding: 0.35rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.sports-table--box td,
+.sports-table--box th {
+  font-variant-numeric: tabular-nums;
+}
+
+.sports-table tr.is-byu {
+  background: var(--surface-hover);
+  font-weight: 700;
+}
+
+.sports-leaders,
+.sports-stories ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sports-leaders li,
+.sports-stories li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.sports-leaders li span:first-child {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  min-width: 7rem;
+}
+
+.sports-stories a {
+  text-decoration: underline;
+}
+
+.sports-note {
+  margin-top: 1.25rem;
+}
+
+@media (max-width: 640px) {
+  .sports-games a {
+    grid-template-columns: 1fr;
+    gap: 0.1rem;
+  }
+}
