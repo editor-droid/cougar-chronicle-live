@@ -67,6 +67,7 @@ export default function SectionListingView({
   section,
   rail,
   lead,
+  footer,
 }: {
   slug: PublicSectionSlug;
   initial: SectionPageData;
@@ -74,6 +75,7 @@ export default function SectionListingView({
   section: SectionMeta;
   rail?: ReactNode;
   lead?: ReactNode;
+  footer?: ReactNode;
 }) {
   const [override, setOverride] = useState<SectionPageData | null>(null);
   const data = override ?? initial;
@@ -267,6 +269,8 @@ export default function SectionListingView({
           )}
         </nav>
       )}
+
+      {footer}
 
       <Suspense fallback={null}>
         <QuerySync slug={slug} initial={initial} onPage={setOverride} />

@@ -14,12 +14,8 @@ export default async function SportsSectionPage() {
     <SectionListing
       slug="sports"
       rail={<ByuScoresWidget />}
-      lead={(
-        <>
-          <SportsScoreboard />
-          <GameDayAlerts />
-        </>
-      )}
+      lead={<SportsScoreboard />}
+      footer={<GameDayAlerts />}
     />
   );
 }
