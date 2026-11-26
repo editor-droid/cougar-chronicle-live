@@ -6,6 +6,7 @@ import { runDeskReminders } from '@/lib/desk-reminders';
 import { wasPublishedBefore } from '@/lib/desk-plan';
 import { revalidateStorySurfaces } from '@/lib/revalidate-content';
 import { isCronAuthorized } from '@/lib/cron-auth';
+import { createFinalRecapDrafts } from '@/lib/scores/recap-run';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,10 +38,15 @@ export async function GET(request: Request) {
         console.error('Desk reminders failed during publish cron', error);
         return null;
       });
+      const recaps = await createFinalRecapDrafts(now.getTime()).catch((error) => {
+        console.error('Recap drafts failed during publish cron', error);
+        return null;
+      });
       return NextResponse.json({
         success: true,
         message: 'No posts to publish at this time.',
         desk,
+        recaps,
       });
     }
 
@@ -76,10 +82,16 @@ export async function GET(request: Request) {
       console.error('Desk reminders failed after publish cron', error);
     }
 
+    const recaps = await createFinalRecapDrafts(now.getTime()).catch((error) => {
+      console.error('Recap drafts failed after publish cron', error);
+      return null;
+    });
+
     return NextResponse.json({ 
       success: true, 
       message: `Successfully published ${publishedCount} scheduled post(s).`,
       desk,
+      recaps,
     });
   } catch (error) {
     console.error('Failed to run scheduled publish cron:', error);

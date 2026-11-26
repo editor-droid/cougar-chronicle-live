@@ -4,7 +4,14 @@ export type StoryRef = {
   id: string;
   title: string;
   publishedAt: string | null;
+  /** Editor-selected ESPN event. When set, it wins over title and date matching. */
+  espnEventId?: string | null;
 };
+
+export function chosenEventId(story: StoryRef): string | null {
+  const id = story.espnEventId?.trim();
+  return id ? id : null;
+}
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const REJECT_NEXT = new Set(['state', 'st', 'st.', 'tech', 'valley', 'a&m']);
@@ -51,8 +58,10 @@ function daysApart(story: StoryRef, game: ScoreGame): number | null {
   return Math.abs(published - start) / DAY_MS;
 }
 
-/** Opponent in the title, and within 16 days when the story has a date. */
+/** Editor selection wins. Otherwise the opponent must be in the title, within 16 days when dated. */
 export function storyMatchesGame(story: StoryRef, game: ScoreGame): boolean {
+  const chosen = chosenEventId(story);
+  if (chosen) return chosen === game.id;
   if (!mentionsOpponent(story.title, game.opponent)) return false;
   const days = daysApart(story, game);
   return days == null || days <= 16;
@@ -87,10 +96,12 @@ export function listGames(payload: ByuScoresPayload): ListedGame[] {
 }
 
 /**
- * Automatic story-to-game match. An editor-selected event id, when present,
- * wins over this and is applied by the caller.
+ * Editor-selected event id wins, including when the title names a different opponent.
+ * Automatic matching runs only when the editor left the game unset.
  */
 export function findGameForStory(story: StoryRef, games: ListedGame[]): ListedGame | null {
+  const chosen = chosenEventId(story);
+  if (chosen) return games.find((item) => item.game.id === chosen) ?? null;
   const hits = games.filter((item) => storyMatchesGame(story, item.game));
   if (hits.length === 0) return null;
   const sportHits = hits.filter((item) => titleMentionsSport(story.title, item.sport));

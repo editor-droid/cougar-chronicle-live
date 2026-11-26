@@ -15,9 +15,11 @@ import type { ByuScoresPayload } from '@/lib/scores/types';
 export default function ArticleGameLink({
   title,
   publishedAt,
+  espnEventId = null,
 }: {
   title: string;
   publishedAt: string | null;
+  espnEventId?: string | null;
 }) {
   const [href, setHref] = useState<string | null>(null);
   const [label, setLabel] = useState<string | null>(null);
@@ -28,7 +30,10 @@ export default function ArticleGameLink({
       .then((response) => (response.ok ? response.json() : null))
       .then((json: (ByuScoresPayload & { show?: boolean }) | null) => {
         if (cancelled || !json || json.show === false) return;
-        const hit = findGameForStory({ id: 'article', title, publishedAt }, listGames(json));
+        const hit = findGameForStory(
+          { id: 'article', title, publishedAt, espnEventId },
+          listGames(json),
+        );
         if (!hit) return;
         setHref(gameHref(hit.sport, hit.game.id));
         setLabel(`${matchupPhrase(hit.game)}, ${formatSeoDate(hit.game.start)}`);
@@ -37,7 +42,7 @@ export default function ArticleGameLink({
     return () => {
       cancelled = true;
     };
-  }, [title, publishedAt]);
+  }, [title, publishedAt, espnEventId]);
 
   if (!href || !label) return null;
   return (

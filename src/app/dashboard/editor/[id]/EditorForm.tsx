@@ -99,6 +99,7 @@ export default function EditorForm({
   customAuthorsList = [],
   printEditions = [],
   isNew = false,
+  gameOptions = [],
 }: {
   post: any;
   authorId: string;
@@ -107,6 +108,7 @@ export default function EditorForm({
   customAuthorsList?: string[];
   printEditions?: PrintEditionOption[];
   isNew?: boolean;
+  gameOptions?: { id: string; label: string }[];
 }) {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -148,6 +150,7 @@ export default function EditorForm({
   const [isAmerica250, setIsAmerica250] = useState(post?.isAmerica250 || false);
   const [isBreaking, setIsBreaking] = useState(post?.isBreaking || false);
   const [breakingHours, setBreakingHours] = useState<number | ''>(24);
+  const [espnEventId, setEspnEventId] = useState(post?.espnEventId || '');
   const [publishedAt, setPublishedAt] = useState(() => {
     if (post?.publishedAt) {
       const d = new Date(post.publishedAt);
@@ -193,6 +196,7 @@ export default function EditorForm({
     setPrintEditionId(next.printEditionId);
     setPrintEditionOrder(next.printEditionOrder);
     setImageCaption(next.imageCaption);
+    if (next.espnEventId !== undefined) setEspnEventId(next.espnEventId || '');
     setChecklist({ ...DEFAULT_CHECKLIST, ...next.editorChecklist });
     setPublishedAt(next.publishedAt);
     setFocusKeyword((next.seoKeywords || '').split(',')[0] || '');
@@ -223,6 +227,7 @@ export default function EditorForm({
     imageCaption,
     editorChecklist: checklist,
     publishedAt,
+    espnEventId,
   };
   const autosave = useEditorAutosave({
     postId: post?.id,
@@ -454,6 +459,7 @@ export default function EditorForm({
     imageCaption,
     editorChecklist: checklist,
     publishedAt: stamp,
+    espnEventId: espnEventId || null,
   });
 
   const handleSaveData = async (newState?: string) => {
@@ -966,6 +972,25 @@ export default function EditorForm({
                         This post still has category &quot;{category || 'unset'}&quot;. Pick Campus, Politics, Family, Faith, or Sports before saving.
                       </p>
                     )}
+                  </div>
+                  <div className={styles.inputGroup}>
+                    <label className={styles.inputLabel}>Game</label>
+                    <select
+                      value={espnEventId}
+                      onChange={(e) => setEspnEventId(e.target.value)}
+                      className={styles.textInput}
+                    >
+                      <option value="">Match automatically</option>
+                      {espnEventId && !gameOptions.some((game) => game.id === espnEventId) ? (
+                        <option value={espnEventId}>Linked game {espnEventId}</option>
+                      ) : null}
+                      {gameOptions.map((game) => (
+                        <option key={game.id} value={game.id}>{game.label}</option>
+                      ))}
+                    </select>
+                    <p className={styles.panelHint} style={{ marginTop: '0.35rem' }}>
+                      Recent and upcoming BYU games. Leave this on automatic to match by publish date and opponent. A choice here wins.
+                    </p>
                   </div>
                   <div className={styles.inputGroup}>
                     <label className={styles.inputLabel}>Format (News / Opinion) *</label>

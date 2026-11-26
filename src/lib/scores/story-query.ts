@@ -14,6 +14,7 @@ type StoryRow = {
   publishedAt: Date | null;
   isPremium: boolean;
   printEditionId: string | null;
+  espnEventId: string | null;
 };
 
 function toStory(post: StoryRow): LinkedStory {
@@ -21,6 +22,7 @@ function toStory(post: StoryRow): LinkedStory {
     id: post.id,
     title: post.title,
     publishedAt: post.publishedAt ? post.publishedAt.toISOString() : null,
+    espnEventId: post.espnEventId,
     href: getArticleUrl(post),
   };
 }
@@ -32,6 +34,7 @@ const storySelect = {
   publishedAt: true,
   isPremium: true,
   printEditionId: true,
+  espnEventId: true,
 } as const;
 
 export async function linkedStories(game: ScoreGame): Promise<LinkedStory[]> {
@@ -42,10 +45,15 @@ export async function linkedStories(game: ScoreGame): Promise<LinkedStory[]> {
     const posts = await prisma.post.findMany({
       where: {
         state: 'PUBLISHED',
-        category: 'sports',
         OR: [
-          { title: { contains: game.opponent, mode: 'insensitive' } },
-          ...(from && to ? [{ publishedAt: { gte: from, lte: to } }] : []),
+          { espnEventId: game.id },
+          {
+            category: 'sports',
+            OR: [
+              { title: { contains: game.opponent, mode: 'insensitive' } },
+              ...(from && to ? [{ publishedAt: { gte: from, lte: to } }] : []),
+            ],
+          },
         ],
       },
       select: storySelect,

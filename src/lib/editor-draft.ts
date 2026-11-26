@@ -29,6 +29,8 @@ export type EditorDraft = {
   imageCaption: string;
   editorChecklist: EditorChecklist;
   publishedAt: string;
+  /** ESPN event id, or empty when the story should match a game automatically. */
+  espnEventId?: string;
 };
 
 export type LocalEditorCopy = {
@@ -75,6 +77,7 @@ export function draftsEqual(a: EditorDraft, b: EditorDraft): boolean {
     a.printEditionOrder === b.printEditionOrder &&
     a.imageCaption === b.imageCaption &&
     a.publishedAt === b.publishedAt &&
+    (a.espnEventId || '') === (b.espnEventId || '') &&
     checklistEqual(a.editorChecklist, b.editorChecklist)
   );
 }

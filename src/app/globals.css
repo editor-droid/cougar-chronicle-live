@@ -2442,3 +2442,37 @@ a.byu-scores__live:hover {
     gap: 0.1rem;
   }
 }
+
+.live-score-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+  padding: 0.35rem 0.75rem;
+  background: var(--primary);
+  color: #fff;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.live-score-bar:hover {
+  color: #fff;
+}
+
+.sports-desk-list {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+}
+
+.sports-desk-list li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.35rem 1rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.9rem;
+}

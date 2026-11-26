@@ -172,6 +172,7 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
               <ArticleGameLink
                 title={post.title}
                 publishedAt={post.publishedAt ? new Date(post.publishedAt).toISOString() : null}
+                espnEventId={post.espnEventId}
               />
             ) : null}
             

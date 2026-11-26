@@ -7,6 +7,7 @@ import MostReadList from '@/components/MostReadList';
 import PrintCheckoutButtons from '@/app/print-edition/PrintCheckoutButtons';
 import VideoHighlights from '@/components/VideoHighlights';
 import ByuScoresWidget from '@/components/ByuScoresWidget';
+import LiveScoreBar from '@/components/sports/LiveScoreBar';
 import { resolveStreamEmbedUrl, resolveStreamThumbnailUrl } from '@/lib/videos';
 import type { Metadata } from 'next';
 
@@ -123,6 +124,7 @@ export default async function Home() {
 
   return (
     <div className="home-layout-dense animate-fade-in">
+      <LiveScoreBar />
       
       {/* 1. TOP NEWS HEADER BLOCK (National Review / Daily Wire Style Hero) */}
       <section className="hero-section" style={{ marginBottom: '2.5rem' }}>
